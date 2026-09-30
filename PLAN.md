@@ -166,7 +166,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [x] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
 - [x] 8. Build de production testé
 - [x] 9. Lint
-- [ ] 10. Découpage des gros fichiers (container, project-store, composants UI)
+- [x] 10. Découpage des gros fichiers (container, project-store, composants UI)
 - [x] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
 - [x] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
 - [x] 13. Créneau qui traverse minuit dans le planning

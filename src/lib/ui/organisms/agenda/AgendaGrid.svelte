@@ -6,7 +6,7 @@
 	import NowLine from './NowLine.svelte';
 	import { AgendaDrag } from './drag.svelte';
 	import { draftIn } from './drag-preview';
-	import { pointerAt } from './geometry';
+	import { hoverAt, pointerAt } from './geometry';
 	import type { AgendaGridProps, AgendaItem } from './types';
 
 	let {
@@ -29,19 +29,12 @@
 	);
 	const scrollToMorning = (node: HTMLElement) => void (node.scrollTop = 7.5 * hourHeight);
 	let hover = $state<{ item: AgendaItem; x: number; y: number } | null>(null);
-	function track(event: PointerEvent) {
-		const id = (event.target as HTMLElement)
-			.closest('[data-agenda-item]')
-			?.getAttribute('data-agenda-item');
-		const item = !drag.draft && event.pointerType !== 'touch' && items.find((i) => i.id === id);
-		hover = item ? { item, x: event.clientX, y: event.clientY } : null;
-	}
 </script>
 
 <div
 	class="h-full overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface"
 	{@attach scrollToMorning}
-	onpointermove={track}
+	onpointermove={(event) => (hover = hoverAt(event, items, !!drag.draft))}
 	onpointerleave={() => (hover = null)}
 	role="presentation"
 >

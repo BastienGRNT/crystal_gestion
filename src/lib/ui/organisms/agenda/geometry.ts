@@ -46,3 +46,12 @@ export const rangeLabel = (
 	item: Pick<AgendaItem, 'start' | 'end' | 'clippedStart' | 'clippedEnd'>,
 	clock: (m: number) => string
 ) => `${item.clippedStart ? '…' : clock(item.start)}–${item.clippedEnd ? '…' : clock(item.end)}`;
+
+/** The item under a mouse pointer, for the hover card (none while dragging or on touch). */
+export function hoverAt(event: PointerEvent, items: AgendaItem[], dragging: boolean) {
+	const target = (event.target as HTMLElement).closest('[data-agenda-item]');
+	const id = target?.getAttribute('data-agenda-item');
+	const item =
+		!dragging && event.pointerType !== 'touch' ? items.find((i) => i.id === id) : undefined;
+	return item ? { item, x: event.clientX, y: event.clientY } : null;
+}
