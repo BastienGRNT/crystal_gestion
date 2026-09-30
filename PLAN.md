@@ -170,7 +170,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [x] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
 - [x] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
 - [x] 13. Créneau qui traverse minuit dans le planning
-- [ ] 14. Aperçus PDF et vidéo vérifiés
+- [x] 14. Aperçus PDF et vidéo vérifiés
 - [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
 
 ### Décisions itération 2
@@ -195,3 +195,5 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
   suivante prolonge au lendemain (24 h max). L'élément est dessiné en deux morceaux, « … » marque la coupure.
 - Prod : `server.js` fixe `ORIGIN` à `http://localhost:$PORT` si absent (sinon SvelteKit refuse les formulaires en 403) ;
   à définir dans `.env` derrière un vrai domaine.
+- Aperçus : PDF (iframe, lecteur du navigateur) et vidéo vérifiés ; le téléchargement gère `Range` (206) pour que la
+  vidéo puisse avancer et se lire sur Safari.
