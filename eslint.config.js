@@ -42,7 +42,9 @@ export default defineConfig(
 			],
 			'@typescript-eslint/no-explicit-any': 'error',
 			// No base path in this app: plain hrefs are fine.
-			'svelte/no-navigation-without-resolve': 'off'
+			'svelte/no-navigation-without-resolve': 'off',
+			// Maps built inside $derived are rebuilt, never mutated: plain Map is the right tool.
+			'svelte/prefer-svelte-reactivity': 'off'
 		}
 	}
 );

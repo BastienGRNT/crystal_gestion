@@ -13,6 +13,7 @@ export const drizzleElementRepository = (db: Executor): ElementRepository => ({
 				kind: elements.kind,
 				title: elements.title,
 				status: elements.status,
+				createdBy: elements.createdBy,
 				createdAt: elements.createdAt
 			})
 			.from(elements)

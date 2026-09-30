@@ -25,6 +25,7 @@ export interface ElementBase {
 
 export interface ElementSummary extends ElementBase {
 	status: string | null;
+	createdBy: string | null;
 	createdAt: string;
 }
 

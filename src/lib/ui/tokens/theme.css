@@ -1,0 +1,51 @@
+/* Design tokens: every color, radius and font of the app comes from here. */
+:root {
+	--bg: #f4f1ea;
+	--bg-sidebar: #ebe7de;
+	--surface: #ffffff;
+	--surface-2: #faf8f4;
+	--sunken: #efebe3;
+	--ink: #16151b;
+	--ink-2: #4a4852;
+	--ink-3: #8b8894;
+	--line: #e2ddd3;
+	--line-strong: #cfc9bd;
+	--accent: #3d2bff;
+	--accent-ink: #ffffff;
+	--accent-soft: #e7e4ff;
+	--must: #e0452b;
+	--should: #d98a0b;
+	--could: #0f9b8e;
+	--wont: #7c7a86;
+	--danger: #d92d20;
+	--success: #16935b;
+	--warning: #c77c02;
+	--shadow-pop: 0 1px 2px rgb(22 21 27 / 0.06), 0 12px 32px -8px rgb(22 21 27 / 0.18);
+	--prism: conic-gradient(from 210deg, #3d2bff, #c13bff, #ff4d6d, #ffb020, #1fc7b6, #3d2bff);
+	color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+	--bg: #0d0d12;
+	--bg-sidebar: #09090d;
+	--surface: #15151c;
+	--surface-2: #1b1b24;
+	--sunken: #111118;
+	--ink: #ece8df;
+	--ink-2: #b3afbd;
+	--ink-3: #75727f;
+	--line: #25252f;
+	--line-strong: #34343f;
+	--accent: #9d8cff;
+	--accent-ink: #0d0d12;
+	--accent-soft: #221f3d;
+	--must: #ff6b4f;
+	--should: #f2b33d;
+	--could: #3fd0bf;
+	--wont: #8b8995;
+	--danger: #ff6159;
+	--success: #3fcf8e;
+	--warning: #f2b33d;
+	--shadow-pop: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+	color-scheme: dark;
+}

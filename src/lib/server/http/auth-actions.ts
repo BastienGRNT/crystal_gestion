@@ -11,7 +11,10 @@ export async function signIn(cookies: Cookies, userId: string) {
 }
 
 /** Runs an auth form step, turning domain errors into form feedback and success into a redirect. */
-export async function authStep(run: () => Promise<string>, values: Record<string, string> = {}) {
+export async function authStep<V extends Record<string, string>>(
+	run: () => Promise<string>,
+	values: V
+) {
 	let target: string;
 	try {
 		target = await run();
