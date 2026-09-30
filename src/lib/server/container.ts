@@ -49,9 +49,10 @@ import {
 import { createTasksModule } from '$lib/modules/tasks';
 import { drizzleTaskRepository } from '$lib/modules/tasks/infrastructure/task-repository';
 import { createTimeModule } from '$lib/modules/time';
+import { drizzleRunningTimerQuery } from '$lib/modules/time/infrastructure/running-timer-query';
 import { drizzleTimeEntryRepository } from '$lib/modules/time/infrastructure/time-entry-repository';
 import { db } from './db';
-import { hubChangeFeed } from './realtime/change-feed';
+import { hubChangeFeed, hubTimerFeed } from './realtime/change-feed';
 import { hub } from './realtime/hub';
 
 /** Composition root: the only place where concrete adapters meet use cases. */
@@ -103,7 +104,13 @@ export function createContainer() {
 				new Date((await projectRepository.findById(id))?.createdAt ?? 0)
 		}
 	});
-	const time = createTimeModule({ entries: drizzleTimeEntryRepository(db), feed, clock });
+	const time = createTimeModule({
+		entries: drizzleTimeEntryRepository(db),
+		running: drizzleRunningTimerQuery(db),
+		timerFeed: hubTimerFeed(hub),
+		feed,
+		clock
+	});
 	const tasks = createTasksModule({
 		...shared,
 		tasks: drizzleTaskRepository(db),

@@ -4,7 +4,7 @@ import type { TimeEntryChanges, TimeEntryRepository } from '../application/ports
 import type { TimeEntry } from '../domain/time-entry';
 import { timeEntries } from './schema';
 
-const toEntry = (row: typeof timeEntries.$inferSelect): TimeEntry => ({
+export const toEntry = (row: typeof timeEntries.$inferSelect): TimeEntry => ({
 	...row,
 	startedAt: row.startedAt.toISOString(),
 	endedAt: isoOrNull(row.endedAt)

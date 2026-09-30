@@ -25,7 +25,8 @@ export async function loadProjectSnapshot(c: Container, project: Project, userId
 		activity,
 		questions,
 		notifications,
-		aiNotes
+		aiNotes,
+		timer
 	] = await Promise.all([
 		c.resources.accounts.list(id),
 		c.resources.links.list(id),
@@ -36,7 +37,8 @@ export async function loadProjectSnapshot(c: Container, project: Project, userId
 		c.activity.listRecent(id),
 		c.discussion.openQuestions(id),
 		c.notifications.list(userId, id),
-		c.ai.notes.list(id)
+		c.ai.notes.list(id),
+		c.time.runningFor(userId)
 	]);
 	return {
 		project,
@@ -57,6 +59,7 @@ export async function loadProjectSnapshot(c: Container, project: Project, userId
 		questions,
 		notifications,
 		aiNotes,
+		timer,
 		online: c.presence(id)
 	};
 }

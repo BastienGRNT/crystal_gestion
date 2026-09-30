@@ -1,24 +1,25 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { useProject } from '$lib/client/context';
-	import { isRunning } from '$lib/modules/time/domain/time-entry';
 	import RunningTimer from '$lib/ui/organisms/RunningTimer.svelte';
 
-	const { store, actions, me, peek } = useProject();
-	const entry = $derived(
-		store.timeEntries.items.find(
-			(e) => e.userId === me.id && isRunning(e) && e.projectId === store.project.id
-		)
+	const { store, actions, peek } = useProject();
+	const timer = $derived(store.timer);
+	const here = $derived(timer?.entry.projectId === store.project.id);
+	const task = $derived(
+		here && timer?.entry.taskId ? store.tasks.get(timer.entry.taskId) : undefined
 	);
-	const task = $derived(entry?.taskId ? store.tasks.get(entry.taskId) : undefined);
+	const open = (ref: string, slug: string) => (here ? peek(ref) : goto(`/p/${slug}?peek=${ref}`));
 </script>
 
-{#if entry && task}
+{#if timer}
 	<RunningTimer
-		taskRef={task.ref}
-		taskTitle={task.title}
-		startedAt={entry.startedAt}
-		onopen={() => peek(task.ref)}
-		onpause={() => actions.tasks.pause()}
-		onfinish={() => actions.tasks.finish(task.id)}
+		taskRef={timer.task.ref}
+		taskTitle={task?.title ?? timer.task.title}
+		startedAt={timer.entry.startedAt}
+		projectName={here ? null : timer.project.name}
+		onopen={() => open(timer.task.ref, timer.project.slug)}
+		onstop={() => actions.tasks.stopTimer()}
+		onfinish={task ? () => actions.tasks.finish(task.id) : undefined}
 	/>
 {/if}

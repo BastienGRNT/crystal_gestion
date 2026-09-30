@@ -8,8 +8,8 @@ type MoveTask = ReturnType<typeof makeMoveTask>;
 export const makeStartTask =
 	(deps: TaskDeps, moveTask: MoveTask) => async (actor: Actor, target: TaskTarget) => {
 		const task = await moveTask(actor, { ...target, status: 'in_progress' });
-		await deps.timer.start(target.projectId, actor.id, target.id);
-		return task;
+		const timer = await deps.timer.start(target.projectId, actor.id, target.id);
+		return { task, timer };
 	};
 
 export const makePauseTask = (deps: TaskDeps) => async (actor: Actor) =>

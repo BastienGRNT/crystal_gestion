@@ -24,6 +24,10 @@ export const durationMinutes = (entry: TimeEntry, now: Date) =>
 		)
 	);
 
+/** A timer stopped within a minute was a misclick: recording it would only clutter the planning. */
+export const isTooShort = (entry: TimeEntry, endedAt: string) =>
+	Date.parse(endedAt) - Date.parse(entry.startedAt) < 60_000;
+
 export function assertValidRange(startedAt: string, endedAt: string) {
 	if (Date.parse(endedAt) <= Date.parse(startedAt))
 		throw invalid('La fin doit être après le début');

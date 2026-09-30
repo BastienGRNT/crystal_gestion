@@ -127,7 +127,7 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 
 Reprendre au premier point non coché. Décisions prises en route : voir « Décisions itération 2 » ci-dessous.
 
-- [ ] 1. Chrono : bug corrigé, un seul actif, survit au refresh, visible partout, temps réel, bloc de planning, tests
+- [x] 1. Chrono : bug corrigé, un seul actif, survit au refresh, visible partout, temps réel, bloc de planning, tests
 - [ ] 2. Chasse aux bugs (parcours Playwright de toutes les pages)
 - [ ] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
 - [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
@@ -144,3 +144,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
 
 ### Décisions itération 2
+- Chrono : cause = le client supprimait son brouillon dès la réponse HTTP en comptant sur l'écho WebSocket ; sans écho
+  (socket en reconnexion, HMR…) le chrono disparaissait. `tasks.start` renvoie maintenant le `RunningTimer`, source de vérité.
+- Chrono visible dans tous les projets (événement `timer` envoyé à l'utilisateur, `snapshot.timer`). Un chrono arrêté en
+  moins d'une minute n'est pas enregistré (clic par erreur, sinon le planning se remplit de miettes).

@@ -28,17 +28,20 @@ export function taskActions(store: ProjectStore, meId: string) {
 		updatedAt: now(),
 		...input
 	});
+	const timer = timerActions(store, meId);
 	const move = (id: string, status: TaskStatus, position?: number) =>
 		optimistic(
 			() =>
-				store.tasks.patch(id, {
-					status,
-					...(position === undefined ? {} : { position }),
-					completedAt: status === 'done' ? now() : null
-				}),
+				combine(
+					store.tasks.patch(id, {
+						status,
+						...(position === undefined ? {} : { position }),
+						completedAt: status === 'done' ? now() : null
+					}),
+					status === 'done' ? timer.stopLocally(id) : () => {}
+				),
 			() => send('tasks.move', { projectId: projectId(), id, status, position })
 		);
-	const timer = timerActions(store, meId);
 	return {
 		create: (input: NewTask) =>
 			createOptimistically(store, 'task', draft(input), () =>
@@ -52,23 +55,22 @@ export function taskActions(store: ProjectStore, meId: string) {
 		move,
 		remove: (id: string) =>
 			optimistic(
-				() => store.tasks.remove(id),
+				() => combine(store.tasks.remove(id), timer.stopLocally(id)),
 				() => send('tasks.delete', { projectId: projectId(), id })
 			),
 		start: async (id: string) => {
 			const apply = () =>
 				combine(store.tasks.patch(id, { status: 'in_progress' }), timer.startLocally(id));
-			await optimistic(apply, () => send('tasks.start', { projectId: projectId(), id }));
-			timer.dropDrafts();
+			const started = await optimistic(apply, () =>
+				send('tasks.start', { projectId: projectId(), id })
+			);
+			if (started) timer.confirm(started.timer);
 		},
-		pause: () =>
+		stopTimer: () =>
 			optimistic(
 				() => timer.stopLocally(),
 				() => send('tasks.pause', {})
 			),
-		finish: (id: string) => {
-			timer.stopLocally();
-			return move(id, 'done');
-		}
+		finish: (id: string) => move(id, 'done')
 	};
 }

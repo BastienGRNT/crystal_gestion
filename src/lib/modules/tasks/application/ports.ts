@@ -1,3 +1,4 @@
+import type { RunningTimer } from '$lib/modules/time/domain/running-timer';
 import type { Task, TaskFields, TaskStatus } from '../domain/task';
 
 export interface NewTask extends TaskFields {
@@ -20,7 +21,7 @@ export interface TaskRepository {
 
 /** Implemented by the time module: a started task runs a timer for its owner. */
 export interface TaskTimer {
-	start(projectId: string, userId: string, taskId: string): Promise<void>;
+	start(projectId: string, userId: string, taskId: string): Promise<RunningTimer | null>;
 	stopForUser(userId: string): Promise<void>;
 	stopForTask(taskId: string): Promise<void>;
 }

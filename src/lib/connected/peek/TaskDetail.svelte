@@ -43,7 +43,7 @@
 				size="sm"
 				onclick={() => actions.tasks.start(task.id)}><Play size={13} /> Lancer</Button
 			>{/if}
-		{#if running}<Button size="sm" onclick={() => actions.tasks.pause()}>Mettre en pause</Button
+		{#if running}<Button size="sm" onclick={() => actions.tasks.stopTimer()}>Arrêter le chrono</Button
 			>{/if}
 		<Button
 			variant="ghost"

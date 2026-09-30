@@ -2,6 +2,7 @@ import type { ElementSummary } from '$lib/modules/kernel/domain/element';
 import type { EntityName, ServerEvent } from '$lib/modules/kernel/domain/realtime';
 import type { Message } from '$lib/modules/discussion/domain/message';
 import type { Notification } from '$lib/modules/notifications/domain/notification';
+import type { RunningTimer } from '$lib/modules/time/domain/running-timer';
 import type { ProjectSnapshot } from '$lib/server/snapshot';
 import { LiveCollection } from './live/collection.svelte';
 import { toSummary, withoutElement, withSource } from './live/element-index';
@@ -13,6 +14,8 @@ const live = <K extends keyof ProjectSnapshot>() => new LiveCollection<Item<K> &
 export class ProjectStore {
 	project = $state() as ProjectSnapshot['project'];
 	online = $state<string[]>([]);
+	/** My running timer, possibly in another project. */
+	timer = $state<RunningTimer | null>(null);
 	references = $state<ProjectSnapshot['references']>([]);
 	members = live<'members'>();
 	features = live<'features'>();
@@ -43,6 +46,7 @@ export class ProjectStore {
 	reset(s: ProjectSnapshot) {
 		this.project = s.project;
 		this.online = s.online;
+		this.timer = s.timer;
 		this.references = s.references;
 		this.members.reset(s.members);
 		this.features.reset(s.features);
@@ -65,6 +69,7 @@ export class ProjectStore {
 	apply(event: ServerEvent) {
 		if (event.type === 'presence') this.online = event.userIds;
 		else if (event.type === 'notification') this.receive(event.data as Notification);
+		else if (event.type === 'timer') this.timer = event.data as RunningTimer | null;
 		else if (event.type === 'upsert') this.upsert(event.entity, event.data);
 		else this.remove(event.entity, event.id);
 	}

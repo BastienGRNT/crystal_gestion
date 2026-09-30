@@ -1,3 +1,4 @@
+import type { RunningTimer } from '../domain/running-timer';
 import type { TimeEntry } from '../domain/time-entry';
 
 export type NewTimeEntry = Omit<TimeEntry, 'id'>;
@@ -11,4 +12,13 @@ export interface TimeEntryRepository {
 	runningForUser(userId: string): Promise<TimeEntry[]>;
 	runningForTask(taskId: string): Promise<TimeEntry[]>;
 	list(projectId: string): Promise<TimeEntry[]>;
+}
+
+export interface RunningTimerQuery {
+	forUser(userId: string): Promise<RunningTimer | null>;
+}
+
+/** Pushes a person's timer to all their open tabs, whatever project they are looking at. */
+export interface TimerFeed {
+	changed(userId: string, timer: RunningTimer | null): void;
 }
