@@ -1,6 +1,7 @@
 import { BookOpen, Lightbulb, Plus, SunMoon } from '@lucide/svelte';
 import type { ElementSummary } from '$lib/modules/kernel/domain/element';
 import type { PaletteGroup, PaletteItem } from '$lib/ui/types';
+import { DESTINATIONS, matchesWords } from './destinations';
 import { NAVIGATION } from './navigation';
 import { KIND_META } from './refs/kinds';
 import { searchElements } from './refs/search';
@@ -13,8 +14,6 @@ export interface PaletteIntents {
 	navigate: (path: string) => void;
 	toggleTheme: () => void;
 }
-
-const matches = (label: string, query: string) => label.toLowerCase().includes(query.toLowerCase());
 
 function createItems(query: string, intents: PaletteIntents): PaletteItem[] {
 	if (!query) return [];
@@ -41,6 +40,22 @@ function createItems(query: string, intents: PaletteIntents): PaletteItem[] {
 }
 
 /** Everything Cmd+K can do for a query: create, jump to an element, go to a page, act. */
+const pageItems = (query: string, intents: PaletteIntents): PaletteItem[] =>
+	NAVIGATION.filter((item) => matchesWords(query, item.label, item.hint)).map((item) => ({
+		...{ id: item.key, label: item.label, detail: item.hint, icon: item.icon },
+		hint: item.shortcut.toUpperCase(),
+		run: () => intents.navigate(item.path)
+	}));
+
+const destinationItems = (query: string, intents: PaletteIntents): PaletteItem[] =>
+	query
+		? DESTINATIONS.filter((d) => matchesWords(query, d.label, d.keywords)).map((d) => ({
+				...{ id: d.id, label: d.label, icon: d.icon },
+				run: () => intents.navigate(d.path)
+			}))
+		: [];
+
+/** Everything Cmd+K can do for a query: jump to an element, a key piece of info or a page, act, create. */
 export function paletteGroups(
 	query: string,
 	elements: ElementSummary[],
@@ -51,33 +66,21 @@ export function paletteGroups(
 		query,
 		query ? 8 : 5
 	);
+	const actions = [
+		{ id: 'theme', label: 'Changer de thème', icon: SunMoon, run: intents.toggleTheme }
+	];
 	return [
 		{
-			label: 'Éléments',
+			label: query ? 'Éléments' : 'Récents',
 			items: found.map((element) => ({
-				id: element.id,
-				label: element.title,
-				hint: element.ref,
+				...{ id: element.id, label: element.title, hint: element.ref },
 				icon: KIND_META[element.kind].icon,
 				run: () => intents.open(element)
 			}))
 		},
-		{
-			label: 'Aller à',
-			items: NAVIGATION.filter((item) => matches(item.label, query)).map((item) => ({
-				id: item.key,
-				label: item.label,
-				icon: item.icon,
-				hint: item.shortcut.toUpperCase(),
-				run: () => intents.navigate(item.path)
-			}))
-		},
-		{
-			label: 'Actions',
-			items: [
-				{ id: 'theme', label: 'Changer de thème', icon: SunMoon, run: intents.toggleTheme }
-			].filter((item) => matches(item.label, query))
-		},
+		{ label: 'Infos clés', items: destinationItems(query, intents) },
+		{ label: 'Pages', items: pageItems(query, intents) },
+		{ label: 'Actions', items: actions.filter((item) => matchesWords(query, item.label)) },
 		// Last: Enter must open what the search found, creating is the fallback.
 		{ label: 'Créer', items: createItems(query, intents) }
 	];

@@ -22,6 +22,8 @@ export interface Suggestion {
 export interface PaletteItem {
 	id: string;
 	label: string;
+	/** Second line: what the page is for. */
+	detail?: string;
 	hint?: string;
 	icon?: Component<{ size?: number }>;
 	run: () => void;

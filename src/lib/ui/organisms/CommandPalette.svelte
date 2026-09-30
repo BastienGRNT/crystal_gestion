@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Search } from '@lucide/svelte';
 	import Kbd from '../atoms/Kbd.svelte';
+	import PaletteRow from '../molecules/PaletteRow.svelte';
 	import type { PaletteGroup, PaletteItem } from '../types';
 
 	interface Props {
@@ -57,7 +58,7 @@
 				bind:value={query}
 				{onkeydown}
 				autofocus
-				placeholder="Chercher un élément, une page, une action…"
+				placeholder="Chercher une tâche, une info (mot de passe, objectif…), une page…"
 				class="h-13 flex-1 bg-transparent text-lg outline-none placeholder:text-ink-3"
 			/>
 			<Kbd>Esc</Kbd>
@@ -69,22 +70,16 @@
 				</p>
 				{#each group.items as item (item.id)}
 					{@const index = flat.indexOf(item)}
-					<button
-						class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-base {index ===
-						highlighted
-							? 'bg-sunken text-ink'
-							: 'text-ink-2'}"
-						onmousemove={() => (highlighted = index)}
-						onclick={() => run(item)}
-					>
-						{#if item.icon}<item.icon size={15} />{/if}
-						<span class="flex-1 truncate">{item.label}</span>
-						{#if item.hint}<span class="font-mono text-2xs text-ink-3">{item.hint}</span>{/if}
-					</button>
+					<PaletteRow
+						{item}
+						highlighted={index === highlighted}
+						onhover={() => (highlighted = index)}
+						onrun={() => run(item)}
+					/>
 				{/each}
 			{:else}
 				<p class="px-3 py-6 text-center text-ink-3">
-					Rien ne correspond. Essaie un titre ou une référence comme T-12.
+					Rien ne correspond. Essaie un titre, une référence comme T-12, ou un mot comme « dispo ».
 				</p>
 			{/each}
 		</div>
