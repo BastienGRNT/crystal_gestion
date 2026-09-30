@@ -102,7 +102,7 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 | Sujet                               | Décision                                                                                                                                                           | Pourquoi                                                                              |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
 | Portée de « Aujourd'hui »           | Par projet ; `/` redirige vers le dernier projet                                                                                                                   | Side projects = un projet à la fois ; requêtes et temps réel simples                  |
-| Premier compte                      | Page `/setup` accessible seulement si aucun utilisateur                                                                                                            | Pas d'inscription publique                                                            |
+| Inscription                         | `/register` : coller un lien d'invitation, ou code d'accès `REGISTRATION_CODE` (vide = fermé) ; `/setup` pour le tout premier compte                               | Pas d'inscription publique                                                            |
 | Invitation                          | Lien à usage unique (7 j) copié par un membre ; un utilisateur existant peut être ajouté directement                                                               | Pas de SMTP à configurer                                                              |
 | Droits                              | Tous les membres égaux                                                                                                                                             | Petite équipe de confiance, zéro configuration                                        |
 | Urgent                              | Échéance ≤ 3 jours (ou dépassée)                                                                                                                                   | Valeur par défaut demandée                                                            |
@@ -129,7 +129,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 
 - [x] 1. Chrono : bug corrigé, un seul actif, survit au refresh, visible partout, temps réel, bloc de planning, tests
 - [ ] 2. Chasse aux bugs (parcours Playwright de toutes les pages)
-- [ ] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
+- [x] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
 - [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
 - [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
 - [ ] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
@@ -144,7 +144,10 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
 
 ### Décisions itération 2
+
 - Chrono : cause = le client supprimait son brouillon dès la réponse HTTP en comptant sur l'écho WebSocket ; sans écho
   (socket en reconnexion, HMR…) le chrono disparaissait. `tasks.start` renvoie maintenant le `RunningTimer`, source de vérité.
 - Chrono visible dans tous les projets (événement `timer` envoyé à l'utilisateur, `snapshot.timer`). Un chrono arrêté en
   moins d'une minute n'est pas enregistré (clic par erreur, sinon le planning se remplit de miettes).
+- Inscription : `/register` accepte un lien d'invitation collé (redirige vers `/invite/…`, qui crée le compte et rejoint
+  le projet) ou le code d'accès `REGISTRATION_CODE` (comparaison à temps constant). Sans code configuré, seul le lien marche.

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import type { Snippet } from 'svelte';
 	import Button from '../atoms/Button.svelte';
 	import Input from '../atoms/Input.svelte';
 	import Field from '../molecules/Field.svelte';
@@ -11,9 +12,11 @@
 		withName?: boolean;
 		error?: string | null;
 		values?: { name?: string; email?: string };
+		/** Extra fields shown before the submit button. */
+		children?: Snippet;
 	}
 
-	let { submitLabel, action, withName = true, error, values = {} }: Props = $props();
+	let { submitLabel, action, withName = true, error, values = {}, children }: Props = $props();
 	let submitting = $state(false);
 </script>
 
@@ -52,6 +55,7 @@
 			autocomplete={withName ? 'new-password' : 'current-password'}
 		/>
 	</Field>
+	{@render children?.()}
 	<Button type="submit" variant="primary" size="lg" loading={submitting} class="mt-2"
 		>{submitLabel}</Button
 	>

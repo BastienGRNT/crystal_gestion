@@ -3,7 +3,7 @@ import { container } from '$lib/server/container';
 import { createConnectionHandler } from '$lib/server/realtime/connection-handler';
 import { clearSessionCookie, SESSION_COOKIE } from '$lib/server/http/session-cookie';
 
-const PUBLIC_PATHS = ['/login', '/setup', '/invite/'];
+const PUBLIC_PATHS = ['/login', '/register', '/setup', '/invite/'];
 
 export const init: ServerInit = () => {
 	(globalThis as { __crystalRealtime?: unknown }).__crystalRealtime =

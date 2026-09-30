@@ -66,7 +66,8 @@ export function createContainer() {
 		sessions: drizzleSessionRepository(db),
 		hasher: scryptHasher,
 		tokens,
-		clock
+		clock,
+		accessCode: env.REGISTRATION_CODE?.trim() || null
 	});
 	const projectRepository = drizzleProjectRepository(db);
 	const memberRepository = drizzleMemberRepository(db);
