@@ -25,11 +25,11 @@
 
 <svelte:head><title>Ressources · {store.project.name}</title></svelte:head>
 
-<Page width="max-w-6xl">
+<Page>
 	<PageHeader
-		eyebrow="Ressources"
-		title="La boîte à outils"
-		subtitle="Accès, liens, contacts et fichiers du projet, au même endroit pour toute l’équipe."
+		eyebrow="Le projet"
+		title="Ressources"
+		subtitle="Les accès, liens, contacts et fichiers dont l’équipe a besoin, au même endroit. Cmd+K les retrouve aussi."
 	/>
 	<Tabs label="Type de ressource" value={tab} {tabs} />
 	<div class="mt-6">

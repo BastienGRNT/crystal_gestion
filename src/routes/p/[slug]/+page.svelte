@@ -4,6 +4,7 @@
 	import WhoIsAvailable from '$lib/connected/planning/WhoIsAvailable.svelte';
 	import MyTodo from '$lib/connected/tasks/MyTodo.svelte';
 	import GettingStartedCard from '$lib/connected/today/GettingStartedCard.svelte';
+	import DayStats from '$lib/connected/today/DayStats.svelte';
 	import Greeting from '$lib/connected/today/Greeting.svelte';
 	import QuestionsForMe from '$lib/connected/today/QuestionsForMe.svelte';
 	import Recap from '$lib/connected/today/Recap.svelte';
@@ -18,6 +19,7 @@
 
 <Page>
 	<Greeting />
+	<DayStats />
 	<GettingStartedCard />
 	<div class="grid gap-x-10 gap-y-2 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] xl:gap-x-14">
 		<div class="min-w-0">

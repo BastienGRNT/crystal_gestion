@@ -22,7 +22,7 @@
 		bind:value
 		autofocus
 		aria-label="Nouvelle idée"
-		placeholder="Une idée ? Écris-la, Entrée pour la noter"
+		placeholder="Une idée ? Écris-la, puis Entrée"
 		onkeydown={(event) => event.key === 'Enter' && capture()}
 		class="min-w-0 flex-1 bg-transparent font-display text-2xl outline-none placeholder:text-ink-3"
 	/>

@@ -20,11 +20,11 @@
 
 <svelte:head><title>Revue · {store.project.name}</title></svelte:head>
 
-<Page width="max-w-4xl">
+<Page width="max-w-5xl">
 	<PageHeader
 		eyebrow="{week} · ≈ 10 minutes"
 		title="Revue de la semaine"
-		subtitle="Quatre étapes pour repartir au clair : où on en est, ce qui coince, ce qui attend une réponse, ce qu’on garde."
+		subtitle="À faire ensemble une fois par semaine, en 10 minutes : où on en est, ce qui coince, qui attend une réponse, quelles idées on garde."
 	/>
 	<ReviewStep
 		index={1}
