@@ -1,44 +1,23 @@
-import type { ElementSummary } from '$lib/modules/kernel/domain/element';
 import type { EntityName, ServerEvent } from '$lib/modules/kernel/domain/realtime';
-import type { Message } from '$lib/modules/discussion/domain/message';
 import type { Notification } from '$lib/modules/notifications/domain/notification';
 import type { RunningTimer } from '$lib/modules/time/domain/running-timer';
 import type { ProjectSnapshot } from '$lib/server/snapshot';
-import { LiveCollection } from './live/collection.svelte';
 import { toSummary, withoutElement, withSource } from './live/element-index';
-
-type Item<K extends keyof ProjectSnapshot> = ProjectSnapshot[K] extends (infer T)[] ? T : never;
-const live = <K extends keyof ProjectSnapshot>() => new LiveCollection<Item<K> & { id: string }>();
+import { ProjectCollections } from './live/project-collections.svelte';
 
 /** Client read model of the current project, kept in sync by realtime events and optimistic updates. */
-export class ProjectStore {
+export class ProjectStore extends ProjectCollections {
 	project = $state() as ProjectSnapshot['project'];
 	online = $state<string[]>([]);
 	/** My running timer, possibly in another project. */
 	timer = $state<RunningTimer | null>(null);
 	references = $state<ProjectSnapshot['references']>([]);
-	members = live<'members'>();
-	features = live<'features'>();
-	tasks = live<'tasks'>();
-	timeEntries = live<'timeEntries'>();
-	availabilities = live<'availabilities'>();
-	journal = live<'journal'>();
-	ideas = live<'ideas'>();
-	accounts = live<'accounts'>();
-	links = live<'links'>();
-	contacts = live<'contacts'>();
-	files = live<'files'>();
-	elements = new LiveCollection<ElementSummary>();
-	activity = live<'activity'>();
-	questions = live<'questions'>();
-	notifications = live<'notifications'>();
-	aiNotes = live<'aiNotes'>();
-	messages = new LiveCollection<Message>();
 
 	constructor(
 		snapshot: ProjectSnapshot,
 		private onNotification: (notification: Notification) => void = () => {}
 	) {
+		super();
 		this.reset(snapshot);
 	}
 
@@ -48,22 +27,7 @@ export class ProjectStore {
 		this.online = s.online;
 		this.timer = s.timer;
 		this.references = s.references;
-		this.members.reset(s.members);
-		this.features.reset(s.features);
-		this.tasks.reset(s.tasks);
-		this.timeEntries.reset(s.timeEntries);
-		this.availabilities.reset(s.availabilities);
-		this.journal.reset(s.journal);
-		this.ideas.reset(s.ideas);
-		this.accounts.reset(s.accounts);
-		this.links.reset(s.links);
-		this.contacts.reset(s.contacts);
-		this.files.reset(s.files);
-		this.elements.reset(s.elements);
-		this.activity.reset(s.activity);
-		this.questions.reset(s.questions);
-		this.notifications.reset(s.notifications);
-		this.aiNotes.reset(s.aiNotes);
+		this.resetCollections(s);
 	}
 
 	apply(event: ServerEvent) {
@@ -98,40 +62,5 @@ export class ProjectStore {
 		if (notification.projectId !== this.project.id) return;
 		this.notifications.upsert(notification);
 		this.onNotification(notification);
-	}
-
-	private detachFeature(featureId: string) {
-		for (const collection of [
-			this.tasks,
-			this.ideas,
-			this.journal,
-			this.files,
-			this.accounts,
-			this.links,
-			this.messages
-		])
-			for (const item of collection.items as { id: string; featureId: string | null }[])
-				if (item.featureId === featureId) item.featureId = null;
-	}
-
-	private collection(entity: EntityName): LiveCollection<{ id: string }> | undefined {
-		const byEntity: Partial<Record<EntityName, LiveCollection<{ id: string }>>> = {
-			member: this.members,
-			feature: this.features,
-			task: this.tasks,
-			timeEntry: this.timeEntries,
-			availability: this.availabilities,
-			journal: this.journal,
-			idea: this.ideas,
-			account: this.accounts,
-			link: this.links,
-			contact: this.contacts,
-			file: this.files,
-			activity: this.activity,
-			question: this.questions,
-			aiNote: this.aiNotes,
-			message: this.messages
-		};
-		return byEntity[entity];
 	}
 }
