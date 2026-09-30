@@ -14,7 +14,7 @@
 		: 'bg-accent-soft/90 text-accent'}"
 	style={boxStyle(draft, lanes, hourHeight)}
 >
-	<span class="font-mono text-[10.5px] font-medium"
+	<span class="font-mono text-2xs font-medium"
 		>{clockLabel(draft.start)}–{clockLabel(draft.end)}</span
 	>
 </div>

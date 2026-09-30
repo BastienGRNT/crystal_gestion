@@ -51,7 +51,7 @@
 		<PropertyRow label="Changement"><ScopeShift change={entry.details} /></PropertyRow>
 	{/if}
 	<PropertyRow label="Consigné">
-		<span class="flex items-center gap-1.5 px-2 text-[13px] text-ink-2">
+		<span class="flex items-center gap-1.5 px-2 text-sm text-ink-2">
 			{#if author}<Avatar name={author.name} color={author.color} size={18} />{author.name} ·{/if}
 			{formatDay(entry.createdAt, { day: 'numeric', month: 'long' })} à {formatTime(
 				entry.createdAt

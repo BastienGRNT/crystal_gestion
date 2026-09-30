@@ -14,7 +14,7 @@
 	type="button"
 	aria-pressed={pressed}
 	{onclick}
-	class="inline-flex h-8 items-center gap-2 rounded-full border px-3 text-[13px] transition {pressed
+	class="inline-flex h-8 items-center gap-2 rounded-full border px-3 text-sm transition {pressed
 		? 'border-accent bg-accent-soft text-accent'
 		: 'border-line bg-surface text-ink-2 hover:border-line-strong'}"
 >

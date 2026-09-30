@@ -43,7 +43,8 @@ export function createConnectionHandler(container: Container) {
 			// A bad message must never take the whole server down: ignore it and log.
 			socket.on('message', (raw) => {
 				const event = parse(raw);
-				if (event) handle(event, connection, socket).catch((error) => console.error('[realtime]', error));
+				if (event)
+					handle(event, connection, socket).catch((error) => console.error('[realtime]', error));
 			});
 		}
 	};

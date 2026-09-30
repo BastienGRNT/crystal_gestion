@@ -22,14 +22,14 @@
 		/>
 	</PropertyRow>
 	<PropertyRow label="Taille"
-		><span class="font-mono text-[12.5px]">{formatSize(file.size)}</span></PropertyRow
+		><span class="font-mono text-sm">{formatSize(file.size)}</span></PropertyRow
 	>
 	<PropertyRow label="Type"
-		><span class="truncate font-mono text-[12.5px] text-ink-2">{file.mimeType}</span></PropertyRow
+		><span class="truncate font-mono text-sm text-ink-2">{file.mimeType}</span></PropertyRow
 	>
-	<PropertyRow label="Ajouté par"><span class="text-[13px]">{author}</span></PropertyRow>
+	<PropertyRow label="Ajouté par"><span class="text-sm">{author}</span></PropertyRow>
 	<PropertyRow label="Date">
-		<span class="text-[13px]"
+		<span class="text-sm"
 			>{formatDay(file.createdAt, {
 				day: 'numeric',
 				month: 'long',

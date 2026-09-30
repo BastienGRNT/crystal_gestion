@@ -26,7 +26,7 @@
 
 <div class="flex h-full min-h-0">
 	<aside class="hidden w-64 shrink-0 overflow-y-auto border-r border-line px-3 pt-12 pb-6 md:block">
-		<p class="mb-3 px-2.5 font-display text-[26px] leading-none">Fils</p>
+		<p class="mb-3 px-2.5 font-display text-3xl leading-none">Fils</p>
 		<ThreadList {threads} />
 	</aside>
 	<section

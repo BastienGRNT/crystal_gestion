@@ -6,7 +6,7 @@
 </script>
 
 <section class="rounded-xl border border-line bg-surface p-4">
-	<h3 class="mb-3 text-[12px] font-medium tracking-wide text-ink-3 uppercase">Par semaine</h3>
+	<h3 class="mb-3 text-xs font-medium tracking-wide text-ink-3 uppercase">Par semaine</h3>
 	<div class="flex h-36 items-end gap-1.5">
 		{#each weeks as week, index (week.key)}
 			<button
@@ -16,7 +16,7 @@
 				onclick={() => onpick(index)}
 			>
 				<span
-					class="font-mono text-[10px] text-ink-3 opacity-0 transition group-hover:opacity-100 {week.current
+					class="font-mono text-2xs text-ink-3 opacity-0 transition group-hover:opacity-100 {week.current
 						? 'opacity-100'
 						: ''}">{week.value}</span
 				>
@@ -28,7 +28,7 @@
 						style="height:{Math.max(2, (week.minutes / max) * 100)}%"
 					></span>
 				</span>
-				<span class="truncate text-[10.5px] {week.current ? 'text-ink' : 'text-ink-3'}"
+				<span class="truncate text-2xs {week.current ? 'text-ink' : 'text-ink-3'}"
 					>{week.label}</span
 				>
 			</button>

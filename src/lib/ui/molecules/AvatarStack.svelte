@@ -6,5 +6,9 @@
 </script>
 
 <span class="flex -space-x-1.5">
-	{#each people as person (person.id)}<Avatar name={person.name} color={person.color} {size} />{/each}
+	{#each people as person (person.id)}<Avatar
+			name={person.name}
+			color={person.color}
+			{size}
+		/>{/each}
 </span>

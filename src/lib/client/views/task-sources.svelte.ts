@@ -3,12 +3,17 @@ import { toTaskCard } from './task-card';
 
 /** Indexes shared by every task list, rebuilt only when their source collection changes. */
 export class TaskSources {
-	featuresById = $derived.by(() => new Map(this.store.features.items.map((feature) => [feature.id, feature])));
-	membersById = $derived.by(() => new Map(this.store.members.items.map((member) => [member.id, member])));
+	featuresById = $derived.by(
+		() => new Map(this.store.features.items.map((feature) => [feature.id, feature]))
+	);
+	membersById = $derived.by(
+		() => new Map(this.store.members.items.map((member) => [member.id, member]))
+	);
 
 	constructor(private store: ProjectStore) {}
 
-	priorityOf = (featureId: string | null) => (featureId ? (this.featuresById.get(featureId)?.priority ?? null) : null);
+	priorityOf = (featureId: string | null) =>
+		featureId ? (this.featuresById.get(featureId)?.priority ?? null) : null;
 
 	card = (task: Parameters<typeof toTaskCard>[0]) =>
 		toTaskCard(task, {

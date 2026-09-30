@@ -13,9 +13,9 @@
 
 <main class="flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg p-6 text-center">
 	<Logo size={32} />
-	<p class="font-mono text-[13px] text-ink-3">Erreur {page.status}</p>
-	<h1 class="font-display text-[44px] leading-none">{message}</h1>
-	<a href="/" class="mt-2 text-[14px] font-medium text-accent hover:underline"
+	<p class="font-mono text-sm text-ink-3">Erreur {page.status}</p>
+	<h1 class="font-display text-4xl leading-none">{message}</h1>
+	<a href="/" class="mt-2 text-base font-medium text-accent hover:underline"
 		>Revenir à mes projets</a
 	>
 </main>

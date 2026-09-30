@@ -21,7 +21,7 @@
 	{suggest}
 	placeholder="Le contexte, les options écartées, ce qui a fait pencher la balance…"
 />
-<div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[12.5px] text-ink-3">
+<div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-ink-3">
 	<span class="flex items-center gap-1">
 		Décidé par
 		<AssigneePicker

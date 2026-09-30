@@ -3,12 +3,24 @@
 	import TextArea from '../atoms/TextArea.svelte';
 	import NumberedField from '../molecules/NumberedField.svelte';
 
-	type Values = Partial<Record<'name' | 'objective' | 'audience' | 'deadline' | 'outOfScope' | 'doneDefinition', string | null>>;
+	type Values = Partial<
+		Record<
+			'name' | 'objective' | 'audience' | 'deadline' | 'outOfScope' | 'doneDefinition',
+			string | null
+		>
+	>;
 	let { values = {} }: { values?: Values } = $props();
 </script>
 
 <NumberedField index={1} label="Nom du projet">
-	<Input name="name" required maxlength={120} value={values.name ?? ''} placeholder="Ex. Atelier Pixel" class="h-11 text-[16px]" />
+	<Input
+		name="name"
+		required
+		maxlength={120}
+		value={values.name ?? ''}
+		placeholder="Ex. Atelier Pixel"
+		class="h-11 text-lg"
+	/>
 </NumberedField>
 <NumberedField index={2} label="L’objectif" hint="En une phrase.">
 	<Input name="objective" value={values.objective ?? ''} placeholder="Aider les … à … sans …" />

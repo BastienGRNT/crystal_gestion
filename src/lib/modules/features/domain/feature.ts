@@ -4,17 +4,17 @@ export const MOSCOW = ['must', 'should', 'could', 'wont'] as const;
 export type Moscow = (typeof MOSCOW)[number];
 
 export const MOSCOW_LABELS: Record<Moscow, string> = {
-	must: 'Must',
-	should: 'Should',
-	could: 'Could',
-	wont: 'Won’t'
+	must: 'Indispensable',
+	should: 'Si possible',
+	could: 'Bonus',
+	wont: 'Pas maintenant'
 };
 
 export const MOSCOW_HINTS: Record<Moscow, string> = {
-	must: 'À faire absolument',
-	should: 'À faire si possible',
-	could: 'Ce serait bien',
-	wont: 'Pas maintenant'
+	must: 'Must · à faire absolument',
+	should: 'Should · à faire si possible',
+	could: 'Could · ce serait bien',
+	wont: 'Won’t · pas pour cette version'
 };
 
 export interface FeatureFields {

@@ -6,7 +6,7 @@
 	type Props = IdeaHandlers & { archived: boolean };
 	let { archived, ontask, onfeature, onarchive, onremove }: Props = $props();
 	const convert =
-		'inline-flex h-7 items-center gap-1 rounded-md px-2 text-[12.5px] font-medium text-ink-2 transition hover:bg-accent-soft hover:text-accent';
+		'inline-flex h-7 items-center gap-1 rounded-md px-2 text-sm font-medium text-ink-2 transition hover:bg-accent-soft hover:text-accent';
 </script>
 
 <div class="flex shrink-0 items-center gap-0.5">

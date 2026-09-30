@@ -28,10 +28,10 @@
 			{suggest}
 			onsubmit={onsave}
 			{oncancel}
-			class="min-h-6 text-[14px] leading-[1.55]"
+			class="min-h-6 text-base leading-[1.55]"
 		/>
 	</div>
-	<div class="mt-1.5 flex items-center gap-2 text-[11.5px] text-ink-3">
+	<div class="mt-1.5 flex items-center gap-2 text-xs text-ink-3">
 		<Button size="sm" variant="primary" disabled={!value.trim()} onclick={onsave}
 			>Enregistrer</Button
 		>

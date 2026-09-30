@@ -22,11 +22,11 @@
 				{onsave}
 				placeholder="Mot de passe"
 				required={false}
-				class="truncate py-0.5 font-mono text-[12.5px]"
+				class="truncate py-0.5 font-mono text-sm"
 			/>
 		{:else}
 			<span
-				class="text-[16px] leading-none tracking-[0.06em] text-ink-2 select-none"
+				class="text-lg leading-none tracking-[0.06em] text-ink-2 select-none"
 				aria-label="Masqué">••••••••</span
 			>
 		{/if}

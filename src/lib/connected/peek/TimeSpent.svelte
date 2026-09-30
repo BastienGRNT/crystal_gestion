@@ -14,10 +14,10 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-2">
-	<span class="font-mono text-[13px]">{minutes ? formatMinutes(minutes) : '—'}</span>
+	<span class="font-mono text-sm">{minutes ? formatMinutes(minutes) : '—'}</span>
 	{#each quick as amount (amount)}
 		<button
-			class="h-6 rounded-md border border-line px-1.5 font-mono text-[11px] text-ink-3 transition hover:border-accent hover:text-accent"
+			class="h-6 rounded-md border border-line px-1.5 font-mono text-2xs text-ink-3 transition hover:border-accent hover:text-accent"
 			onclick={() => actions.planning.logTime(taskId, amount)}
 		>
 			+{amount < 60 ? `${amount} min` : '1 h'}

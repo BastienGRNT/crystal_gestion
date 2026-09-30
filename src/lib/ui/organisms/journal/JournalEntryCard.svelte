@@ -26,10 +26,10 @@
 >
 	<div class="flex items-center gap-2">
 		<JournalKindBadge kind={entry.kind} />
-		<span class="font-mono text-[11.5px] text-ink-3">{entry.ref}</span>
+		<span class="font-mono text-xs text-ink-3">{entry.ref}</span>
 		{#if entry.feature}<FeatureTag feature={entry.feature} />{/if}
 		<EntryByline author={entry.author} at={entry.createdAt} />
 	</div>
-	<h3 class="mt-1.5 font-display text-[23px] leading-[1.15] text-ink">{entry.title}</h3>
+	<h3 class="mt-1.5 font-display text-2xl leading-[1.15] text-ink">{entry.title}</h3>
 	<div class="mt-2"><JournalEntryBody body={entry.body} {resolve} {personName} /></div>
 </JournalItem>

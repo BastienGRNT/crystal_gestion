@@ -14,7 +14,7 @@
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3 md:items-end">
 	<div class="min-w-0">
-		<p class="flex items-center gap-2 font-mono text-[11px] text-ink-3">
+		<p class="flex items-center gap-2 font-mono text-2xs text-ink-3">
 			{#if folder.ref}
 				<a href="/p/{store.project.slug}/features/{folder.ref}" class="transition hover:text-accent"
 					>{folder.ref}</a
@@ -23,7 +23,7 @@
 			{/if}
 			{countLabel(folder.count)}
 		</p>
-		<h2 class="hidden truncate font-display text-[30px] leading-tight md:block">{folder.label}</h2>
+		<h2 class="hidden truncate font-display text-3xl leading-tight md:block">{folder.label}</h2>
 	</div>
 	<FilePickButton {onfiles} />
 </div>

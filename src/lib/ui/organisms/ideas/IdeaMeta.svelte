@@ -7,7 +7,7 @@
 	let { idea }: { idea: IdeaView } = $props();
 </script>
 
-<div class="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-ink-3">
+<div class="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-ink-3">
 	{#if idea.feature}<FeatureTag feature={idea.feature} />{/if}
 	{#if idea.author}
 		<span class="flex items-center gap-1.5">
@@ -15,5 +15,5 @@
 		</span>
 	{/if}
 	<span>{timeAgo(idea.createdAt)}</span>
-	<span class="font-mono text-[11px]">{idea.ref}</span>
+	<span class="font-mono text-2xs">{idea.ref}</span>
 </div>

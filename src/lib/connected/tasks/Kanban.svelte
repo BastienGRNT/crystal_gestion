@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
-	import { byPosition, dropPosition, matchesFilter, type TaskFilter } from '$lib/client/views/kanban';
+	import {
+		byPosition,
+		dropPosition,
+		matchesFilter,
+		type TaskFilter
+	} from '$lib/client/views/kanban';
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
 	import { TASK_STATUSES, type TaskStatus } from '$lib/modules/tasks/domain/task';
 	import KanbanBoard from '$lib/ui/organisms/tasks/KanbanBoard.svelte';
@@ -11,11 +16,18 @@
 
 	const tasksByStatus = $derived(
 		Object.fromEntries(
-			TASK_STATUSES.map((status) => [status, store.tasks.items.filter((t) => t.status === status && matchesFilter(t, filter)).sort(byPosition)])
+			TASK_STATUSES.map((status) => [
+				status,
+				store.tasks.items
+					.filter((t) => t.status === status && matchesFilter(t, filter))
+					.sort(byPosition)
+			])
 		) as Record<TaskStatus, typeof store.tasks.items>
 	);
 	const columns = $derived(
-		Object.fromEntries(TASK_STATUSES.map((status) => [status, tasksByStatus[status].map(sources.card)])) as Record<TaskStatus, ReturnType<typeof sources.card>[]>
+		Object.fromEntries(
+			TASK_STATUSES.map((status) => [status, tasksByStatus[status].map(sources.card)])
+		) as Record<TaskStatus, ReturnType<typeof sources.card>[]>
 	);
 
 	function move(id: string, status: TaskStatus, index: number) {

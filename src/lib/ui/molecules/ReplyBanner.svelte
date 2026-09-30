@@ -12,7 +12,7 @@
 </script>
 
 <div
-	class="flex animate-rise items-center gap-1.5 border-b border-line py-1 pr-1 pl-3.5 text-[12.5px] text-ink-3"
+	class="flex animate-rise items-center gap-1.5 border-b border-line py-1 pr-1 pl-3.5 text-sm text-ink-3"
 >
 	<CornerDownRight size={12} class="shrink-0 text-accent" />
 	<span class="shrink-0">Réponse à <span class="font-medium text-ink-2">{author}</span></span>

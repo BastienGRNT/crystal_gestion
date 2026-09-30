@@ -17,7 +17,7 @@
 		aria-label={label}
 		{value}
 		onchange={(event) => onchange(event.currentTarget.value as T)}
-		class="h-8 w-full appearance-none truncate rounded-md border border-transparent bg-transparent pr-7 pl-2 text-[13px] transition outline-none hover:border-line hover:bg-surface focus:border-accent"
+		class="h-8 w-full appearance-none truncate rounded-md border border-transparent bg-transparent pr-7 pl-2 text-sm transition outline-none hover:border-line hover:bg-surface focus:border-accent"
 	>
 		{#each options as option (option.value)}<option value={option.value}>{option.label}</option
 			>{/each}

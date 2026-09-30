@@ -6,10 +6,10 @@
 	let { author, at }: { author: PersonView | null; at: string } = $props();
 </script>
 
-<span class="ml-auto flex shrink-0 items-center gap-1.5 text-[12px] text-ink-3">
+<span class="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-ink-3">
 	{#if author}
 		<Avatar name={author.name} color={author.color} size={16} />
 		<span class="max-sm:hidden">{author.name} ·</span>
 	{/if}
-	<span class="font-mono text-[11px]">{formatTime(at)}</span>
+	<span class="font-mono text-2xs">{formatTime(at)}</span>
 </span>

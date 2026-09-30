@@ -58,19 +58,19 @@
 				{onkeydown}
 				autofocus
 				placeholder="Chercher un élément, une page, une action…"
-				class="h-13 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3"
+				class="h-13 flex-1 bg-transparent text-lg outline-none placeholder:text-ink-3"
 			/>
 			<Kbd>Esc</Kbd>
 		</div>
 		<div class="max-h-[55vh] overflow-y-auto p-1.5">
 			{#each groups.filter((group) => group.items.length) as group (group.label)}
-				<p class="px-2.5 pt-2 pb-1 text-[11px] font-medium tracking-wide text-ink-3 uppercase">
+				<p class="px-2.5 pt-2 pb-1 text-2xs font-medium tracking-wide text-ink-3 uppercase">
 					{group.label}
 				</p>
 				{#each group.items as item (item.id)}
 					{@const index = flat.indexOf(item)}
 					<button
-						class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-[13.5px] {index ===
+						class="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left text-base {index ===
 						highlighted
 							? 'bg-sunken text-ink'
 							: 'text-ink-2'}"
@@ -79,7 +79,7 @@
 					>
 						{#if item.icon}<item.icon size={15} />{/if}
 						<span class="flex-1 truncate">{item.label}</span>
-						{#if item.hint}<span class="font-mono text-[11px] text-ink-3">{item.hint}</span>{/if}
+						{#if item.hint}<span class="font-mono text-2xs text-ink-3">{item.hint}</span>{/if}
 					</button>
 				{/each}
 			{:else}

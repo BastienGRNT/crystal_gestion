@@ -29,7 +29,7 @@
 			type="button"
 			onclick={() => peek(link.ref)}
 			title="Ouvrir le détail"
-			class="w-10 text-right font-mono text-[11px] text-ink-3 transition hover:text-accent"
+			class="w-10 text-right font-mono text-2xs text-ink-3 transition hover:text-accent"
 			>{link.ref}</button
 		>
 		<span

@@ -25,9 +25,7 @@
 			<ChevronsUpDown size={14} class="text-ink-3" />
 		</button>
 	{/snippet}
-	<p class="px-2.5 pt-1.5 pb-1 text-[11px] font-medium tracking-wide text-ink-3 uppercase">
-		Projets
-	</p>
+	<p class="px-2.5 pt-1.5 pb-1 text-2xs font-medium tracking-wide text-ink-3 uppercase">Projets</p>
 	{#each projects as project (project.slug)}
 		<MenuItem
 			href="/p/{project.slug}"

@@ -65,8 +65,7 @@
 		/>
 	</PropertyRow>
 	<PropertyRow label="Priorité">
-		<span class="text-[13px] text-ink-2"
-			>{QUADRANT_LABELS[quadrantOf(task, priority, new Date())]}</span
+		<span class="text-sm text-ink-2">{QUADRANT_LABELS[quadrantOf(task, priority, new Date())]}</span
 		>
 	</PropertyRow>
 	<PropertyRow label="Temps passé"><TimeSpent taskId={task.id} /></PropertyRow>

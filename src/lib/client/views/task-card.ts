@@ -25,13 +25,20 @@ interface Sources {
 	today: Date;
 }
 
-export function dueTone(dueDate: string | null, done: boolean, today: Date): TaskCardView['dueTone'] {
+export function dueTone(
+	dueDate: string | null,
+	done: boolean,
+	today: Date
+): TaskCardView['dueTone'] {
 	if (!dueDate || done) return null;
 	const days = daysUntil(dueDate, today);
 	return days < 0 ? 'late' : days <= URGENCY_THRESHOLD_DAYS ? 'soon' : null;
 }
 
-export function toTaskCard(task: Task, { featuresById, membersById, entries, today }: Sources): TaskCardView {
+export function toTaskCard(
+	task: Task,
+	{ featuresById, membersById, entries, today }: Sources
+): TaskCardView {
 	const feature = task.featureId ? featuresById.get(task.featureId) : undefined;
 	const own = entries.filter((entry) => entry.taskId === task.id);
 	return {
@@ -39,8 +46,12 @@ export function toTaskCard(task: Task, { featuresById, membersById, entries, tod
 		ref: task.ref,
 		title: task.title,
 		done: task.status === 'done',
-		feature: feature ? { ref: feature.ref, title: feature.title, priority: feature.priority } : null,
-		assignees: task.assigneeIds.map((id) => membersById.get(id)).filter((m): m is Member => m !== undefined),
+		feature: feature
+			? { ref: feature.ref, title: feature.title, priority: feature.priority }
+			: null,
+		assignees: task.assigneeIds
+			.map((id) => membersById.get(id))
+			.filter((m): m is Member => m !== undefined),
 		dueDate: task.dueDate,
 		dueTone: dueTone(task.dueDate, task.status === 'done', today),
 		running: own.some(isRunning),

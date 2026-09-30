@@ -7,10 +7,14 @@
 
 	const { store, actions } = useProject();
 	const slug = $derived(store.project.slug);
-	const active = $derived(store.features.items.filter((f) => f.priority !== 'wont').sort(byPriority));
+	const active = $derived(
+		store.features.items.filter((f) => f.priority !== 'wont').sort(byPriority)
+	);
 	const rows = $derived(
 		active.map((feature): FeatureRowView => {
-			const progress = progressOf(store.tasks.items.filter((task) => task.featureId === feature.id));
+			const progress = progressOf(
+				store.tasks.items.filter((task) => task.featureId === feature.id)
+			);
 			return {
 				id: feature.id,
 				ref: feature.ref,

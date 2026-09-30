@@ -24,14 +24,26 @@ export interface ActivityView {
 
 type Person = { name: string; color: string };
 
-export function toActivityView(activity: Activity, actor: Person | undefined, href: (a: Activity) => string): ActivityView {
+export function toActivityView(
+	activity: Activity,
+	actor: Person | undefined,
+	href: (a: Activity) => string
+): ActivityView {
 	return {
 		id: activity.id,
 		actor: actor ?? { name: 'Quelqu’un', color: '#8b8894' },
 		verb: VERB_LABELS[activity.verb],
-		element: { ref: activity.elementRef, title: activity.elementTitle, kind: activity.elementKind, href: href(activity) },
+		element: {
+			ref: activity.elementRef,
+			title: activity.elementTitle,
+			kind: activity.elementKind,
+			href: href(activity)
+		},
 		deleted: activity.verb === 'deleted',
-		detail: activity.details.from && activity.details.to ? `${activity.details.from} → ${activity.details.to}` : null,
+		detail:
+			activity.details.from && activity.details.to
+				? `${activity.details.from} → ${activity.details.to}`
+				: null,
 		when: timeAgo(activity.createdAt)
 	};
 }

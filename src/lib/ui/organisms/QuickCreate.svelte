@@ -46,7 +46,7 @@
 			placeholder={head.placeholder ?? head.label}
 			value={values[head.key] ?? ''}
 			oninput={(event) => (values[head.key] = event.currentTarget.value)}
-			class="w-full bg-transparent font-display text-[26px] leading-tight outline-none placeholder:text-ink-3/70"
+			class="w-full bg-transparent font-display text-3xl leading-tight outline-none placeholder:text-ink-3/70"
 		/>
 		<QuickFields fields={rest} {values} oninput={(key, value) => (values[key] = value)} />
 		<div class="mt-4 flex flex-wrap items-center gap-2">

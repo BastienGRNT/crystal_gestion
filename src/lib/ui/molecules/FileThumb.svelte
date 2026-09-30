@@ -26,8 +26,7 @@
 	{:else}
 		<div class="flex flex-col items-center gap-2 text-ink-3">
 			<Icon size={28} strokeWidth={1.4} />
-			{#if extension}<span class="font-mono text-[10.5px] tracking-widest uppercase"
-					>{extension}</span
+			{#if extension}<span class="font-mono text-2xs tracking-widest uppercase">{extension}</span
 				>{/if}
 		</div>
 	{/if}

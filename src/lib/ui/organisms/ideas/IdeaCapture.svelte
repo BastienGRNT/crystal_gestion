@@ -24,7 +24,7 @@
 		aria-label="Nouvelle idée"
 		placeholder="Une idée ? Écris-la, Entrée pour la noter"
 		onkeydown={(event) => event.key === 'Enter' && capture()}
-		class="min-w-0 flex-1 bg-transparent font-display text-[22px] outline-none placeholder:text-ink-3"
+		class="min-w-0 flex-1 bg-transparent font-display text-2xl outline-none placeholder:text-ink-3"
 	/>
 	<span class="hidden sm:inline-flex"><Kbd>↵</Kbd></span>
 </label>

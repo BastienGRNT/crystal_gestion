@@ -25,17 +25,14 @@
 	);
 </script>
 
-<section class="rounded-xl border border-line bg-surface px-4 py-3">
-	<h2 class="text-[12px] font-medium tracking-wide text-ink-3 uppercase">
-		Qui est dispo aujourd’hui
-	</h2>
+<section class="rounded-xl border border-line bg-surface px-4 py-2 shadow-card">
 	{#if people.length}
-		<ul class="mt-1 divide-y divide-line">
+		<ul class="divide-y divide-line">
 			{#each people as person (person.id)}
 				<AvailabilityRow {...person} />
 			{/each}
 		</ul>
 	{:else}
-		<p class="mt-2 text-[13px] text-ink-3">Personne n’a indiqué de créneau aujourd’hui.</p>
+		<p class="py-2 text-sm text-ink-2">Personne n’a indiqué de dispo aujourd’hui.</p>
 	{/if}
 </section>

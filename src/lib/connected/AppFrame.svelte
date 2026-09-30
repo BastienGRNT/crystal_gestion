@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { appShortcuts } from '$lib/client/app-shortcuts';
 	import { useProject } from '$lib/client/context';
-	import { activeNav } from '$lib/client/navigation';
+	import { activeNav, navSections } from '$lib/client/navigation';
 	import { overlays } from '$lib/client/overlays.svelte';
 	import { createShortcutHandler } from '$lib/client/shortcuts';
 	import MobileNav from '$lib/ui/organisms/MobileNav.svelte';
@@ -21,6 +21,7 @@
 	const { store } = useProject();
 	const slug = $derived(store.project.slug);
 	const closeMenu = () => (overlays.mobileMenu = false);
+	const tabs = $derived(navSections(slug)[0].items);
 </script>
 
 <svelte:window onkeydown={createShortcutHandler(() => appShortcuts(slug, goto))} />
@@ -41,7 +42,7 @@
 		<ActiveTimer />
 	</div>
 	<MobileNav
-		{slug}
+		items={tabs}
 		active={activeNav(page.url.pathname, slug)}
 		onmenu={() => (overlays.mobileMenu = !overlays.mobileMenu)}
 	/>

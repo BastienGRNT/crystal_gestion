@@ -3,11 +3,15 @@
 
 	type Tone =
 		'neutral' | 'accent' | 'must' | 'should' | 'could' | 'wont' | 'danger' | 'success' | 'warning';
-	let { tone = 'neutral', children }: { tone?: Tone; children: Snippet } = $props();
+	let {
+		tone = 'neutral',
+		title,
+		children
+	}: { tone?: Tone; title?: string; children: Snippet } = $props();
 
 	const tones: Record<Tone, string> = {
 		neutral: 'bg-sunken text-ink-2',
-		accent: 'bg-accent-soft text-accent',
+		accent: 'bg-accent-soft text-accent-text',
 		must: 'bg-must/12 text-must',
 		should: 'bg-should/14 text-should',
 		could: 'bg-could/12 text-could',
@@ -19,7 +23,8 @@
 </script>
 
 <span
-	class="inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-[11.5px] font-medium whitespace-nowrap {tones[
+	{title}
+	class="inline-flex h-[22px] items-center gap-1 rounded-md px-2 text-xs font-medium whitespace-nowrap {tones[
 		tone
 	]}"
 >

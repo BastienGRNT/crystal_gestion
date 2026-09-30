@@ -23,7 +23,7 @@
 			{onsave}
 			{placeholder}
 			required={false}
-			class="truncate py-0.5 text-[13px] {mono ? 'font-mono text-[12.5px]' : ''}"
+			class="truncate py-0.5 text-sm {mono ? 'font-mono text-sm' : ''}"
 		/>
 	</div>
 	{#if trailing && value}

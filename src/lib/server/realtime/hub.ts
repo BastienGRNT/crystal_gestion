@@ -55,7 +55,8 @@ export class RealtimeHub {
 
 	private sendWhere(matches: (connection: Connection) => boolean, event: ServerEvent) {
 		const payload = JSON.stringify(event);
-		for (const connection of this.connections) if (matches(connection)) this.safeSend(connection, payload);
+		for (const connection of this.connections)
+			if (matches(connection)) this.safeSend(connection, payload);
 	}
 
 	/** A socket closing mid-broadcast must not stop the others from receiving the event. */

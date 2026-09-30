@@ -21,8 +21,8 @@
 				autocomplete="off"
 				value={values[field.key] ?? ''}
 				oninput={(event) => oninput(field.key, event.currentTarget.value)}
-				class="h-8 text-[13px] {field.wide ? 'sm:col-span-2' : ''} {field.mono
-					? 'font-mono text-[12.5px]'
+				class="h-8 text-sm {field.wide ? 'sm:col-span-2' : ''} {field.mono
+					? 'font-mono text-sm'
 					: ''}"
 			/>
 		{/each}

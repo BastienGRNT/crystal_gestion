@@ -11,7 +11,7 @@
 	{#each items as item (item.id)}
 		<li class="relative flex animate-rise gap-3 py-2">
 			<Avatar name={item.actor.name} color={item.actor.color} size={23} />
-			<p class="min-w-0 flex-1 pt-0.5 text-[13.5px] leading-relaxed">
+			<p class="min-w-0 flex-1 pt-0.5 text-base leading-relaxed">
 				<span class="font-medium">{item.actor.name}</span>
 				<span class="text-ink-2">{item.verb}</span>
 				{#if item.deleted}
@@ -19,8 +19,8 @@
 				{:else}
 					<RefChip view={item.element} fallback={item.element.ref} />
 				{/if}
-				{#if item.detail}<span class="text-[12.5px] text-ink-3">· {item.detail}</span>{/if}
-				<span class="block text-[11.5px] text-ink-3">{item.when}</span>
+				{#if item.detail}<span class="text-sm text-ink-3">· {item.detail}</span>{/if}
+				<span class="block text-xs text-ink-3">{item.when}</span>
 			</p>
 		</li>
 	{/each}

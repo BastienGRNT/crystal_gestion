@@ -33,7 +33,7 @@
 	</PropertyRow>
 	<PropertyRow label="Notée">
 		<span
-			class="flex items-center gap-1.5 px-2 text-[13px] text-ink-2"
+			class="flex items-center gap-1.5 px-2 text-sm text-ink-2"
 			title={formatDay(idea.createdAt)}
 		>
 			{#if author}<Avatar name={author.name} color={author.color} size={18} />{author.name} ·{/if}

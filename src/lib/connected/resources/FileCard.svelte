@@ -35,10 +35,10 @@
 		<InlineText
 			value={file.title}
 			onsave={(title) => actions.files.update(file.id, { title })}
-			class="truncate text-[13px] font-medium"
+			class="truncate text-sm font-medium"
 		/>
-		<p class="mt-0.5 flex items-center gap-1.5 truncate text-[11.5px] text-ink-3">
-			<span class="font-mono text-[11px]">{formatSize(file.size)}</span>·
+		<p class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-ink-3">
+			<span class="font-mono text-2xs">{formatSize(file.size)}</span>·
 			<span class="truncate">{author}</span>·
 			<span class="shrink-0">{formatDay(file.createdAt, { day: 'numeric', month: 'short' })}</span>
 		</p>

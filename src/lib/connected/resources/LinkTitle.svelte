@@ -11,11 +11,11 @@
 			href={safeUrl(link.url)}
 			target="_blank"
 			rel="noopener noreferrer"
-			class="block truncate text-[13.5px] font-medium transition hover:text-accent">{link.title}</a
+			class="block truncate text-base font-medium transition hover:text-accent">{link.title}</a
 		>
-		<p class="truncate font-mono text-[11.5px] text-ink-3">{domainOf(link.url)}</p>
+		<p class="truncate font-mono text-xs text-ink-3">{domainOf(link.url)}</p>
 	{:else}
-		<p class="truncate text-[13.5px] font-medium">{link.title}</p>
-		<p class="text-[11.5px] text-ink-3">Pas d’URL</p>
+		<p class="truncate text-base font-medium">{link.title}</p>
+		<p class="text-xs text-ink-3">Pas d’URL</p>
 	{/if}
 </div>

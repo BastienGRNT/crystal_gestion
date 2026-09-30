@@ -11,7 +11,7 @@
 </script>
 
 <label class="flex flex-col gap-1.5">
-	<span class="text-[13px] font-medium text-ink-2">{label}</span>
+	<span class="text-sm font-medium text-ink-2">{label}</span>
 	{@render children()}
-	{#if hint}<span class="text-[12px] text-ink-3">{hint}</span>{/if}
+	{#if hint}<span class="text-xs text-ink-3">{hint}</span>{/if}
 </label>

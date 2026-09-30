@@ -13,7 +13,7 @@
 	aria-label={label}
 	value={value ?? ''}
 	onchange={(event) => onchange(event.currentTarget.value || null)}
-	class="h-8 rounded-md border border-transparent bg-transparent px-2 text-[13px] transition outline-none hover:border-line hover:bg-surface focus:border-accent {value
+	class="h-8 rounded-md border border-transparent bg-transparent px-2 text-sm transition outline-none hover:border-line hover:bg-surface focus:border-accent {value
 		? 'text-ink'
 		: 'text-ink-3'}"
 />

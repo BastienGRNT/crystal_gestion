@@ -6,7 +6,7 @@
 	let { change }: { change: ScopeChange } = $props();
 </script>
 
-<span class="inline-flex flex-wrap items-center gap-2 text-[12.5px] text-ink-3">
+<span class="inline-flex flex-wrap items-center gap-2 text-sm text-ink-3">
 	{#if change.change === 'reprioritized'}
 		<PriorityBadge priority={change.from} />
 		<ArrowRight size={13} />

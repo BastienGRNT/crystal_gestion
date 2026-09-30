@@ -28,13 +28,13 @@
 			class="flex h-8 items-center gap-1.5 rounded-md px-2 transition hover:bg-surface"
 		>
 			{#each chosen as person (person.id)}
-				<span class="flex items-center gap-1.5 text-[13px]"
+				<span class="flex items-center gap-1.5 text-sm"
 					><Avatar name={person.name} color={person.color} size={20} />{chosen.length === 1
 						? person.name
 						: ''}</span
 				>
 			{:else}
-				<span class="flex items-center gap-1 text-[13px] text-ink-3"
+				<span class="flex items-center gap-1 text-sm text-ink-3"
 					><Plus size={13} /> {emptyLabel}</span
 				>
 			{/each}

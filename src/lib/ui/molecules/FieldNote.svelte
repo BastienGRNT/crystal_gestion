@@ -14,11 +14,11 @@
 </script>
 
 <div class="min-w-0">
-	<p class="font-mono text-[10.5px] tracking-[0.12em] text-ink-3 uppercase">{label}</p>
+	<p class="font-mono text-2xs tracking-[0.12em] text-ink-3 uppercase">{label}</p>
 	<RichText
 		{text}
 		{resolve}
 		{personName}
-		class="mt-0.5 text-[13.5px] leading-relaxed text-ink-2 {clamp ? 'line-clamp-3' : ''}"
+		class="mt-0.5 text-base leading-relaxed text-ink-2 {clamp ? 'line-clamp-3' : ''}"
 	/>
 </div>

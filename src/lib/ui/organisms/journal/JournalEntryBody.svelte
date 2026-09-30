@@ -31,7 +31,7 @@
 			{personName}
 		/>{/if}
 	{#if body.decidedBy.length || body.decidedOn}
-		<p class="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] text-ink-3">
+		<p class="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-3">
 			{#if body.decidedBy.length}
 				<span class="flex items-center gap-1.5">
 					<AvatarStack people={body.decidedBy} size={18} />

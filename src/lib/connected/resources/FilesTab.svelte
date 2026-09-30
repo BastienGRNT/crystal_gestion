@@ -20,9 +20,7 @@
 <DropZone onfiles={upload} label="Dans le dossier « {current.label} »">
 	<div class="grid gap-5 md:grid-cols-[12.5rem_1fr] md:gap-8">
 		<aside class="md:sticky md:top-6 md:self-start">
-			<p
-				class="mb-2 hidden px-2 text-[11px] font-medium tracking-wide text-ink-3 uppercase md:block"
-			>
+			<p class="mb-2 hidden px-2 text-2xs font-medium tracking-wide text-ink-3 uppercase md:block">
 				Dossiers
 			</p>
 			<FolderList folders={list} selected={current.id} onselect={(id) => (selected = id)} />

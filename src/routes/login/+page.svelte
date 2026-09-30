@@ -15,7 +15,7 @@
 		error={form?.error}
 		values={form ?? {}}
 	/>
-	<p class="mt-8 text-center text-[13px] text-ink-3">
+	<p class="mt-8 text-center text-sm text-ink-3">
 		Pas encore de compte ?
 		<a class="font-medium text-accent hover:underline" href="/register">Créer un compte</a>
 	</p>

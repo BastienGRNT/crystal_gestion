@@ -22,7 +22,7 @@
 	<InlineText
 		value={idea.title}
 		onsave={(title) => actions.ideas.update(idea.id, { title })}
-		class="font-display text-[30px] leading-tight"
+		class="font-display text-3xl leading-tight"
 	/>
 	<div class="mt-4 flex flex-wrap items-center gap-2">
 		{#if idea.archivedAt}
@@ -30,7 +30,7 @@
 				><ArchiveRestore size={13} /> Désarchiver</Button
 			>
 		{:else}
-			<span class="text-[12.5px] text-ink-3">Transformer en</span>
+			<span class="text-sm text-ink-3">Transformer en</span>
 			<Button variant="primary" size="sm" onclick={handlers.ontask}
 				><ArrowRight size={13} /> Tâche</Button
 			>

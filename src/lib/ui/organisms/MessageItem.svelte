@@ -41,7 +41,7 @@
 				text={view.body}
 				{resolve}
 				{personName}
-				class="max-w-[72ch] text-[14px] leading-[1.55]"
+				class="max-w-[72ch] text-base leading-[1.55]"
 			/>
 		{/if}
 		<MessageFooter {view} />

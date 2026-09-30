@@ -1,51 +1,60 @@
 /* Design tokens: every color, radius and font of the app comes from here. */
 :root {
-	--bg: #f4f1ea;
-	--bg-sidebar: #ebe7de;
+	--bg: #f3f0e8;
+	--bg-sidebar: #e9e5db;
 	--surface: #ffffff;
-	--surface-2: #faf8f4;
-	--sunken: #efebe3;
-	--ink: #16151b;
-	--ink-2: #4a4852;
-	--ink-3: #8b8894;
-	--line: #e2ddd3;
-	--line-strong: #cfc9bd;
+	--surface-2: #faf8f3;
+	--sunken: #ece8df;
+	/* Text: 3 levels, all readable on bg and surface (ink-3 ≥ 4.5:1). */
+	--ink: #15141a;
+	--ink-2: #413f49;
+	--ink-3: #686571;
+	--line: #e0dbd0;
+	--line-strong: #c9c2b4;
 	--accent: #3d2bff;
 	--accent-ink: #ffffff;
-	--accent-soft: #e7e4ff;
-	--must: #e0452b;
-	--should: #d98a0b;
-	--could: #0f9b8e;
-	--wont: #7c7a86;
-	--danger: #d92d20;
-	--success: #16935b;
-	--warning: #c77c02;
-	--shadow-pop: 0 1px 2px rgb(22 21 27 / 0.06), 0 12px 32px -8px rgb(22 21 27 / 0.18);
+	--accent-soft: #e8e5ff;
+	--accent-text: #2f1fe0;
+	--must: #d9391f;
+	--should: #b86e00;
+	--could: #0b8579;
+	--wont: #6f6c79;
+	--danger: #cf2a1d;
+	--success: #11804f;
+	--warning: #a86500;
+	--shadow-card: 0 1px 2px rgb(21 20 26 / 0.05), 0 2px 8px -2px rgb(21 20 26 / 0.06);
+	--shadow-pop: 0 1px 2px rgb(21 20 26 / 0.06), 0 12px 32px -8px rgb(21 20 26 / 0.2);
 	--prism: conic-gradient(from 210deg, #3d2bff, #c13bff, #ff4d6d, #ffb020, #1fc7b6, #3d2bff);
+	/* Hero panel of the sign-in pages: always dark, whatever the theme. */
+	--night: #0d0d12;
+	--night-ink: #ece8df;
+	--night-ink-2: #9a97a4;
 	color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-	--bg: #0d0d12;
-	--bg-sidebar: #09090d;
-	--surface: #15151c;
-	--surface-2: #1b1b24;
-	--sunken: #111118;
-	--ink: #ece8df;
-	--ink-2: #b3afbd;
-	--ink-3: #75727f;
-	--line: #25252f;
-	--line-strong: #34343f;
-	--accent: #9d8cff;
-	--accent-ink: #0d0d12;
-	--accent-soft: #221f3d;
-	--must: #ff6b4f;
+	--bg: #0e0e13;
+	--bg-sidebar: #0a0a0e;
+	--surface: #17171f;
+	--surface-2: #1d1d27;
+	--sunken: #121218;
+	--ink: #efebe3;
+	--ink-2: #c2beca;
+	--ink-3: #928e9e;
+	--line: #292934;
+	--line-strong: #3b3b48;
+	--accent: #a192ff;
+	--accent-ink: #0e0e13;
+	--accent-soft: #252146;
+	--accent-text: #b6aaff;
+	--must: #ff7457;
 	--should: #f2b33d;
-	--could: #3fd0bf;
-	--wont: #8b8995;
-	--danger: #ff6159;
-	--success: #3fcf8e;
+	--could: #44d4c2;
+	--wont: #9794a2;
+	--danger: #ff6a61;
+	--success: #45d394;
 	--warning: #f2b33d;
-	--shadow-pop: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
+	--shadow-pop: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.65);
 	color-scheme: dark;
 }

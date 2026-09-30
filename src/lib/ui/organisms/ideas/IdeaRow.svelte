@@ -37,14 +37,14 @@
 			title={idea.untriaged ? 'À trier' : 'Gardée'}
 		></span>
 		<div class="min-w-0 flex-1">
-			<p class="text-[15px] leading-snug font-medium {idea.archived ? 'text-ink-3' : ''}">
+			<p class="text-lg leading-snug font-medium {idea.archived ? 'text-ink-3' : ''}">
 				{idea.title}
 			</p>
 			{#if idea.note}<RichText
 					text={idea.note}
 					{resolve}
 					{personName}
-					class="mt-0.5 line-clamp-2 text-[13px] text-ink-3"
+					class="mt-0.5 line-clamp-2 text-sm text-ink-3"
 				/>{/if}
 			<IdeaMeta {idea} />
 		</div>

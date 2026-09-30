@@ -17,11 +17,10 @@
 	<InlineText
 		value={entry.title}
 		onsave={(title) => actions.journal.update(entry.id, { title })}
-		class="font-display text-[30px] leading-tight"
+		class="font-display text-3xl leading-tight"
 	/>
 	<div class="mt-3 flex items-center gap-2">
-		{#if entry.kind === 'scope'}<span class="text-[12.5px] text-ink-3"
-				>Consigné automatiquement</span
+		{#if entry.kind === 'scope'}<span class="text-sm text-ink-3">Consigné automatiquement</span
 			>{/if}
 		<Button
 			variant="ghost"

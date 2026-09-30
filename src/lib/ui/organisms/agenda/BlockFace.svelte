@@ -11,17 +11,17 @@
 	<div
 		class="flex h-full flex-col overflow-hidden rounded-[5px] px-1.5 {compact
 			? 'py-px'
-			: 'py-1'} text-[11px] leading-tight shadow-sm {personal ? 'bg-ink text-bg' : 'text-white'}"
+			: 'py-1'} text-2xs leading-tight shadow-sm {personal ? 'bg-ink text-bg' : 'text-white'}"
 		style={personal ? '' : `background:${item.color}`}
 	>
 		<span class="flex min-w-0 items-baseline gap-1">
 			{#if item.running}<span class="size-1.5 shrink-0 animate-pulse rounded-full bg-must"
 				></span>{/if}
-			{#if item.ref}<span class="shrink-0 font-mono text-[10px] opacity-70">{item.ref}</span>{/if}
+			{#if item.ref}<span class="shrink-0 font-mono text-2xs opacity-70">{item.ref}</span>{/if}
 			<span class="truncate font-medium">{item.label}</span>
 		</span>
 		{#if !compact}
-			<span class="truncate font-mono text-[10px] opacity-60"
+			<span class="truncate font-mono text-2xs opacity-60"
 				>{clockLabel(item.start)}–{item.running ? 'en cours' : clockLabel(item.end)}</span
 			>
 		{/if}

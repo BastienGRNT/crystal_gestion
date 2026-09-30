@@ -42,10 +42,10 @@
 		>
 	</div>
 	<p class="flex items-baseline gap-2 text-ink-3">
-		<span class="font-display text-[34px] leading-none text-ink">{data.total}</span> passées sur le projet
+		<span class="font-display text-4xl leading-none text-ink">{data.total}</span> passées sur le projet
 	</p>
 	<p class="flex items-baseline gap-2 text-ink-3">
-		<span class="font-display text-[34px] leading-none text-ink">{data.done.length}</span>
+		<span class="font-display text-4xl leading-none text-ink">{data.done.length}</span>
 		{data.done.length > 1 ? 'tâches terminées' : 'tâche terminée'}
 	</p>
 </div>

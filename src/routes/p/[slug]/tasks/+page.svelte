@@ -22,18 +22,32 @@
 <svelte:head><title>Tâches · {store.project.name}</title></svelte:head>
 
 <Page width={view === 'kanban' ? 'max-w-[1400px]' : 'max-w-3xl'}>
-	<PageHeader eyebrow="{open} en cours ou à faire" title={view === 'kanban' ? 'Tâches' : 'Ma liste'}>
+	<PageHeader
+		eyebrow="{open} en cours ou à faire"
+		title={view === 'kanban' ? 'Tâches' : 'Ma liste'}
+	>
 		{#snippet actions()}
 			{#if view === 'kanban'}
 				<TaskFilters
 					person={filter.person}
 					feature={filter.feature}
-					people={store.members.items.map((m) => ({ value: m.id, label: m.id === me.id ? `${m.name} (moi)` : m.name }))}
+					people={store.members.items.map((m) => ({
+						value: m.id,
+						label: m.id === me.id ? `${m.name} (moi)` : m.name
+					}))}
 					features={store.features.items.map((f) => ({ value: f.id, label: f.title }))}
 					onchange={(next) => (filter = next)}
 				/>
 			{/if}
-			<Segmented label="Vue" value={view} options={[{ value: 'kanban', label: 'Kanban' }, { value: 'todo', label: 'Ma liste' }]} onchange={choose} />
+			<Segmented
+				label="Vue"
+				value={view}
+				options={[
+					{ value: 'kanban', label: 'Kanban' },
+					{ value: 'todo', label: 'Ma liste' }
+				]}
+				onchange={choose}
+			/>
 		{/snippet}
 	</PageHeader>
 	{#if view === 'kanban'}<Kanban {filter} />{:else}<MyTodo />{/if}

@@ -5,7 +5,7 @@
 </script>
 
 <label
-	class="flex h-8 min-w-0 items-center gap-2 rounded-md border border-line bg-surface px-2.5 text-[13px] transition focus-within:border-accent hover:border-line-strong"
+	class="flex h-8 min-w-0 items-center gap-2 rounded-md border border-line bg-surface px-2.5 text-sm transition focus-within:border-accent hover:border-line-strong"
 >
 	<Search size={14} class="shrink-0 text-ink-3" />
 	<input

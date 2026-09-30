@@ -19,7 +19,7 @@
 
 <header class="flex items-start gap-3">
 	<span
-		class="flex size-9 shrink-0 items-center justify-center font-display text-[21px] uppercase {person
+		class="flex size-9 shrink-0 items-center justify-center font-display text-2xl uppercase {person
 			? 'rounded-full bg-accent-soft text-accent'
 			: 'rounded-md bg-sunken text-ink-2'}"
 		aria-hidden="true">{title.trim()[0] ?? '?'}</span
@@ -28,14 +28,14 @@
 		<InlineText
 			value={title}
 			onsave={onrename}
-			class="truncate font-display text-[22px] leading-tight"
+			class="truncate font-display text-2xl leading-tight"
 		/>
-		<p class="flex min-w-0 items-center gap-2 text-[12px] text-ink-3">
+		<p class="flex min-w-0 items-center gap-2 text-xs text-ink-3">
 			<button
 				type="button"
 				onclick={() => peek(ref)}
 				title="Ouvrir le détail"
-				class="font-mono text-[11px] transition hover:text-accent">{ref}</button
+				class="font-mono text-2xs transition hover:text-accent">{ref}</button
 			>
 			{#if subtitle}<span class="truncate">{subtitle}</span>{/if}
 		</p>

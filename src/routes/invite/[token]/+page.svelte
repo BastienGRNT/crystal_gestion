@@ -22,7 +22,7 @@
 			error={form?.error}
 			values={form ?? {}}
 		/>
-		<p class="mt-6 text-center text-[13px] text-ink-3">
+		<p class="mt-6 text-center text-sm text-ink-3">
 			Déjà un compte ?
 			<a class="text-accent hover:underline" href="/login?redirect=/invite/{page.params.token}"
 				>Se connecter</a

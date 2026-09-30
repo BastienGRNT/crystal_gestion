@@ -10,7 +10,9 @@ describe('project context', () => {
 		const build = makeBuildProjectContext({
 			project: async () => null,
 			features: async () => [],
-			tasks: async () => [{ ref: 'T-1', title: 'Payer', status: 'todo', featureId: 'f', dueDate: null } as Task],
+			tasks: async () => [
+				{ ref: 'T-1', title: 'Payer', status: 'todo', featureId: 'f', dueDate: null } as Task
+			],
 			journal: async () => [],
 			elements: async () => [element('f', 'F-1'), element('t', 'T-1'), element('m', 'M-3')],
 			references: async () => [{ sourceId: 'm', targetId: 't' }],

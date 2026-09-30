@@ -9,16 +9,31 @@
 
 	let { recapSince, limit = 12 }: { recapSince: string | null; limit?: number } = $props();
 	const { store, refs, me } = useProject();
-	const sorted = $derived([...store.activity.items].sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+	const sorted = $derived(
+		[...store.activity.items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+	);
 	const recent = $derived(collapseActivity(since(sorted, recapSince, me.id)));
 	const items = $derived(
-		recent.slice(0, limit).map((a) => toActivityView(a, store.members.get(a.actorId), (activity) => refs.href({ kind: activity.elementKind, ref: activity.elementRef })))
+		recent
+			.slice(0, limit)
+			.map((a) =>
+				toActivityView(a, store.members.get(a.actorId), (activity) =>
+					refs.href({ kind: activity.elementKind, ref: activity.elementRef })
+				)
+			)
 	);
 </script>
 
 {#if items.length}
 	<ActivityFeed {items} />
-	{#if recent.length > limit}<p class="mt-2 pl-9 text-[12.5px] text-ink-3">et {recent.length - limit} autres changements</p>{/if}
+	{#if recent.length > limit}<p class="mt-2 pl-9 text-sm text-ink-3">
+			et {recent.length - limit} autres changements
+		</p>{/if}
 {:else}
-	<EmptyState icon={Sparkles} title="Rien n’a bougé depuis ta dernière visite" text="Tu es à jour. Le résumé par l’IA arrivera ici plus tard." />
+	<EmptyState
+		compact
+		icon={Sparkles}
+		title="Rien n’a bougé depuis ta dernière visite"
+		text="Tu es à jour. Le résumé par l’IA arrivera ici plus tard."
+	/>
 {/if}

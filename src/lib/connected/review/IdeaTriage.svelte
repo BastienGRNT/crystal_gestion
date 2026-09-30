@@ -17,5 +17,5 @@
 		ondelete={() => actions.ideas.remove(idea.id)}
 	/>
 {:else}
-	<p class="text-[13px] text-ink-3">Aucune idée en attente de tri.</p>
+	<p class="text-sm text-ink-3">Aucune idée en attente de tri.</p>
 {/each}

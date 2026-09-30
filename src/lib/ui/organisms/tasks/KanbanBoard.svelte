@@ -12,7 +12,12 @@
 
 	let { columns, onmove, onopen, onadd }: Props = $props();
 	let draggingId = $state<string | null>(null);
-	const tones: Record<TaskStatus, string> = { todo: 'bg-ink-3', in_progress: 'bg-accent', review: 'bg-should', done: 'bg-success' };
+	const tones: Record<TaskStatus, string> = {
+		todo: 'bg-ink-3',
+		in_progress: 'bg-accent',
+		review: 'bg-should',
+		done: 'bg-success'
+	};
 </script>
 
 <div class="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">

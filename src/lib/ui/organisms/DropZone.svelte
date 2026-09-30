@@ -40,8 +40,8 @@
 				<span class="flex size-12 items-center justify-center rounded-full bg-surface shadow-pop"
 					><Upload size={20} /></span
 				>
-				<p class="font-display text-[28px] leading-none text-ink">Déposer ici</p>
-				<p class="text-[13px]">{label}</p>
+				<p class="font-display text-3xl leading-none text-ink">Déposer ici</p>
+				<p class="text-sm">{label}</p>
 			</div>
 		</div>
 	{/if}

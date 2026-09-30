@@ -32,8 +32,8 @@
 	aria-label={heading}
 >
 	<div class="px-2.5 pt-1.5 pb-2">
-		<p class="truncate text-[13px] font-medium">{heading}</p>
-		<p class="font-mono text-[11px] text-ink-3">{detail}</p>
+		<p class="truncate text-sm font-medium">{heading}</p>
+		<p class="font-mono text-2xs text-ink-3">{detail}</p>
 	</div>
 	{#if children}<div class="border-t border-line pt-1">{@render children()}</div>{/if}
 </div>

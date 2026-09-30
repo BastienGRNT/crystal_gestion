@@ -20,7 +20,7 @@
 			role="radio"
 			aria-checked={option.value === value}
 			onclick={() => onchange(option.value)}
-			class="h-7 rounded-[5px] px-2.5 text-[12.5px] transition {option.value === value
+			class="h-7 rounded-[5px] px-2.5 text-sm transition {option.value === value
 				? `bg-surface font-medium shadow-sm ${option.tone ?? 'text-ink'}`
 				: 'text-ink-3 hover:text-ink-2'}"
 		>

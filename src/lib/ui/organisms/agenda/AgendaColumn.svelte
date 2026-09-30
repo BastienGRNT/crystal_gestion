@@ -21,7 +21,7 @@
 </script>
 
 <div
-	class="relative touch-pan-y border-l select-none border-line {today ? 'bg-accent-soft/25' : ''}"
+	class="relative touch-pan-y border-l border-line select-none {today ? 'bg-accent-soft/25' : ''}"
 	style="background-image:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px {hourHeight}px)"
 	onpointerdown={(event) => onbegin(event, 'create')}
 	role="presentation"

@@ -26,7 +26,7 @@
 			data-sveltekit-noscroll
 			data-sveltekit-replacestate
 			aria-current={active ? 'page' : undefined}
-			class="relative flex h-10 shrink-0 items-center gap-1.5 px-2 text-[13.5px] transition sm:gap-2 sm:px-2.5 {active
+			class="relative flex h-10 shrink-0 items-center gap-1.5 px-2 text-base transition sm:gap-2 sm:px-2.5 {active
 				? 'font-medium text-ink'
 				: 'text-ink-3 hover:text-ink-2'}"
 		>
@@ -35,7 +35,7 @@
 			<span class="hidden sm:inline">{tab.label}</span>
 			{#if tab.count !== undefined}
 				<span
-					class="rounded-[4px] px-1 font-mono text-[11px] {active
+					class="rounded-[4px] px-1 font-mono text-2xs {active
 						? 'bg-accent-soft text-accent'
 						: 'bg-sunken text-ink-3'}">{tab.count}</span
 				>

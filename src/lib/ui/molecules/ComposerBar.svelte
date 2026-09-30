@@ -17,7 +17,7 @@
 
 <div class="flex items-center gap-2 px-2 pt-1 pb-2">
 	<QuestionToggle pressed={question} disabled={!canAsk} onchange={onquestion} />
-	<span class="hidden items-center gap-1 text-[11.5px] text-ink-3 lg:inline-flex">
+	<span class="hidden items-center gap-1 text-xs text-ink-3 lg:inline-flex">
 		<Kbd>#</Kbd> lier <Kbd>@</Kbd> mentionner <Kbd>⇧ ⏎</Kbd> nouvelle ligne
 	</span>
 	<Button variant="primary" size="sm" class="ml-auto" disabled={!canSend} onclick={onsubmit}>

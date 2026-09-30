@@ -30,7 +30,7 @@
 			<IconButton {label} size="sm" active={open} onclick={toggle}><Icon size={14} /></IconButton>
 		{/snippet}
 		{#if heading}
-			<p class="px-2.5 pt-1.5 pb-1 text-[11px] font-medium tracking-wide text-ink-3 uppercase">
+			<p class="px-2.5 pt-1.5 pb-1 text-2xs font-medium tracking-wide text-ink-3 uppercase">
 				{heading}
 			</p>
 		{/if}

@@ -8,7 +8,9 @@
 
 <section>
 	{#if heading}
-		<h3 class="mb-2 flex items-center gap-1.5 text-[12px] font-medium tracking-wide text-ink-3 uppercase">
+		<h3
+			class="mb-2 flex items-center gap-1.5 text-xs font-medium tracking-wide text-ink-3 uppercase"
+		>
 			<AtSign size={12} /> Mentionné dans
 		</h3>
 	{/if}
@@ -16,14 +18,14 @@
 		{@const Icon = KIND_META[item.kind].icon}
 		<a
 			href={item.href}
-			class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] transition hover:bg-sunken"
+			class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition hover:bg-sunken"
 		>
 			<Icon size={14} class="shrink-0 text-ink-3" />
-			<span class="w-11 shrink-0 font-mono text-[11px] text-ink-3">{item.ref}</span>
+			<span class="w-11 shrink-0 font-mono text-2xs text-ink-3">{item.ref}</span>
 			<span class="truncate">{item.title}</span>
 		</a>
 	{:else}
-		<p class="text-[13px] text-ink-3">
+		<p class="text-sm text-ink-3">
 			Rien ne pointe ici pour l’instant. Tape <span class="font-mono">#</span> dans n’importe quel texte
 			pour créer un lien.
 		</p>

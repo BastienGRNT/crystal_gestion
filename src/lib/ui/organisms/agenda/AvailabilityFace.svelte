@@ -9,12 +9,12 @@
 <div
 	class="flex h-full flex-col overflow-hidden rounded-md px-1.5 {compact
 		? 'py-0.5'
-		: 'py-1'} text-[11px] leading-tight text-ink-2"
+		: 'py-1'} text-2xs leading-tight text-ink-2"
 	style="{tint(item.color)};{availabilityFill(item.maybe)}"
 >
 	<span class="truncate font-medium text-ink">{item.maybe ? 'Peut-être' : item.label}</span>
 	{#if !compact}
-		<span class="truncate font-mono text-[10px] text-ink-3"
+		<span class="truncate font-mono text-2xs text-ink-3"
 			>{clockLabel(item.start)}–{clockLabel(item.end)}</span
 		>
 	{/if}

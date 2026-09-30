@@ -123,12 +123,42 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 | Transformer un message              | Crée l'élément avec « Depuis #M-x » dans son texte                                                                                                                 | Le lien apparaît dans les backlinks du message, sans champ dédié                      |
 | Contexte IA                         | `ai.context(projectId)` agrège cadrage, features, tâches, journal, références (refs lisibles) et notes ; exposé sur `/api/projects/:id/ai/context`                 | Prêt pour brancher un fournisseur sans toucher aux modules                            |
 
-## 5. Avancement — itération 2
+## 5. Glossaire (libellés de l'interface)
+
+Un mot = un concept, partout (menus, titres, boutons, états vides, Cmd+K). Tutoiement, phrases courtes, verbes d'action.
+
+| Terme                                           | Sens                                                                                                                 | À ne plus écrire                      |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Projet                                          | Objectif, public, date limite, hors périmètre, « c'est fini quand », équipe                                          | Cadrage (seul)                        |
+| Feature                                         | Un morceau du produit (ex. « Paiement Stripe »), porte des tâches                                                    | Epic, module                          |
+| Priorité (d'une feature)                        | Choisie : **Indispensable** (Must), **Si possible** (Should), **Bonus** (Could), **Pas maintenant** (Won't)          | Must/Should/Could/Won't seuls         |
+| Tâche                                           | Une action concrète, assignée, avec échéance facultative                                                             | Ticket, issue                         |
+| Urgence (d'une tâche)                           | Calculée (matrice) : **Faire maintenant**, **Planifier**, **Si j'ai le temps**, **Plus tard** ; déplaçable à la main | Priorité (pour une tâche), Eisenhower |
+| Important / Urgent                              | Important = feature Indispensable ou Si possible (ou forcé) ; urgent = échéance ≤ 3 j                                |                                       |
+| Statut                                          | À faire · En cours · À valider · Fait                                                                                | Todo, done                            |
+| Chrono                                          | Mesure le temps sur une tâche ; **Démarrer** / **Arrêter** ; crée un bloc de temps                                   | Timer, pause                          |
+| Bloc de temps                                   | Temps passé sur une tâche, visible dans le Planning                                                                  | Time entry, travail                   |
+| Dispo                                           | Créneau où tu peux travailler (« Dispo » ou « Peut-être »)                                                           | Disponibilité (long)                  |
+| Discussion / Général                            | Fil commun `Général` + un fil par feature                                                                            | Canal, #général                       |
+| Question                                        | Message qui attend la réponse d'une personne citée avec @                                                            |                                       |
+| Journal                                         | Décisions, bugs résolus, changements de périmètre : pourquoi le projet est comme il est                              | Fix (seul)                            |
+| Décision · Bug résolu · Changement de périmètre | Les trois types d'entrée du journal                                                                                  | Fix                                   |
+| Idée                                            | Pour plus tard ; se trie à la revue (→ tâche, → feature, archiver)                                                   | Backlog                               |
+| Ressources                                      | Comptes partagés, liens, contacts, fichiers                                                                          | Boîte à outils                        |
+| Revue de la semaine                             | 4 étapes : avancement, bloqué, questions, idées à trier                                                              | Revue (seul)                          |
+| Aperçu                                          | Panneau latéral qui ouvre n'importe quel élément (`T-12`, `D-3`…)                                                    | Peek                                  |
+| Cité dans                                       | Éléments qui mentionnent celui-ci avec `#`                                                                           | Mentionné dans, backlinks             |
+| Mémoire IA                                      | Ce que l'IA sait du projet                                                                                           |                                       |
+
+Navigation (8 entrées) : **Au quotidien** Aujourd'hui · Tâches · Discussion · Planning — **Le projet** Projet (onglets
+Vue d'ensemble · Journal · Mémoire IA) · Ressources — **Chaque semaine** Idées · Revue de la semaine.
+
+## 6. Avancement — itération 2
 
 Reprendre au premier point non coché. Décisions prises en route : voir « Décisions itération 2 » ci-dessous.
 
 - [x] 1. Chrono : bug corrigé, un seul actif, survit au refresh, visible partout, temps réel, bloc de planning, tests
-- [ ] 2. Chasse aux bugs (parcours Playwright de toutes les pages)
+- [x] 2. Chasse aux bugs (parcours Playwright de toutes les pages ; les suivants sont corrigés au fil des refontes)
 - [x] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
 - [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
 - [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)

@@ -23,7 +23,7 @@
 		<TextPreview {src} />
 	{:else}
 		<FileThumb {kind} name={file.title} />
-		<p class="border-t border-line px-4 py-2.5 text-center text-[12.5px] text-ink-3">
+		<p class="border-t border-line px-4 py-2.5 text-center text-sm text-ink-3">
 			Pas d’aperçu pour ce type de fichier : télécharge-le pour l’ouvrir.
 		</p>
 	{/if}

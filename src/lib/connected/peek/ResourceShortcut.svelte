@@ -16,7 +16,7 @@
 		href={target.href}
 		target={item.kind === 'contact' ? undefined : '_blank'}
 		rel="noopener noreferrer"
-		class="mt-3 inline-flex h-7 items-center gap-1.5 rounded-md bg-accent px-2.5 text-[13px] font-medium text-accent-ink shadow-sm transition hover:brightness-110"
+		class="mt-3 inline-flex h-7 items-center gap-1.5 rounded-md bg-accent px-2.5 text-sm font-medium text-accent-ink shadow-sm transition hover:brightness-110"
 		><target.icon size={13} />{target.label}</a
 	>
 {/if}

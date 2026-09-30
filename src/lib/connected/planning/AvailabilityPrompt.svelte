@@ -29,19 +29,19 @@
 </script>
 
 {#if !dismissed}
-	<section class="rounded-xl border border-line bg-surface p-3 pl-4">
-		<div class="mb-2.5 flex items-center justify-between gap-3">
-			<p class="font-display text-[22px] leading-none">Dispo aujourd’hui ?</p>
+	<section class="rounded-xl border border-line bg-surface p-4 shadow-card">
+		<div class="mb-3 flex items-center justify-between gap-3">
+			<h2 class="text-lg font-semibold">Dispo aujourd’hui ?</h2>
 			<button
 				type="button"
-				class="h-7 rounded-full px-2.5 text-[12.5px] text-ink-3 transition hover:bg-sunken hover:text-ink-2"
+				class="h-7 rounded-full px-2.5 text-sm text-ink-3 transition hover:bg-sunken hover:text-ink-2"
 				onclick={notAvailable}>Pas dispo</button
 			>
 		</div>
 		<div class="flex flex-wrap gap-2">
 			{#each periods as [period, { label, from, to }] (period)}
 				<ToggleChip pressed={slotsOf(period).length > 0} onclick={() => toggle(period)}>
-					{label}<span class="font-mono text-[11px] opacity-60">{from}–{to}h</span>
+					{label}<span class="font-mono text-2xs opacity-60">{from}–{to}h</span>
 				</ToggleChip>
 			{/each}
 		</div>

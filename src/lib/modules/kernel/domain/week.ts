@@ -7,4 +7,5 @@ export function startOfWeek(now: Date): Date {
 	return new Date(start.getTime() - weekday * DAY_MS);
 }
 
-export const isThisWeek = (iso: string | null, now: Date) => iso !== null && Date.parse(iso) >= startOfWeek(now).getTime();
+export const isThisWeek = (iso: string | null, now: Date) =>
+	iso !== null && Date.parse(iso) >= startOfWeek(now).getTime();

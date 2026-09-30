@@ -19,7 +19,7 @@
 		children
 	}: Props = $props();
 	const classes = $derived(
-		`flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-[13px] transition hover:bg-sunken ${
+		`flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition hover:bg-sunken ${
 			tone === 'danger' ? 'text-danger' : active ? 'text-ink font-medium' : 'text-ink-2'
 		}`
 	);

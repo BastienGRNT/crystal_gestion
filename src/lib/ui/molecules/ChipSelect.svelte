@@ -15,7 +15,7 @@
 
 <!-- A native select under a chip: compact on desktop, the system picker on mobile. -->
 <label
-	class="relative inline-flex h-6 max-w-full min-w-0 items-center gap-1 rounded-full border px-2 text-[12px] transition focus-within:ring-2 focus-within:ring-accent/30 {current
+	class="relative inline-flex h-6 max-w-full min-w-0 items-center gap-1 rounded-full border px-2 text-xs transition focus-within:ring-2 focus-within:ring-accent/30 {current
 		? 'border-transparent bg-accent-soft text-accent hover:brightness-95 dark:hover:brightness-125'
 		: 'border-dashed border-line-strong text-ink-3 hover:text-ink-2'}"
 	title={label}

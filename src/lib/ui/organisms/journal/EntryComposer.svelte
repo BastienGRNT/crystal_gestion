@@ -48,7 +48,7 @@
 		onkeydown={(event) =>
 			event.key === 'Enter' &&
 			(event.preventDefault(), event.currentTarget.form?.querySelector('textarea')?.focus())}
-		class="mt-2 mb-3 w-full bg-transparent font-display text-[28px] leading-tight outline-none placeholder:text-ink-3"
+		class="mt-2 mb-3 w-full bg-transparent font-display text-3xl leading-tight outline-none placeholder:text-ink-3"
 	/>
 	{#if draft.kind === 'decision'}<DecisionInputs bind:draft {people} {suggest} />{:else}<FixInputs
 			bind:draft

@@ -27,7 +27,16 @@
 </script>
 
 {#if items.length}
-	<QuestionList {items} resolve={refs.resolve} onresolve={(messageId) => actions.discussion.resolveQuestion(messageId)} />
+	<QuestionList
+		{items}
+		resolve={refs.resolve}
+		onresolve={(messageId) => actions.discussion.resolveQuestion(messageId)}
+	/>
 {:else}
-	<EmptyState icon={MessageCircleQuestion} title="Aucune question en attente" text="Quand quelqu’un te pose une question avec @, elle apparaît ici jusqu’à ta réponse." />
+	<EmptyState
+		compact
+		icon={MessageCircleQuestion}
+		title="Aucune question en attente"
+		text="Quand quelqu’un te pose une question avec @, elle apparaît ici jusqu’à ta réponse."
+	/>
 {/if}

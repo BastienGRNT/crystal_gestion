@@ -8,6 +8,6 @@
 	const author = $derived(element.createdBy ? refs.personName(element.createdBy) : undefined);
 </script>
 
-<p class="mt-1 text-[12.5px] text-ink-3">
+<p class="mt-1 text-sm text-ink-3">
 	Ajouté {timeAgo(element.createdAt)}{#if author}&nbsp;par {author}{/if}
 </p>

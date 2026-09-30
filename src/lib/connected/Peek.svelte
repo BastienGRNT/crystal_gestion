@@ -25,7 +25,7 @@
 	{@const Icon = KIND_META[element.kind].icon}
 	<Drawer onclose={close}>
 		{#snippet header()}
-			<p class="flex items-center gap-2 text-[12.5px] text-ink-3">
+			<p class="flex items-center gap-2 text-sm text-ink-3">
 				<Icon size={14} />{KIND_META[element.kind].label}
 				<span class="font-mono">{element.ref}</span>
 			</p>

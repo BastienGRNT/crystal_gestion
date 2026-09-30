@@ -22,7 +22,9 @@
 <button
 	type="button"
 	onclick={click}
-	class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] transition {armed ? 'bg-danger text-white' : 'text-ink-3 hover:bg-danger/10 hover:text-danger'}"
+	class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-sm transition {armed
+		? 'bg-danger text-white'
+		: 'text-ink-3 hover:bg-danger/10 hover:text-danger'}"
 >
 	{#if armed}{confirmLabel}{:else}{@render children()}{/if}
 </button>

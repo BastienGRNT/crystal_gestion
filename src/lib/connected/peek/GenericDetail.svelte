@@ -11,11 +11,11 @@
 	const label = $derived(element.kind === 'message' ? 'Voir dans la discussion' : 'Ouvrir la page');
 </script>
 
-<h2 class="font-display text-[30px] leading-tight">{element.title}</h2>
+<h2 class="font-display text-3xl leading-tight">{element.title}</h2>
 {#if !href.includes('?peek=')}
 	<a
 		{href}
-		class="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline"
+		class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
 		>{label}<ArrowUpRight size={14} /></a
 	>
 {/if}

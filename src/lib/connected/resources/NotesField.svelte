@@ -16,7 +16,7 @@
 			resolve={refs.resolve}
 			suggest={refs.suggest}
 			placeholder="Notes"
-			class="text-[13px] text-ink-2"
+			class="text-sm text-ink-2"
 		/>
 	</div>
 </div>

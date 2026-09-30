@@ -34,7 +34,7 @@
 		<InlineText
 			value={task.title}
 			onsave={(title) => actions.tasks.update(task.id, { title })}
-			class="font-display text-[30px] leading-tight {done ? 'text-ink-3 line-through' : ''}"
+			class="font-display text-3xl leading-tight {done ? 'text-ink-3 line-through' : ''}"
 		/>
 	</div>
 	<div class="mt-4 flex gap-2">
@@ -43,7 +43,8 @@
 				size="sm"
 				onclick={() => actions.tasks.start(task.id)}><Play size={13} /> Lancer</Button
 			>{/if}
-		{#if running}<Button size="sm" onclick={() => actions.tasks.stopTimer()}>Arrêter le chrono</Button
+		{#if running}<Button size="sm" onclick={() => actions.tasks.stopTimer()}
+				>Arrêter le chrono</Button
 			>{/if}
 		<Button
 			variant="ghost"
@@ -55,7 +56,7 @@
 	</div>
 	<div class="mt-6"><TaskProperties {task} /></div>
 	<div class="mt-6 border-t border-line pt-5">
-		<h3 class="mb-2 text-[12px] font-medium tracking-wide text-ink-3 uppercase">Description</h3>
+		<h3 class="mb-2 text-xs font-medium tracking-wide text-ink-3 uppercase">Description</h3>
 		<InlineRichText
 			value={task.description}
 			resolve={refs.resolve}

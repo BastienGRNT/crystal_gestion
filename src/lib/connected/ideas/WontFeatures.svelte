@@ -13,7 +13,7 @@
 <IdeaSection
 	title="Features reportées"
 	count={postponed.length}
-	hint="Classées Won’t : pas maintenant, mais pas oubliées."
+	hint="Priorité « Pas maintenant » : hors de cette version, mais pas oubliées."
 >
 	{#if postponed.length}
 		<ul>
@@ -25,8 +25,8 @@
 			{/each}
 		</ul>
 	{:else}
-		<p class="py-4 text-[13px] text-ink-3">
-			Aucune feature en Won’t. Quand une feature sort du périmètre, elle attend ici.
+		<p class="py-4 text-sm text-ink-3">
+			Aucune feature « Pas maintenant ». Quand une feature sort du périmètre, elle attend ici.
 		</p>
 	{/if}
 </IdeaSection>

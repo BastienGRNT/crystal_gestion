@@ -33,12 +33,12 @@
 			onclick={() => open(notification.elementRef, notification.elementKind)}
 		>
 			{#if actor}<Avatar name={actor.name} color={actor.color} size={28} />{/if}
-			<span class="min-w-0 flex-1 text-[13px]">
+			<span class="min-w-0 flex-1 text-sm">
 				<span class="font-medium">{actor?.name ?? 'Quelqu’un'}</span>
 				{NOTIFICATION_VERBS[notification.type]}
-				<span class="font-mono text-[11.5px] text-ink-3">{notification.elementRef}</span>
+				<span class="font-mono text-xs text-ink-3">{notification.elementRef}</span>
 				<span class="block truncate text-ink-2">{notification.elementTitle}</span>
-				<span class="text-[11.5px] text-ink-3">{timeAgo(notification.createdAt)}</span>
+				<span class="text-xs text-ink-3">{timeAgo(notification.createdAt)}</span>
 			</span>
 			{#if !notification.readAt}<span class="mt-1.5 size-2 shrink-0 rounded-full bg-accent"
 				></span>{/if}

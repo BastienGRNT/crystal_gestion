@@ -24,7 +24,7 @@
 		<InlineText
 			value={item.title}
 			onsave={ops.rename}
-			class="font-display text-[30px] leading-tight"
+			class="font-display text-3xl leading-tight"
 		/>
 		<span class="mt-2"><ConfirmDelete onconfirm={() => (ops.remove(), onclose())} /></span>
 	</div>

@@ -18,7 +18,7 @@
 	<button
 		type="button"
 		onclick={() => (clearTimeout(timer), (armed = false), onconfirm())}
-		class="inline-flex h-6 shrink-0 animate-rise items-center gap-1 rounded-md bg-danger/12 px-2 text-[12px] font-medium text-danger transition hover:bg-danger/20"
+		class="inline-flex h-6 shrink-0 animate-rise items-center gap-1 rounded-md bg-danger/12 px-2 text-xs font-medium text-danger transition hover:bg-danger/20"
 	>
 		<Trash2 size={12} />Confirmer
 	</button>

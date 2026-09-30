@@ -8,6 +8,9 @@ export function appShortcuts(slug: string, navigate: (path: string) => void): Sh
 		'mod+k': () => overlays.openPalette(),
 		i: () => overlays.openIdea(),
 		c: () => overlays.openPalette(),
-		...Object.fromEntries(NAVIGATION.map((item) => [item.shortcut, () => navigate(projectPath(slug, item.path))]))
+		...Object.fromEntries(
+			NAVIGATION.map((item) => [item.shortcut, () => navigate(projectPath(slug, item.path))])
+		),
+		'g j': () => navigate(projectPath(slug, '/journal'))
 	};
 }

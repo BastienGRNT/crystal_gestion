@@ -6,7 +6,8 @@
 	/** Form field: selected people are submitted as repeated `members` values. */
 	let { people }: { people: Person[] } = $props();
 	let selected = $state<string[]>([]);
-	const toggle = (id: string) => (selected = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id]);
+	const toggle = (id: string) =>
+		(selected = selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id]);
 </script>
 
 {#each selected as id (id)}<input type="hidden" name="members" value={id} />{/each}
@@ -16,6 +17,6 @@
 			<Avatar name={person.name} color={person.color} size={20} />{person.name}
 		</ToggleChip>
 	{:else}
-		<p class="pt-1.5 text-[13px] text-ink-3">Personne d’autre pour l’instant.</p>
+		<p class="pt-1.5 text-sm text-ink-3">Personne d’autre pour l’instant.</p>
 	{/each}
 </div>

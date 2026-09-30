@@ -14,7 +14,7 @@
 		<a
 			href={thread.href}
 			aria-current={thread.active ? 'page' : undefined}
-			class="inline-flex h-8 max-w-52 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[12.5px] transition {thread.active
+			class="inline-flex h-8 max-w-52 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition {thread.active
 				? 'border-ink bg-ink font-medium text-bg'
 				: 'border-line bg-surface text-ink-2'}"
 		>

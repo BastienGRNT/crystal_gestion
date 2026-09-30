@@ -48,7 +48,7 @@
 		]}
 	/>
 	<div class="ml-auto flex items-center gap-2">
-		<span class="hidden text-[12px] text-ink-3 lg:inline">Glisser pour ajouter</span>
+		<span class="hidden text-xs text-ink-3 lg:inline">Glisser pour ajouter</span>
 		<Segmented
 			label="Ce que le glisser crée"
 			value={layer}

@@ -43,7 +43,7 @@
 			{placeholder}
 			suggestions="above"
 			rows={1}
-			class="max-h-48 min-h-6 text-[14px] leading-[1.55]"
+			class="max-h-48 min-h-6 text-base leading-[1.55]"
 		/>
 	</div>
 	<ComposerBar

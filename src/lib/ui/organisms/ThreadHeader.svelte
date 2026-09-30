@@ -14,10 +14,10 @@
 
 <header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
 	<div class="min-w-0">
-		<p class="mb-1 font-mono text-[11px] tracking-[0.14em] text-ink-3 uppercase">
+		<p class="mb-1 font-mono text-2xs tracking-[0.14em] text-ink-3 uppercase">
 			Discussion{#if feature}&nbsp;· {feature.ref}{/if}
 		</p>
-		<h1 class="truncate font-display text-[30px] leading-[1.05] sm:text-[42px]">
+		<h1 class="truncate font-display text-3xl leading-[1.05] sm:text-4xl">
 			{#if !feature}<span class="text-ink-3 italic">#</span>{/if}{title}
 		</h1>
 	</div>
@@ -26,7 +26,7 @@
 			<PriorityBadge priority={feature.priority} />
 			<a
 				href={feature.href}
-				class="inline-flex items-center gap-1 text-[13px] text-ink-2 transition hover:text-accent"
+				class="inline-flex items-center gap-1 text-sm text-ink-2 transition hover:text-accent"
 				>Voir la feature <ArrowUpRight size={13} /></a
 			>
 		</div>

@@ -16,14 +16,21 @@
 			if (task) peek(task.ref);
 		},
 		createIdea: (title) => actions.ideas.create({ title }),
-		createDecision: (title) => goto(`${projectPath(slug, '/journal')}?new=decision&title=${encodeURIComponent(title)}`),
+		createDecision: (title) =>
+			goto(`${projectPath(slug, '/journal')}?new=decision&title=${encodeURIComponent(title)}`),
 		open: (element) => goto(refs.href(element)),
 		navigate: (path) => goto(projectPath(slug, path)),
 		toggleTheme: () => theme.cycle()
 	};
-	const groups = $derived(paletteGroups(overlays.paletteQuery.trim(), store.elements.items, intents));
+	const groups = $derived(
+		paletteGroups(overlays.paletteQuery.trim(), store.elements.items, intents)
+	);
 </script>
 
 {#if overlays.palette}
-	<CommandPalette bind:query={overlays.paletteQuery} {groups} onclose={() => (overlays.palette = false)} />
+	<CommandPalette
+		bind:query={overlays.paletteQuery}
+		{groups}
+		onclose={() => (overlays.palette = false)}
+	/>
 {/if}

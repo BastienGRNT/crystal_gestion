@@ -27,9 +27,9 @@
 		</a>
 		{#if hovering}
 			<span
-				class="absolute top-full left-0 z-50 mt-1.5 block w-72 animate-rise rounded-lg border border-line bg-surface p-3 text-left text-[13px] text-ink shadow-pop"
+				class="absolute top-full left-0 z-50 mt-1.5 block w-72 animate-rise rounded-lg border border-line bg-surface p-3 text-left text-sm text-ink shadow-pop"
 			>
-				<span class="flex items-center gap-1.5 text-[11.5px] text-ink-3">
+				<span class="flex items-center gap-1.5 text-xs text-ink-3">
 					<Icon size={12} />{KIND_META[view.kind].label} · <span class="font-mono">{view.ref}</span>
 					{#if view.status}<span class="ml-auto rounded bg-sunken px-1.5 py-0.5 text-ink-2"
 							>{view.status}</span

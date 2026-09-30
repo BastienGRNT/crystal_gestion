@@ -25,12 +25,12 @@
 >
 	<div class="flex items-center gap-1 rounded-[8.5px] bg-surface py-2 pr-1.5 pl-3">
 		<button class="min-w-0 flex-1 text-left" onclick={onopen} title="Ouvrir {taskRef}">
-			<p class="flex items-center gap-1.5 text-[12px] text-ink-3">
+			<p class="flex items-center gap-1.5 text-xs text-ink-3">
 				<span class="size-1.5 animate-pulse rounded-full bg-must"></span>
 				<Elapsed since={startedAt} />
 				<span class="truncate font-mono">{projectName ? `${projectName} · ` : ''}{taskRef}</span>
 			</p>
-			<p class="truncate text-[13px] font-medium">{taskTitle}</p>
+			<p class="truncate text-sm font-medium">{taskTitle}</p>
 		</button>
 		<IconButton label="Arrêter le chrono" size="sm" onclick={onstop}
 			><Square size={13} /></IconButton

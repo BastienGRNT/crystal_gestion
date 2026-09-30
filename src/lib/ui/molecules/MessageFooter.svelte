@@ -9,7 +9,7 @@
 </script>
 
 {#if badge || view.links.length}
-	<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12.5px]">
+	<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
 		{#if badge}<QuestionBadge waitingOn={view.waitingOn} />{/if}
 		{#each view.links as link (link.ref)}
 			<span class="inline-flex items-center gap-1 text-ink-3"

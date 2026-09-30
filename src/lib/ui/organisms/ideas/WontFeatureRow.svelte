@@ -17,14 +17,14 @@
 	<a href={feature.href} class="group min-w-0 flex-1">
 		<span class="flex items-baseline gap-2">
 			<span
-				class="truncate text-[14.5px] font-medium group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4"
+				class="truncate text-base font-medium group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4"
 				>{feature.title}</span
 			>
-			<span class="font-mono text-[11px] text-ink-3">{feature.ref}</span>
+			<span class="font-mono text-2xs text-ink-3">{feature.ref}</span>
 		</span>
-		{#if feature.description}<span class="mt-0.5 block truncate text-[13px] text-ink-3"
+		{#if feature.description}<span class="mt-0.5 block truncate text-sm text-ink-3"
 				>{feature.description}</span
 			>{/if}
 	</a>
-	<Button size="sm" onclick={onrestore}><Undo2 size={13} /> Remettre en Could</Button>
+	<Button size="sm" onclick={onrestore}><Undo2 size={13} /> Remettre en Bonus</Button>
 </li>

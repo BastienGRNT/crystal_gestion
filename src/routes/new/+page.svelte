@@ -18,11 +18,15 @@
 	<header class="mb-12 flex items-center justify-between">
 		<span class="flex items-center gap-2 font-semibold"><Logo /> Crystal</span>
 		{#if data.hasProjects}
-			<a href="/" class="flex items-center gap-1.5 text-[13px] text-ink-3 hover:text-ink"><ArrowLeft size={14} /> Retour</a>
+			<a href="/" class="flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink"
+				><ArrowLeft size={14} /> Retour</a
+			>
 		{/if}
 	</header>
-	<h1 class="font-display text-[56px] leading-none italic sm:text-[72px]">Nouveau projet</h1>
-	<p class="mt-3 mb-10 max-w-md text-[15px] text-ink-2">Quelques questions, deux minutes. Canal, tableau et dossiers se créent tout seuls.</p>
+	<h1 class="font-display text-5xl leading-none italic sm:text-6xl">Nouveau projet</h1>
+	<p class="mt-3 mb-10 max-w-md text-lg text-ink-2">
+		Quelques questions, deux minutes. Canal, tableau et dossiers se créent tout seuls.
+	</p>
 	<form
 		method="POST"
 		use:enhance={() => {
@@ -39,7 +43,9 @@
 			<TeamPicker people={data.others} />
 		</NumberedField>
 		<div class="flex justify-end border-t border-line pt-6">
-			<Button type="submit" variant="primary" size="lg" loading={submitting}>Créer le projet <ArrowRight size={16} /></Button>
+			<Button type="submit" variant="primary" size="lg" loading={submitting}
+				>Créer le projet <ArrowRight size={16} /></Button
+			>
 		</div>
 	</form>
 </div>

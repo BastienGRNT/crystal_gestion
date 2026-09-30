@@ -21,9 +21,33 @@
 <svelte:head><title>Revue · {store.project.name}</title></svelte:head>
 
 <Page width="max-w-4xl">
-	<PageHeader eyebrow="{week} · ≈ 10 minutes" title="Revue de la semaine" subtitle="Quatre étapes pour repartir au clair : où on en est, ce qui coince, ce qui attend une réponse, ce qu’on garde." />
-	<ReviewStep index={1} title="Avancement" hint="Par feature, avec les tâches terminées cette semaine (+n)." clear={false}><FeatureProgress /></ReviewStep>
-	<ReviewStep index={2} title="Bloqué ou en retard" hint="Échéance dépassée, ou en cours sans mouvement depuis une semaine." clear={stuck === 0}><StuckTasks bind:count={stuck} /></ReviewStep>
-	<ReviewStep index={3} title="Questions sans réponse" hint="Qui attend quoi, et depuis quand." clear={questions === 0}><OpenQuestions /></ReviewStep>
-	<ReviewStep index={4} title="Idées à trier" hint="Transformer en tâche ou en feature, garder pour plus tard, ou supprimer." clear={ideas === 0}><IdeaTriage /></ReviewStep>
+	<PageHeader
+		eyebrow="{week} · ≈ 10 minutes"
+		title="Revue de la semaine"
+		subtitle="Quatre étapes pour repartir au clair : où on en est, ce qui coince, ce qui attend une réponse, ce qu’on garde."
+	/>
+	<ReviewStep
+		index={1}
+		title="Avancement"
+		hint="Par feature, avec les tâches terminées cette semaine (+n)."
+		clear={false}><FeatureProgress /></ReviewStep
+	>
+	<ReviewStep
+		index={2}
+		title="Bloqué ou en retard"
+		hint="Échéance dépassée, ou en cours sans mouvement depuis une semaine."
+		clear={stuck === 0}><StuckTasks bind:count={stuck} /></ReviewStep
+	>
+	<ReviewStep
+		index={3}
+		title="Questions sans réponse"
+		hint="Qui attend quoi, et depuis quand."
+		clear={questions === 0}><OpenQuestions /></ReviewStep
+	>
+	<ReviewStep
+		index={4}
+		title="Idées à trier"
+		hint="Transformer en tâche ou en feature, garder pour plus tard, ou supprimer."
+		clear={ideas === 0}><IdeaTriage /></ReviewStep
+	>
 </Page>

@@ -26,9 +26,9 @@
 	class="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-dashed border-line px-4 py-2.5 hover:border-line-strong hover:bg-surface sm:px-5"
 >
 	<JournalKindBadge kind="scope" />
-	<span class="font-mono text-[11.5px] text-ink-3">{entry.ref}</span>
-	{#if entry.feature}<FeatureTag feature={entry.feature} />{:else}<span
-			class="text-[13px] font-medium">{featureTitle}</span
+	<span class="font-mono text-xs text-ink-3">{entry.ref}</span>
+	{#if entry.feature}<FeatureTag feature={entry.feature} />{:else}<span class="text-sm font-medium"
+			>{featureTitle}</span
 		>{/if}
 	<ScopeShift {change} />
 	<EntryByline author={entry.author} at={entry.createdAt} />

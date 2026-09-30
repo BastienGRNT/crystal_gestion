@@ -21,19 +21,18 @@
 		<li role="option" aria-selected={index === highlighted}>
 			<button
 				type="button"
-				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] {index ===
+				class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm {index ===
 				highlighted
 					? 'bg-sunken'
 					: ''}"
 				onmousedown={(event) => (event.preventDefault(), onpick(item))}
 			>
-				{#if item.hint}<span class="w-12 shrink-0 font-mono text-[11px] text-ink-3"
-						>{item.hint}</span
+				{#if item.hint}<span class="w-12 shrink-0 font-mono text-2xs text-ink-3">{item.hint}</span
 					>{/if}
 				<span class="truncate">{item.label}</span>
 			</button>
 		</li>
 	{:else}
-		<li class="px-2 py-1.5 text-[13px] text-ink-3">Aucun résultat</li>
+		<li class="px-2 py-1.5 text-sm text-ink-3">Aucun résultat</li>
 	{/each}
 </ul>

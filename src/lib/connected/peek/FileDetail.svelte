@@ -20,7 +20,7 @@
 		<InlineText
 			value={file.title}
 			onsave={(title) => actions.files.update(file.id, { title })}
-			class="font-display text-[28px] leading-tight break-all"
+			class="font-display text-3xl leading-tight break-all"
 		/>
 		<span class="mt-2"
 			><ConfirmDelete onconfirm={() => (actions.files.remove(file.id), onclose())} /></span
@@ -29,7 +29,7 @@
 	<a
 		href="{fileUrl(file.projectId, file.id)}?download"
 		download
-		class="mt-3 inline-flex h-7 items-center gap-1.5 rounded-md bg-accent px-2.5 text-[13px] font-medium text-accent-ink shadow-sm transition hover:brightness-110"
+		class="mt-3 inline-flex h-7 items-center gap-1.5 rounded-md bg-accent px-2.5 text-sm font-medium text-accent-ink shadow-sm transition hover:brightness-110"
 		><Download size={13} />Télécharger</a
 	>
 	<div class="mt-5 border-t border-line pt-3"><FileProperties {file} /></div>

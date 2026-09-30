@@ -47,7 +47,7 @@
 			{placeholder}
 			class="min-h-16 {extra}"
 		/>
-		<p class="mt-1 text-[11px] text-ink-3">
+		<p class="mt-1 text-2xs text-ink-3">
 			# pour lier un élément · clique ailleurs pour enregistrer
 		</p>
 	</div>

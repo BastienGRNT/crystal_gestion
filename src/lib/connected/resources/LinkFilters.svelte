@@ -18,18 +18,18 @@
 
 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 	<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-		<span class="mr-1 text-[12px] text-ink-3">Tags</span>
+		<span class="mr-1 text-xs text-ink-3">Tags</span>
 		<button
 			type="button"
 			onclick={() => ontag(null)}
-			class="h-5 rounded-[4px] px-1.5 text-[11.5px] transition {tag === null
+			class="h-5 rounded-[4px] px-1.5 text-xs transition {tag === null
 				? 'bg-ink text-bg'
 				: 'text-ink-3 hover:text-ink'}">Tous</button
 		>
 		{#each tags as each (each)}
 			<Tag tag={each} active={each === tag} onclick={() => ontag(each === tag ? null : each)} />
 		{:else}
-			<span class="text-[12px] text-ink-3/80">aucun pour l’instant</span>
+			<span class="text-xs text-ink-3/80">aucun pour l’instant</span>
 		{/each}
 	</div>
 	<Select

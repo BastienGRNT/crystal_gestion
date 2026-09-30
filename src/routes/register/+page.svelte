@@ -21,7 +21,7 @@
 		<Button type="submit" size="lg">Continuer</Button>
 	</form>
 	{#if data.codeEnabled}
-		<p class="my-6 flex items-center gap-3 text-[13px] text-ink-3">
+		<p class="my-6 flex items-center gap-3 text-sm text-ink-3">
 			<span class="h-px flex-1 bg-line"></span>ou avec le code d’accès<span
 				class="h-px flex-1 bg-line"
 			></span>
@@ -32,13 +32,13 @@
 			</Field>
 		</AccountForm>
 	{:else}
-		<p class="mt-6 text-[13.5px] text-ink-2">
+		<p class="mt-6 text-base text-ink-2">
 			Pas de lien ? Demande à un membre du projet de t’en créer un depuis la page <strong
 				>Projet → Équipe</strong
 			>.
 		</p>
 	{/if}
-	<p class="mt-8 text-center text-[13px] text-ink-3">
+	<p class="mt-8 text-center text-sm text-ink-3">
 		Déjà un compte ? <a class="font-medium text-accent hover:underline" href="/login"
 			>Se connecter</a
 		>

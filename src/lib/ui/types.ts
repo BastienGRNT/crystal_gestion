@@ -75,3 +75,17 @@ export interface FeatureRowView {
 	total: number;
 	href: string;
 }
+
+export interface NavEntry {
+	key: string;
+	label: string;
+	href: string;
+	icon: Component<{ size?: number; strokeWidth?: number }>;
+	shortcut?: string;
+	badge: number;
+}
+
+export interface NavSection {
+	label: string;
+	items: NavEntry[];
+}

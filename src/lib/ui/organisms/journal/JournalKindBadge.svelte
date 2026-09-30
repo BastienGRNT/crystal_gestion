@@ -8,9 +8,8 @@
 </script>
 
 <span
-	class="inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-[11.5px] font-medium {KIND_STYLE[
-		kind
-	].badge}"
+	class="inline-flex h-5 items-center gap-1 rounded-sm px-1.5 text-xs font-medium {KIND_STYLE[kind]
+		.badge}"
 >
 	<Icon size={12} strokeWidth={2.2} />{JOURNAL_LABELS[kind]}
 </span>

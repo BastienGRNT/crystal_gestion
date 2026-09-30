@@ -16,7 +16,7 @@
 
 {#if linked}
 	<MenuItem onclick={() => onlink(null)}>
-		<Link2Off size={14} /> Délier <span class="font-mono text-[11px] text-ink-3">{linked.ref}</span>
+		<Link2Off size={14} /> Délier <span class="font-mono text-2xs text-ink-3">{linked.ref}</span>
 	</MenuItem>
 {/if}
 <TaskSearch tasks={tasks.filter((task) => task.id !== linked?.id)} onpick={onlink} />

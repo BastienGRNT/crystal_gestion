@@ -17,8 +17,8 @@
 	<div class="flex h-32 items-center justify-center text-ink-3"><Spinner /></div>
 {:then content}
 	<pre
-		class="max-h-96 overflow-auto p-4 font-mono text-[12px] leading-relaxed whitespace-pre-wrap text-ink-2">{content ||
+		class="max-h-96 overflow-auto p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-ink-2">{content ||
 			'Fichier vide'}</pre>
 {:catch}
-	<p class="p-4 text-[13px] text-ink-3">Aperçu indisponible.</p>
+	<p class="p-4 text-sm text-ink-3">Aperçu indisponible.</p>
 {/await}

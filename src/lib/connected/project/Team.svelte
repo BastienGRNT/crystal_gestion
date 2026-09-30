@@ -23,4 +23,10 @@
 </script>
 
 <TeamList members={store.members.items} online={store.online} />
-<InvitePanel {link} {candidates} oninvite={invite} oncopy={copy} onadd={(id) => actions.project.addMember(id)} />
+<InvitePanel
+	{link}
+	{candidates}
+	oninvite={invite}
+	oncopy={copy}
+	onadd={(id) => actions.project.addMember(id)}
+/>

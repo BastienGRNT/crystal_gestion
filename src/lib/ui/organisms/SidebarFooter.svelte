@@ -30,7 +30,7 @@
 				<Avatar name={me.name} color={me.color} size={26} online />
 			</button>
 		{/snippet}
-		<p class="px-2.5 py-1.5 text-[13px] font-medium">{me.name}</p>
+		<p class="px-2.5 py-1.5 text-sm font-medium">{me.name}</p>
 		<MenuItem onclick={ontheme}><ThemeIcon size={14} /> Thème : {themeLabel}</MenuItem>
 		<form method="POST" action="/logout">
 			<MenuItem type="submit" tone="danger"><LogOut size={14} /> Se déconnecter</MenuItem>
@@ -45,7 +45,7 @@
 		<Bell size={16} />
 		{#if unread > 0}
 			<span
-				class="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-must font-mono text-[9px] text-white"
+				class="absolute top-1 right-1 flex size-3.5 items-center justify-center rounded-full bg-must font-mono text-2xs text-white"
 				>{Math.min(unread, 9)}</span
 			>
 		{/if}

@@ -18,18 +18,18 @@
 		bind:value={query}
 		autofocus={matchMedia('(pointer: fine)').matches}
 		placeholder="Lier une tâche…"
-		class="h-8 min-w-0 flex-1 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"
+		class="h-8 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-3"
 	/>
 </label>
 {#each matches as task (task.id)}
 	<button
 		type="button"
-		class="flex w-full items-baseline gap-2 rounded-md px-2.5 py-1.5 text-left text-[13px] text-ink-2 hover:bg-sunken hover:text-ink"
+		class="flex w-full items-baseline gap-2 rounded-md px-2.5 py-1.5 text-left text-sm text-ink-2 hover:bg-sunken hover:text-ink"
 		onclick={() => onpick(task.id)}
 	>
-		<span class="shrink-0 font-mono text-[11px] text-ink-3">{task.ref}</span>
+		<span class="shrink-0 font-mono text-2xs text-ink-3">{task.ref}</span>
 		<span class="truncate">{task.title}</span>
 	</button>
 {:else}
-	<p class="px-2.5 py-1.5 text-[12.5px] text-ink-3">Aucune tâche trouvée</p>
+	<p class="px-2.5 py-1.5 text-sm text-ink-3">Aucune tâche trouvée</p>
 {/each}

@@ -1,38 +1,30 @@
 <script lang="ts">
 	import { Menu } from '@lucide/svelte';
-	import { NAVIGATION, type NavKey } from '$lib/client/navigation';
+	import type { NavEntry } from '../types';
 
 	interface Props {
-		slug: string;
-		active: NavKey;
+		items: NavEntry[];
+		active: string;
 		onmenu: () => void;
 	}
 
-	let { slug, active, onmenu }: Props = $props();
-	const primary = NAVIGATION.filter((item) =>
-		['today', 'tasks', 'discussion', 'planning'].includes(item.key)
-	);
+	let { items, active, onmenu }: Props = $props();
+	const tab = 'flex flex-1 flex-col items-center gap-1 pt-2 pb-1.5 text-2xs font-medium';
 </script>
 
 <nav
 	class="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
 	aria-label="Navigation mobile"
 >
-	{#each primary as item (item.key)}
+	{#each items as item (item.key)}
 		<a
-			href="/p/{slug}{item.path}"
-			class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[10.5px] {active === item.key
-				? 'text-accent'
-				: 'text-ink-3'}"
+			href={item.href}
+			aria-current={active === item.key ? 'page' : undefined}
+			class="{tab} {active === item.key ? 'text-accent-text' : 'text-ink-3'}"
 		>
-			<item.icon size={19} />
+			<item.icon size={20} strokeWidth={active === item.key ? 2.2 : 1.8} />
 			{item.label}
 		</a>
 	{/each}
-	<button
-		class="flex flex-1 flex-col items-center gap-0.5 py-2 text-[10.5px] text-ink-3"
-		onclick={onmenu}
-	>
-		<Menu size={19} /> Plus
-	</button>
+	<button class="{tab} text-ink-3" onclick={onmenu}><Menu size={20} /> Plus</button>
 </nav>

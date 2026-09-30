@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { useProject } from '$lib/client/context';
-	import { activeNav } from '$lib/client/navigation';
+	import { activeNav, navSections } from '$lib/client/navigation';
 	import { overlays } from '$lib/client/overlays.svelte';
 	import { theme } from '$lib/client/theme.svelte';
 	import { needsTriage } from '$lib/modules/ideas/domain/idea';
@@ -13,19 +13,28 @@
 	const { store, me } = useProject();
 	const online = $derived(store.members.items.filter((member) => store.online.includes(member.id)));
 	const unread = $derived(store.notifications.items.filter((n) => !n.readAt).length);
-	const badges = $derived({ ideas: store.ideas.items.filter(needsTriage).length });
+	const sections = $derived(
+		navSections(store.project.slug, { ideas: store.ideas.items.filter(needsTriage).length })
+	);
 </script>
 
 <Sidebar
 	project={store.project}
 	{projects}
 	active={activeNav(page.url.pathname, store.project.slug)}
-	{badges}
+	{sections}
 	onsearch={() => overlays.openPalette()}
 	onidea={() => overlays.openIdea()}
 >
 	{#snippet timer()}<ActiveTimer />{/snippet}
 	{#snippet footer()}
-		<SidebarFooter {me} {online} {unread} themeMode={theme.mode} ontheme={() => theme.cycle()} onnotifications={() => (overlays.notifications = true)} />
+		<SidebarFooter
+			{me}
+			{online}
+			{unread}
+			themeMode={theme.mode}
+			ontheme={() => theme.cycle()}
+			onnotifications={() => (overlays.notifications = true)}
+		/>
 	{/snippet}
 </Sidebar>

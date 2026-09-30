@@ -5,6 +5,6 @@
 </script>
 
 <section class="border-t border-line pt-5">
-	<h3 class="mb-2 text-[12px] font-medium tracking-wide text-ink-3 uppercase">{label}</h3>
+	<h3 class="mb-2 text-xs font-medium tracking-wide text-ink-3 uppercase">{label}</h3>
 	{@render children()}
 </section>
