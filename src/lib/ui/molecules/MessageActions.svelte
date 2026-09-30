@@ -20,7 +20,7 @@
 
 	const convert: MenuAction[] = [
 		{ label: 'Décision', icon: BookOpen, run: () => on.onconvert('decision') },
-		{ label: 'Fix', icon: Wrench, run: () => on.onconvert('fix') },
+		{ label: 'Bug résolu', icon: Wrench, run: () => on.onconvert('fix') },
 		{ label: 'Tâche', icon: SquareCheckBig, run: () => on.onconvert('task') },
 		{ label: 'Idée', icon: Lightbulb, run: () => on.onconvert('idea') }
 	];

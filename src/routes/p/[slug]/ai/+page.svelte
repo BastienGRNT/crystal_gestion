@@ -7,11 +7,12 @@
 	import NoteCard from '$lib/ui/organisms/NoteCard.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
+	import ProjectTabs from '$lib/connected/project/ProjectTabs.svelte';
 
 	const { store, actions } = useProject();
 	const author = (id: string | null) => (id ? (store.members.get(id)?.name ?? 'Quelqu’un') : 'IA');
 	const sources = $derived([
-		{ icon: Target, label: 'Cadrage', value: 'objectif, cible, périmètre, « fini »' },
+		{ icon: Target, label: 'Projet', value: 'objectif, public, périmètre, « c’est fini quand »' },
 		{
 			icon: Gem,
 			label: 'Features',
@@ -20,19 +21,20 @@
 		{
 			icon: BookOpen,
 			label: 'Journal',
-			value: `${store.journal.items.length} décisions, fixes et changements`
+			value: `${store.journal.items.length} décisions, bugs résolus et changements`
 		}
 	]);
 </script>
 
 <svelte:head><title>Mémoire IA · {store.project.name}</title></svelte:head>
 
-<Page width="max-w-3xl">
+<Page width="max-w-6xl">
 	<PageHeader
-		eyebrow="Mémoire du projet"
-		title="Ce que l’IA sait"
+		eyebrow="Projet"
+		title="Mémoire IA"
 		subtitle="Les notes que l’IA ajoutera au fil du temps (conventions, qui fait quoi, erreurs à ne pas refaire). Tout est visible, modifiable et supprimable par l’équipe."
 	/>
+	<ProjectTabs value="ai" />
 	<Section title="Notes" count={store.aiNotes.items.length}>
 		<ul>
 			{#each store.aiNotes.items as note (note.id)}

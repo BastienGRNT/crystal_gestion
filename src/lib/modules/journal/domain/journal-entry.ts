@@ -6,8 +6,8 @@ export type JournalKind = (typeof JOURNAL_KINDS)[number];
 
 export const JOURNAL_LABELS: Record<JournalKind, string> = {
 	decision: 'Décision',
-	fix: 'Fix',
-	scope: 'Périmètre'
+	fix: 'Bug résolu',
+	scope: 'Changement de périmètre'
 };
 
 export interface DecisionDetails {

@@ -6,6 +6,7 @@
 	import { isDraftKind, type DraftKind } from '$lib/client/views/journal-draft';
 	import JournalBrowser from '$lib/connected/journal/JournalBrowser.svelte';
 	import JournalComposer from '$lib/connected/journal/JournalComposer.svelte';
+	import ProjectTabs from '$lib/connected/project/ProjectTabs.svelte';
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
@@ -25,19 +26,22 @@
 	});
 </script>
 
-<Page width="max-w-4xl">
+<svelte:head><title>Journal · Crystal</title></svelte:head>
+
+<Page width="max-w-6xl">
 	<PageHeader
-		eyebrow="Mémoire du projet"
+		eyebrow="Projet"
 		title="Journal"
-		subtitle="Décisions, fixes et changements de périmètre : pourquoi le projet est comme il est."
+		subtitle="Pourquoi le projet est comme il est : décisions prises, bugs résolus, changements de périmètre."
 	>
 		{#snippet actions()}
 			<Button variant="primary" onclick={() => compose('decision')}
 				><BookOpen size={14} /> Nouvelle décision</Button
 			>
-			<Button onclick={() => compose('fix')}><Wrench size={14} /> Nouveau fix</Button>
+			<Button onclick={() => compose('fix')}><Wrench size={14} /> Noter un bug résolu</Button>
 		{/snippet}
 	</PageHeader>
+	<ProjectTabs value="journal" />
 	{#if composing}
 		{#key composing.key}
 			<div class="mb-8">

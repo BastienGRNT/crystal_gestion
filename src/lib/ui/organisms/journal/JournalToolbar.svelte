@@ -16,7 +16,7 @@
 			[
 				['all', 'Tout'],
 				['decision', 'Décisions'],
-				['fix', 'Fixes'],
+				['fix', 'Bugs résolus'],
 				['scope', 'Périmètre']
 			] as const
 		).map(([value, label]) => ({ value, label: `${label} ${counts[value]}` }))
