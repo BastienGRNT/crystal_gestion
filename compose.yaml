@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - 55432:5432
+    environment:
+      POSTGRES_USER: crystal
+      POSTGRES_PASSWORD: crystal
+      POSTGRES_DB: crystal
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
