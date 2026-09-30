@@ -10,6 +10,7 @@ export function createElementsModule(deps: {
 	return {
 		referenceSync: makeReferenceSync(deps),
 		listElements: (projectId: string) => deps.elements.list(projectId),
+		findByRef: (projectId: string, ref: string) => deps.elements.findByRef(projectId, ref),
 		listReferences: (projectId: string) => deps.references.list(projectId)
 	};
 }

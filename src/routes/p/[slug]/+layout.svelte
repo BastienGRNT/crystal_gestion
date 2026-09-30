@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { afterNavigate, goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createActions } from '$lib/client/actions';
 	import { setProjectContext } from '$lib/client/context';
 	import { ProjectStore } from '$lib/client/project-store.svelte';
 	import { RealtimeClient } from '$lib/client/realtime/socket.svelte';
 	import { RefTools } from '$lib/client/refs/ref-tools.svelte';
+	import { overlays } from '$lib/client/overlays.svelte';
 	import { theme } from '$lib/client/theme.svelte';
 	import { toasts } from '$lib/client/toasts.svelte';
 	import { NOTIFICATION_VERBS } from '$lib/modules/notifications/domain/notification';
@@ -36,6 +37,7 @@
 	});
 
 	$effect.pre(() => store.reset(data.snapshot));
+	afterNavigate(() => (overlays.mobileMenu = false));
 	$effect(() => realtime.join(data.snapshot.project.id));
 	onMount(() => {
 		theme.init();

@@ -3,7 +3,11 @@ import { makeReferenceSync } from './sync-references';
 
 const setup = () => {
 	const references = { list: vi.fn(), replaceForSource: vi.fn() };
-	const elements = { list: vi.fn(), idsForRefs: vi.fn(async () => ['target', 'self']) };
+	const elements = {
+		list: vi.fn(),
+		findByRef: vi.fn(),
+		idsForRefs: vi.fn(async () => ['target', 'self'])
+	};
 	const feed = { upserted: vi.fn(), deleted: vi.fn() };
 	return { references, elements, feed, sync: makeReferenceSync({ references, elements, feed }) };
 };

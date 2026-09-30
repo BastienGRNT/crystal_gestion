@@ -5,13 +5,16 @@
 		items: Suggestion[];
 		highlighted: number;
 		onpick: (item: Suggestion) => void;
+		placement?: 'below' | 'above';
 	}
 
-	let { items, highlighted, onpick }: Props = $props();
+	let { items, highlighted, onpick, placement = 'below' }: Props = $props();
 </script>
 
 <ul
-	class="absolute z-50 mt-1 max-h-64 w-full max-w-sm animate-rise overflow-y-auto rounded-lg border border-line bg-surface p-1 shadow-pop"
+	class="absolute z-50 {placement === 'above'
+		? 'bottom-full mb-1'
+		: 'mt-1'} max-h-64 w-full max-w-sm animate-rise overflow-y-auto rounded-lg border border-line bg-surface p-1 shadow-pop"
 	role="listbox"
 >
 	{#each items as item, index (item.id)}

@@ -1,6 +1,7 @@
 import type { Idea } from '$lib/modules/ideas/domain/idea';
 import { send } from '../commands';
-import { attempt, draftId, optimistic } from '../live/optimistic';
+import type { EntityName } from '$lib/modules/kernel/domain/realtime';
+import { draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
 
@@ -23,6 +24,16 @@ export function ideaActions(store: ProjectStore, meId: string) {
 		createdAt: stamp(),
 		...input
 	});
+	/** The idea disappears at once; the created element is indexed without waiting for the echo. */
+	const convert = async <T extends { id: string }>(
+		id: string,
+		entity: EntityName,
+		request: () => Promise<T>
+	) => {
+		const created = await optimistic(() => store.ideas.remove(id), request);
+		if (created) store.upsert(entity, created);
+		return created;
+	};
 	return {
 		create: (input: IdeaInput) =>
 			createOptimistically(store, 'idea', draft(input), () =>
@@ -48,7 +59,7 @@ export function ideaActions(store: ProjectStore, meId: string) {
 				() => store.ideas.remove(id),
 				() => send('ideas.delete', target(id))
 			),
-		toTask: (id: string) => attempt(() => send('ideas.toTask', target(id))),
-		toFeature: (id: string) => attempt(() => send('ideas.toFeature', target(id)))
+		toTask: (id: string) => convert(id, 'task', () => send('ideas.toTask', target(id))),
+		toFeature: (id: string) => convert(id, 'feature', () => send('ideas.toFeature', target(id)))
 	};
 }

@@ -17,7 +17,9 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 				'content-type': file.mimeType,
 				'content-length': String(file.size),
 				'content-disposition': `${disposition}; filename*=UTF-8''${encodeURIComponent(file.title)}`,
-				'x-content-type-options': 'nosniff'
+				'x-content-type-options': 'nosniff',
+				// An uploaded HTML/SVG opened inline must not run scripts on our origin; PDFs need a viewer.
+				...(file.mimeType === 'application/pdf' ? {} : { 'content-security-policy': 'sandbox' })
 			}
 		});
 	} catch (cause) {

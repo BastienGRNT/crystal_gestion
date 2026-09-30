@@ -2,8 +2,8 @@
 	import { useProject } from '$lib/client/context';
 	import BacklinkList from '$lib/ui/organisms/BacklinkList.svelte';
 
-	let { id }: { id: string } = $props();
+	let { id, heading = true }: { id: string; heading?: boolean } = $props();
 	const { refs } = useProject();
 </script>
 
-<BacklinkList items={refs.backlinks(id).map(refs.view)} />
+<BacklinkList items={refs.backlinks(id).map(refs.view)} {heading} />

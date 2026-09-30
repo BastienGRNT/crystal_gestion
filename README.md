@@ -1,42 +1,22 @@
-# sv
+# Crystal
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Gestion de projet tout-en-un pour side projects, en petite équipe (sur invitation).
+Tâches (Kanban / liste Eisenhower), discussion avec mentions et questions, journal des décisions,
+idées, planning interactif, ressources partagées — le tout en temps réel.
 
-## Creating a project
+## Démarrer
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
+```bash
+npm install
+cp .env.example .env
+npm run db:start && npm run db:migrate
+npm run dev            # http://localhost:5173 → /setup crée le premier compte
 ```
 
-To recreate this project with the same configuration:
+Données de démo (base vide, serveur lancé) : `npx tsx scripts/seed-demo.ts`
+puis connexion `bastien@crystal.test` / `crystal-demo`.
 
-```sh
-# recreate this project
-npx sv@0.17.1 create --template minimal --types ts --add prettier eslint vitest="usages:unit" tailwindcss="plugins:none" sveltekit-adapter="adapter:node" drizzle="database:postgresql+postgresql:postgres.js+docker:yes" --install npm .
-```
+Production : `npm run build && npm start` (port `PORT`, 3000 par défaut).
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- `PLAN.md` : modèle de données, architecture, direction visuelle, arbitrages.
+- `CLAUDE.md` : conventions et guide pour travailler dans le code.

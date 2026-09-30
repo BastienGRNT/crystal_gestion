@@ -10,7 +10,7 @@
 </script>
 
 <div
-	class="inline-flex flex-wrap gap-0.5 rounded-md bg-sunken p-0.5"
+	class="inline-flex shrink-0 gap-0.5 rounded-md bg-sunken p-0.5"
 	role="radiogroup"
 	aria-label={label}
 >

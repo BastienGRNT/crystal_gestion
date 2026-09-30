@@ -3,15 +3,15 @@
 	import { KIND_META } from '$lib/client/refs/kinds';
 	import type { RefView } from '../types';
 
-	let { items }: { items: RefView[] } = $props();
+	let { items, heading = true }: { items: RefView[]; heading?: boolean } = $props();
 </script>
 
 <section>
-	<h3
-		class="mb-2 flex items-center gap-1.5 text-[12px] font-medium tracking-wide text-ink-3 uppercase"
-	>
-		<AtSign size={12} /> Mentionné dans
-	</h3>
+	{#if heading}
+		<h3 class="mb-2 flex items-center gap-1.5 text-[12px] font-medium tracking-wide text-ink-3 uppercase">
+			<AtSign size={12} /> Mentionné dans
+		</h3>
+	{/if}
 	{#each items as item (item.ref)}
 		{@const Icon = KIND_META[item.kind].icon}
 		<a

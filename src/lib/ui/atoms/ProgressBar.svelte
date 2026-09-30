@@ -4,7 +4,7 @@
 </script>
 
 <div
-	class="h-1.5 w-full overflow-hidden rounded-full bg-sunken"
+	class="h-1.5 w-full overflow-hidden rounded-full bg-line"
 	role="progressbar"
 	aria-label={label}
 	aria-valuenow={Math.round(ratio * 100)}

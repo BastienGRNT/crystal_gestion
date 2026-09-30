@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { env } from '$env/dynamic/private';
 import { createActivityModule } from '$lib/modules/activity';
 import { drizzleActivityRepository } from '$lib/modules/activity/infrastructure/activity-repository';
+import { makeBuildProjectContext } from '$lib/modules/ai/application/build-context';
 import { makeNoteUseCases } from '$lib/modules/ai/application/notes';
 import {
 	drizzleAiNoteRepository,
@@ -141,9 +142,19 @@ export function createContainer() {
 		storage: diskStorage(env.UPLOAD_DIR ?? './data/uploads'),
 		newKey: randomUUID
 	});
+	const aiNotes = drizzleAiNoteRepository(db);
 	const ai = {
-		notes: makeNoteUseCases({ notes: drizzleAiNoteRepository(db), feed }),
-		provider: unavailableAiProvider
+		notes: makeNoteUseCases({ notes: aiNotes, feed }),
+		provider: unavailableAiProvider,
+		context: makeBuildProjectContext({
+			project: (id) => projectRepository.findById(id),
+			features: features.list,
+			tasks: tasks.list,
+			journal: journal.list,
+			elements: elements.listElements,
+			references: elements.listReferences,
+			notes: aiNotes.list
+		})
 	};
 
 	return {

@@ -8,6 +8,7 @@ export interface Reference {
 export interface ElementRepository {
 	list(projectId: string): Promise<ElementSummary[]>;
 	idsForRefs(projectId: string, refs: string[]): Promise<string[]>;
+	findByRef(projectId: string, ref: string): Promise<ElementSummary | null>;
 }
 
 export interface ReferenceRepository {

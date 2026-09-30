@@ -4,11 +4,15 @@ import { registerVisit } from './visit';
 const at = (hours: number) => new Date(Date.UTC(2026, 0, 1, hours));
 
 describe('registerVisit', () => {
-	it('starts the recap now on a first visit', () => {
+	it('shows everything on a first visit', () => {
 		expect(registerVisit({ lastSeenAt: null, recapSince: null }, at(10))).toEqual({
 			lastSeenAt: at(10),
-			recapSince: at(10)
+			recapSince: null
 		});
+	});
+
+	it('keeps showing everything during the first visit', () => {
+		expect(registerVisit({ lastSeenAt: at(10), recapSince: null }, at(10)).recapSince).toBeNull();
 	});
 
 	it('keeps the recap window during the same visit', () => {

@@ -13,7 +13,7 @@
 {#if view}
 	{@const Icon = KIND_META[view.kind].icon}
 	<span
-		class="relative inline-block align-baseline"
+		class="relative inline-flex align-baseline"
 		role="presentation"
 		onmouseenter={show}
 		onmouseleave={hide}

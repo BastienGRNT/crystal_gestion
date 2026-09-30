@@ -9,9 +9,11 @@
 		people: Person[];
 		selected: string[];
 		onchange: (ids: string[]) => void;
+		/** Shown when nobody is selected. */
+		emptyLabel?: string;
 	}
 
-	let { people, selected, onchange }: Props = $props();
+	let { people, selected, onchange, emptyLabel = 'Assigner' }: Props = $props();
 	let open = $state(false);
 	const chosen = $derived(people.filter((person) => selected.includes(person.id)));
 	const toggle = (id: string) =>
@@ -33,7 +35,7 @@
 				>
 			{:else}
 				<span class="flex items-center gap-1 text-[13px] text-ink-3"
-					><Plus size={13} /> Assigner</span
+					><Plus size={13} /> {emptyLabel}</span
 				>
 			{/each}
 		</button>
