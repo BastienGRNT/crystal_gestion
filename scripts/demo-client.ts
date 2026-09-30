@@ -32,6 +32,22 @@ export class DemoClient {
 		return response.json() as Promise<T>;
 	}
 
+	/** Uploads a local file the way the app's drop zone does. */
+	async upload(projectId: string, path: string, type: string, featureId: string | null = null) {
+		const { readFileSync } = await import('node:fs');
+		const body = new FormData();
+		body.set('file', new File([readFileSync(path)], path.split('/').pop()!, { type }));
+		if (featureId) body.set('featureId', featureId);
+		const response = await fetch(`${this.base}/api/projects/${projectId}/files`, {
+			method: 'POST',
+			headers: { cookie: this.cookie, origin: this.base },
+			body
+		});
+		if (!response.ok)
+			throw new Error(`upload ${path} → ${response.status} ${await response.text()}`);
+		return response.json() as Promise<{ id: string; ref: string }>;
+	}
+
 	get sessionCookie() {
 		return this.cookie;
 	}

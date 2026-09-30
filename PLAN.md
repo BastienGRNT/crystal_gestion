@@ -171,7 +171,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [x] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
 - [x] 13. Créneau qui traverse minuit dans le planning
 - [x] 14. Aperçus PDF et vidéo vérifiés
-- [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
+- [x] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
 
 ### Décisions itération 2
 
@@ -197,3 +197,6 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
   à définir dans `.env` derrière un vrai domaine.
 - Aperçus : PDF (iframe, lecteur du navigateur) et vidéo vérifiés ; le téléchargement gère `Range` (206) pour que la
   vidéo puisse avancer et se lire sur Safari.
+- Seed : réécrit dans `scripts/seed/` (un fichier par domaine). Les 3 fichiers de test (`moodboard.png`,
+  `notes-reunion.txt`, `depose.txt`, envoyés à la main lors de tests) sont remplacés par de vrais fichiers générés
+  (image, PDF, vidéo, texte) ; ajout d'un second projet « Carnet de recettes » (guide de démarrage, changement de projet).

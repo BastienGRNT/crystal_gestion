@@ -1,14 +1,13 @@
 import { DemoClient } from './demo-client';
+import { dateKey, day, whoAmI, type Seed } from './seed/context';
+import { seedResources } from './seed/resources';
+import { seedTalk } from './seed/talk';
+import { seedTime } from './seed/time';
+import { seedWork } from './seed/work';
 
+/** Empty database + `npm run dev` → a demo covering every feature of the app. */
 const BASE = process.env.BASE_URL ?? 'http://localhost:5173';
 const PASSWORD = 'crystal-demo';
-const day = (offset: number, hour = 0) => {
-	const date = new Date();
-	date.setDate(date.getDate() + offset);
-	date.setHours(hour, 0, 0, 0);
-	return date;
-};
-const dateKey = (offset: number) => day(offset).toLocaleDateString('sv-SE');
 
 async function join(owner: DemoClient, projectId: string, name: string, email: string) {
 	const { token } = await owner.command<{ token: string }>('projects.createInvitation', {
@@ -35,12 +34,41 @@ async function main() {
 		doneDefinition:
 			'Un illustrateur crée sa boutique, publie 3 tirages et encaisse une première commande.'
 	});
-	const projectId = project.id;
-	const ana = await join(bastien, projectId, 'Ana', 'ana@crystal.test');
-	const leo = await join(bastien, projectId, 'Léo', 'leo@crystal.test');
-	const { seedContent } = await import('./seed-content');
-	await seedContent({ bastien, ana, leo, projectId, day, dateKey });
+	const ana = await join(bastien, project.id, 'Ana', 'ana@crystal.test');
+	const leo = await join(bastien, project.id, 'Léo', 'leo@crystal.test');
+	const [b, a, l] = await Promise.all([whoAmI(bastien), whoAmI(ana), whoAmI(leo)]);
+	const seed: Seed = { bastien, ana, leo, b, a, l, projectId: project.id, day, dateKey };
+	const work = await seedWork(seed);
+	const files = await seedResources(seed, work);
+	await seedTalk(seed, work, files);
+	await seedTime(seed, work);
+	await sideProject(bastien);
 	console.log(`Demo ready: ${BASE}/p/${project.slug} — bastien@crystal.test / ${PASSWORD}`);
+}
+
+/** A second, just-started project: shows the project switcher and the getting-started guide. */
+async function sideProject(bastien: DemoClient) {
+	const { id: projectId } = await bastien.command<{ id: string }>('projects.create', {
+		...{
+			name: 'Carnet de recettes',
+			objective: 'Retrouver nos recettes de famille en deux clics',
+			audience: 'La famille'
+		},
+		...{ deadline: null, outOfScope: '', doneDefinition: '' }
+	});
+	const feature = await bastien.command<{ id: string }>('features.create', {
+		projectId,
+		title: 'Recherche par ingrédient',
+		priority: 'must',
+		description: '',
+		ownerId: null,
+		doneCriteria: ''
+	});
+	await bastien.command('tasks.create', {
+		projectId,
+		title: 'Lister les 20 recettes à saisir',
+		featureId: feature.id
+	});
 }
 
 main().catch((error) => {
