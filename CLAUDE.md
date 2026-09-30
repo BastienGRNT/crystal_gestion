@@ -27,7 +27,7 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 
 - Les dépendances pointent vers l'intérieur. `domain` n'importe rien d'autre que `kernel/domain` ou le domaine d'un autre module.
 - Un module n'importe jamais l'infrastructure d'un autre (sauf schémas Drizzle pour les FK et `elements/infrastructure`).
-- Injection : **uniquement** dans `src/lib/server/container.ts`. Commandes exposées : `src/lib/server/commands/registry.ts`.
+- Injection : **uniquement** dans `src/lib/server/container.ts` et `src/lib/server/wiring/*` (un fichier par groupe de modules). Commandes exposées : `src/lib/server/commands/registry.ts`.
 - Ports transverses dans `kernel/application/ports.ts` : `Clock`, `ChangeFeed` (temps réel), `ActivityLog`, `Notifier`, `ReferenceSync`.
 - Élément simple (CRUD + temps réel + activité + références) : `makeElementCrud` + `drizzleElementStore`. Ne réécris pas ce flux.
 
