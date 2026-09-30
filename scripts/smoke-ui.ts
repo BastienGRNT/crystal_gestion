@@ -23,7 +23,10 @@ await page.keyboard.press('ArrowDown');
 await page.keyboard.press('ArrowDown');
 await page.keyboard.press('Enter');
 await page.waitForTimeout(600);
-check(page.url() !== `${BASE}/p/atelier-pixel`, `Cmd+K search opened ${page.url().replace(BASE, '')}`);
+check(
+	page.url() !== `${BASE}/p/atelier-pixel`,
+	`Cmd+K search opened ${page.url().replace(BASE, '')}`
+);
 
 await page.goto(`${BASE}/p/atelier-pixel`, { waitUntil: 'networkidle' });
 await page.keyboard.press('i');
@@ -33,7 +36,10 @@ await page.waitForTimeout(500);
 check((await page.getByText('Idée notée').count()) > 0, 'quick idea captured with I');
 
 await page.goto(`${BASE}/p/atelier-pixel?peek=T-2`, { waitUntil: 'networkidle' });
-check((await page.getByRole('complementary', { name: 'Aperçu' }).count()) === 1, 'peek opens from URL');
+check(
+	(await page.getByRole('complementary', { name: 'Aperçu' }).count()) === 1,
+	'peek opens from URL'
+);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
 check(!page.url().includes('peek'), 'Escape closes the peek');

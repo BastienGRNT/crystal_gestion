@@ -15,7 +15,9 @@ export function attachRealtime(httpServer) {
 			const handler = /** @type {{ __crystalRealtime?: RealtimeHandler }} */ (globalThis)
 				.__crystalRealtime;
 			if (!handler) return ws.close(1013, 'Server not ready');
-			Promise.resolve(handler.handleConnection(ws, request)).catch(() => ws.close(1011, 'Unexpected error'));
+			Promise.resolve(handler.handleConnection(ws, request)).catch(() =>
+				ws.close(1011, 'Unexpected error')
+			);
 		});
 	});
 }

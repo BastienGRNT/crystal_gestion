@@ -18,5 +18,7 @@ export function summarize<K>(
 		const minutes = minutesWithin(entry, period.from, period.to, period.now);
 		if (minutes) totals.set(keyOf(entry), (totals.get(keyOf(entry)) ?? 0) + minutes);
 	}
-	return [...totals].map(([key, minutes]) => ({ key, minutes })).sort((a, b) => b.minutes - a.minutes);
+	return [...totals]
+		.map(([key, minutes]) => ({ key, minutes }))
+		.sort((a, b) => b.minutes - a.minutes);
 }

@@ -4,6 +4,7 @@
 	import { isLate, isStale } from '$lib/modules/tasks/domain/health';
 	import TaskRow from '$lib/ui/molecules/TaskRow.svelte';
 
+	// eslint-disable-next-line no-useless-assignment -- bindable prop, read by the parent page
 	let { count = $bindable(0) }: { count?: number } = $props();
 	const { store, actions, peek } = useProject();
 	const sources = new TaskSources(store);
