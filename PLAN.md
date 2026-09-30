@@ -164,7 +164,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
 - [x] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
 - [x] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
-- [ ] 8. Build de production testé
+- [x] 8. Build de production testé
 - [x] 9. Lint
 - [ ] 10. Découpage des gros fichiers (container, project-store, composants UI)
 - [x] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
@@ -193,3 +193,5 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
     qui sert aussi de légende ; infobulle au survol (tâche, feature, personne, horaires, durée, dispo ou non).
 - Minuit : les gestes se calculent en minutes depuis le premier jour affiché ; glisser sous 24 h ou dans la colonne
   suivante prolonge au lendemain (24 h max). L'élément est dessiné en deux morceaux, « … » marque la coupure.
+- Prod : `server.js` fixe `ORIGIN` à `http://localhost:$PORT` si absent (sinon SvelteKit refuse les formulaires en 403) ;
+  à définir dans `.env` derrière un vrai domaine.
