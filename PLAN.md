@@ -1,0 +1,121 @@
+# Crystal — plan de référence
+
+Outil de gestion de projet privé (≈5 personnes, sur invitation). Ce fichier décrit **ce qu'on construit** et les
+arbitrages. `CLAUDE.md` décrit **comment travailler dans le code**.
+
+## 1. Modèle de données
+
+### Registre d'éléments (cœur du système de références)
+
+Tout objet référençable possède une ligne dans `elements` :
+
+| colonne                                  | rôle                                                                                                      |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `id` (uuid)                              | clé primaire, **partagée** avec la table du module (ex. `tasks.id = elements.id`, FK `on delete cascade`) |
+| `project_id`, `kind`, `number`           | `kind` → préfixe (`task` → `T`), `number` séquentiel par (projet, préfixe) → `T-12`                       |
+| `title`, `status`                        | titre et statut court dénormalisés : recherche Cmd+K, `#` autocomplete, aperçu au survol                  |
+| `created_by`, `created_at`, `updated_at` |                                                                                                           |
+
+Préfixes : `F` feature · `T` tâche · `D` décision · `X` fix · `S` changement de périmètre · `I` idée · `M` message ·
+`R` ressource (compte, lien, contact, fichier). Numérotation atomique via `element_counters` (`update … returning`).
+
+`element_references(source_id, target_id)` : références libres extraites du texte (`#T-12`). Resynchronisées à chaque
+sauvegarde d'un texte. Backlinks « Mentionné dans » = `where target_id = X`.
+Les **liens structurels** (tâche → feature, idée → feature, entrée du journal → feature, fichier → feature…) restent des
+FK dans les tables métier (source de vérité unique). Affichage : la page d'une feature liste ses tâches, entrées, fichiers,
+idées. IA : le futur `ProjectContextBuilder` agrège FK + références + journal + activité.
+
+### Tables métier
+
+- `users` (email, nom, hash scrypt, couleur, préférences jsonb : vue tâches par défaut) · `sessions` · `invitations`
+- `projects` (slug, nom, objectif, cible, date limite, hors périmètre, définition de fini) · `project_members` (rôle, `last_seen_at`, `recap_since`)
+- `features` (titre, description, priorité MoSCoW, responsable, critères de fini, position)
+- `tasks` (titre, description, feature?, statut, date limite?, importance forcée?, position, `completed_at`) · `task_assignees`
+- `time_entries` (user, tâche?, début, fin? — `null` = chrono en cours, source `timer|manual`) : chrono **et** blocs de travail du planning = même objet
+- `availabilities` (user, début, fin, statut `available|maybe`) — globales à l'utilisateur, visibles dans tous ses projets
+- `messages` (feature? — `null` = `#général`, auteur, corps, `reply_to_id`, `is_question`) · `message_mentions` · `question_targets` (message, user, `resolved_at`)
+- `journal_entries` (type `decision|fix|scope`, titre, feature?, `details` jsonb typé par type, message source?)
+- `ideas` (titre, note, feature?, `archived_at`, `triaged_at`)
+- `accounts` (service, identifiant, secret, url, notes, feature?) · `resource_links` (titre, url, tag, feature?) · `contacts`
+- `files` (feature? — `null` = dossier général, nom, mime, taille, clé de stockage)
+- `activities` (acteur, verbe, élément, détails jsonb) · `notifications` (user, type `mention|question|assigned`, élément, lu?)
+- `ai_notes` (contenu, auteur `ai|user`) — page « Ce que l'IA sait du projet »
+
+« Créé automatiquement » = **par construction** : le canal `#général` = messages sans feature, le fil d'une feature =
+messages de cette feature, le dossier d'une feature = fichiers de cette feature. Aucune table « canal » ni « dossier »
+à synchroniser, donc rien ne peut se désynchroniser.
+
+## 2. Architecture
+
+```
+src/lib/
+  shared/              isomorphe, sans dépendance : types d'éléments, parsing des refs, événements temps réel
+  modules/<module>/
+    domain/            entités + règles pures (isomorphe : utilisé aussi côté client pour l'optimiste)
+    application/       cas d'usage (1 fichier = 1 action) + ports.ts
+    infrastructure/    adapters (schema Drizzle, repositories…)
+    presentation/      commandes exposées (schéma zod → cas d'usage)
+    index.ts           fabrique du module (câble les cas d'usage à partir des ports)
+  server/              db, temps réel (hub ws), stockage, auth http, container.ts (composition root)
+  client/              socket, store projet live, envoi de commandes, contrôleurs (optimiste)
+  ui/                  atoms / molecules / organisms / templates + tokens
+routes/                pages SvelteKit (appellent loaders + contrôleurs)
+```
+
+Modules : `identity`, `projects`, `elements` (registre + références + recherche), `features`, `tasks`, `time`,
+`planning` (dispos), `discussion`, `journal`, `ideas`, `resources`, `files`, `activity`, `notifications`, `ai`.
+
+**Écritures** : `POST /api/commands/<nom>` (ex. `tasks.create`). Registre de commandes = union des `presentation/commands.ts`
+des modules ; validation zod, contrôle d'appartenance au projet, puis cas d'usage. Types inférés côté client (`import type`).
+**Lectures** : le layout projet charge un _snapshot_ (features, tâches, idées, journal, ressources, fichiers, registre,
+références, temps, dispos, activité récente, notifications) → `ProjectStore` client fait de `LiveCollection`s. Messages
+chargés par fil. Navigation instantanée, UI calculée côté client (Eisenhower, avancement…).
+
+**Temps réel** : `ws` attaché au serveur HTTP (plugin Vite en dev, `server.js` en prod) + pont `globalThis` vers le
+handler SvelteKit (auth par cookie de session). _Pourquoi_ : pas de dépendance lourde (socket.io), protocole standard,
+fonctionne avec adapter-node, un seul process. Port serveur `Broadcaster` (toProject / toUser) ; port client
+`RealtimeClient`. Événements génériques `upsert|delete` par entité + `presence` + `notification`. Reconnexion avec
+backoff puis `invalidateAll()` (resynchronisation complète via le snapshot).
+
+**Effets de bord génériques** : chaque cas d'usage appelle `feed.upserted(entity, projectId, dto)` /
+`feed.deleted(...)` (diffusion temps réel) et `activity.record(...)`. Tout DTO d'élément étend
+`ElementBase { id, ref, kind, title }` : le client met à jour son index de références sans code spécifique.
+
+Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `SecretCipher` (identité en V1),
+`PasswordHasher`, `AiProvider` (null en V1).
+
+## 3. Direction visuelle — « Crystal »
+
+Éditorial + technique. Contraste entre une serif italique expressive et une UI très nette.
+
+- **Typo** : _Instrument Serif_ (titres de pages, salutations, grands chiffres), _Geist_ (UI), _Geist Mono_ (refs `T-12`, durées).
+- **Clair** : papier chaud `#F4F1EA`, surfaces blanches, encre `#16151B`, accent outremer électrique `#3D2BFF`.
+- **Sombre** : encre profonde `#0D0D12`, surfaces `#16161D`, texte ivoire `#ECE8DF`, accent lavande lumineuse `#9D8CFF`.
+- **Signature** : le prisme — dégradé conique (outremer → magenta → ambre → turquoise) réservé à 3 endroits : logo,
+  chrono en cours (anneau animé), feature terminée. Partout ailleurs, sobriété.
+- MoSCoW : Must vermillon, Should ambre, Could turquoise, Won't ardoise. Refs en chips mono.
+- Layout : sidebar étroite (projet, navigation, raccourcis), grand titre serif, contenu dense façon Linear.
+  Mobile : barre d'onglets en bas. Micro-animations 120–180 ms.
+
+## 4. Arbitrages
+
+| Sujet                               | Décision                                                                                                                                                           | Pourquoi                                                             |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Portée de « Aujourd'hui »           | Par projet ; `/` redirige vers le dernier projet                                                                                                                   | Side projects = un projet à la fois ; requêtes et temps réel simples |
+| Premier compte                      | Page `/setup` accessible seulement si aucun utilisateur                                                                                                            | Pas d'inscription publique                                           |
+| Invitation                          | Lien à usage unique (7 j) copié par un membre ; un utilisateur existant peut être ajouté directement                                                               | Pas de SMTP à configurer                                             |
+| Droits                              | Tous les membres égaux                                                                                                                                             | Petite équipe de confiance, zéro configuration                       |
+| Urgent                              | Échéance ≤ 3 jours (ou dépassée)                                                                                                                                   | Valeur par défaut demandée                                           |
+| Important                           | Feature Must/Should, surchargeable par tâche                                                                                                                       | Spéc                                                                 |
+| Avancement feature                  | tâches faites / tâches totales                                                                                                                                     | Lisible, sans pondération arbitraire                                 |
+| Chrono                              | 1 chrono en cours max par personne ; en démarrer un arrête le précédent ; « Fait » arrête le chrono                                                                | Évite les temps fantômes                                             |
+| Tâche bloquée                       | Pas de statut en plus : « en retard » (échéance passée) + « au point mort » (En cours/À valider sans modification depuis 7 j)                                      | Colonnes fixes, détection automatique                                |
+| Questions                           | Résolues par une réponse (`reply_to`) de la personne ou « marquer comme traité »                                                                                   | Explicite et fiable                                                  |
+| Journal auto                        | Changement de priorité MoSCoW, suppression de feature, ajout de feature après les 24 h de cadrage                                                                  | Évite de polluer le journal au démarrage                             |
+| Won't                               | Restent des features, affichées dans « Idées / Plus tard » (dérivé, pas de copie)                                                                                  | Pas de synchronisation                                               |
+| « Dispo aujourd'hui ? »             | Puces Matin (9–12) / Aprèm (14–18) / Soir (19–23) / Pas dispo                                                                                                      | Un clic, créneaux ajustables ensuite dans le planning                |
+| Récap « depuis ta dernière visite » | Nouvelle visite si inactivité > 1 h ; `recap_since` = dernière activité avant ce trou                                                                              | Un rafraîchissement ne vide pas le récap                             |
+| Conflits                            | Dernière écriture gagne ; exceptions : numérotation atomique, positions fractionnaires (kanban), brouillon d'édition en ligne protégé tant que le champ a le focus | Seuls cas où LWW casse vraiment                                      |
+| Mots de passe partagés              | En clair via `SecretCipher` identité                                                                                                                               | Chiffrement V2 sans toucher aux cas d'usage                          |
+| Dates                               | ISO string dans les DTO ; échéances `YYYY-MM-DD`                                                                                                                   | Même format SSR / commandes / WebSocket                              |
+| Données client                      | Snapshot projet chargé une fois + live                                                                                                                             | Volume faible ; navigation instantanée                               |
