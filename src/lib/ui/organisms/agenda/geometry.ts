@@ -1,4 +1,4 @@
-import { minutesToPx } from '$lib/modules/planning/domain/grid';
+import { columnAt, minutesToPx, pxToMinutes } from '$lib/modules/planning/domain/grid';
 import type { AgendaDraft, AgendaItem } from './types';
 
 /** Short items keep a grabbable, readable height. */
@@ -28,3 +28,15 @@ export const availabilityFill = (maybe: boolean) =>
 	maybe
 		? 'background:repeating-linear-gradient(135deg,color-mix(in oklab,var(--tint) 26%,transparent) 0 2px,color-mix(in oklab,var(--tint) 6%,transparent) 2px 7px);border:1px dashed color-mix(in oklab,var(--tint) 55%,transparent)'
 		: 'background:color-mix(in oklab,var(--tint) 16%,transparent);border-left:2px solid color-mix(in oklab,var(--tint) 75%,transparent)';
+
+/** Day column and (unsnapped) minute under the pointer, scroll included. */
+export function pointerAt(
+	surface: HTMLElement,
+	event: PointerEvent,
+	days: number,
+	hourHeight: number
+) {
+	const rect = surface.getBoundingClientRect();
+	const day = columnAt(event.clientX - rect.left, rect.width, days);
+	return { day, minutes: pxToMinutes(event.clientY - rect.top, { hourHeight }) };
+}

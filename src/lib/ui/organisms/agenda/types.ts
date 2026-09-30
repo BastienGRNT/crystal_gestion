@@ -61,3 +61,16 @@ export interface AgendaDay {
 	date: string;
 	today: boolean;
 }
+
+export interface AgendaGridProps extends AgendaHandlers {
+	days: AgendaDay[];
+	lanes: AgendaLane[];
+	items: AgendaItem[];
+	bands: SharedBand[];
+	/** The layer that is interactive and that drawing creates. */
+	layer: AgendaLayer;
+	now: { day: number; minutes: number } | null;
+	/** Lane where new items are drawn: the current user's. */
+	myLane: number;
+	hourHeight?: number;
+}

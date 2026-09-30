@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
+	import AvailabilityPrompt from '$lib/connected/planning/AvailabilityPrompt.svelte';
+	import WhoIsAvailable from '$lib/connected/planning/WhoIsAvailable.svelte';
 	import MyTodo from '$lib/connected/tasks/MyTodo.svelte';
 	import Greeting from '$lib/connected/today/Greeting.svelte';
 	import QuestionsForMe from '$lib/connected/today/QuestionsForMe.svelte';
@@ -24,7 +26,9 @@
 			<Section title="Depuis ta dernière visite"><Recap recapSince={data.recapSince} /></Section>
 		</div>
 		<aside class="min-w-0">
+			<Section title="Dispo aujourd’hui ?"><AvailabilityPrompt /></Section>
 			<Section title="Questions pour toi"><QuestionsForMe /></Section>
+			<Section title="L’équipe aujourd’hui"><WhoIsAvailable /></Section>
 		</aside>
 	</div>
 </Page>

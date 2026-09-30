@@ -1,23 +1,11 @@
 <script lang="ts">
-	import { columnAt, pxToMinutes } from '$lib/modules/planning/domain/grid';
 	import AgendaColumn from './AgendaColumn.svelte';
 	import AgendaHeader from './AgendaHeader.svelte';
 	import AgendaHours from './AgendaHours.svelte';
 	import NowLine from './NowLine.svelte';
 	import { AgendaDrag } from './drag.svelte';
-	import type { AgendaDay, AgendaHandlers, AgendaItem, AgendaLane, AgendaLayer } from './types';
-	import type { SharedBand } from './types';
-
-	interface Props extends AgendaHandlers {
-		days: AgendaDay[];
-		lanes: AgendaLane[];
-		items: AgendaItem[];
-		bands: SharedBand[];
-		layer: AgendaLayer;
-		now: { day: number; minutes: number } | null;
-		myLane: number;
-		hourHeight?: number;
-	}
+	import { pointerAt } from './geometry';
+	import type { AgendaGridProps } from './types';
 
 	let {
 		days,
@@ -29,13 +17,9 @@
 		myLane,
 		hourHeight = 48,
 		...handlers
-	}: Props = $props();
+	}: AgendaGridProps = $props();
 	let surface = $state<HTMLElement>();
-	const locate = (event: PointerEvent) => {
-		const rect = surface!.getBoundingClientRect();
-		const day = columnAt(event.clientX - rect.left, rect.width, days.length);
-		return { day, minutes: pxToMinutes(event.clientY - rect.top, { hourHeight }) };
-	};
+	const locate = (event: PointerEvent) => pointerAt(surface!, event, days.length, hourHeight);
 	const drag = new AgendaDrag(locate, () => handlers);
 	const scrollToMorning = (node: HTMLElement) => void (node.scrollTop = 7.5 * hourHeight);
 </script>
