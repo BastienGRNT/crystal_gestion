@@ -24,6 +24,7 @@ export const tasks = pgTable('tasks', {
 	status: text().$type<TaskStatus>().notNull(),
 	dueDate: date({ mode: 'string' }),
 	important: boolean(),
+	urgent: boolean(),
 	position: doublePrecision().notNull(),
 	completedAt: timestamptz()
 });

@@ -162,7 +162,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [x] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
 - [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
 - [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
-- [ ] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
+- [x] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
 - [ ] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
 - [ ] 8. Build de production testé
 - [ ] 9. Lint
@@ -181,3 +181,7 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
   moins d'une minute n'est pas enregistré (clic par erreur, sinon le planning se remplit de miettes).
 - Inscription : `/register` accepte un lien d'invitation collé (redirige vers `/invite/…`, qui crée le compte et rejoint
   le projet) ou le code d'accès `REGISTRATION_CODE` (comparaison à temps constant). Sans code configuré, seul le lien marche.
+- Matrice : nouvelle colonne `tasks.urgent` (surcharge, comme `important`). Glisser dans un quadrant fixe les deux ;
+  « Automatique » dans l'aperçu les remet à `null`. Vue Tâches = « Par urgence » (matrice, par défaut) ou « Par statut »
+  (kanban) ; l'ancienne « Ma liste » vit sur Aujourd'hui.
+- Navigation : Journal et Mémoire IA sont rattachés à Projet (onglets) pour passer de 10 à 8 entrées.

@@ -17,6 +17,8 @@ export interface TaskFields {
 	dueDate: string | null;
 	/** Manual override of the importance derived from the feature priority. */
 	important: boolean | null;
+	/** Manual override of the urgency derived from the due date (set by moving the task in the matrix). */
+	urgent: boolean | null;
 	assigneeIds: string[];
 }
 

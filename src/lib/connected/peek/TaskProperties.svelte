@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
-	import { quadrantOf, QUADRANT_LABELS } from '$lib/modules/tasks/domain/eisenhower';
+	import {
+		isPlacedByHand,
+		QUADRANT_AXES,
+		QUADRANT_LABELS,
+		QUADRANTS,
+		quadrantOf,
+		type Quadrant
+	} from '$lib/modules/tasks/domain/eisenhower';
 	import { STATUS_LABELS, TASK_STATUSES, type Task } from '$lib/modules/tasks/domain/task';
 	import DateInput from '$lib/ui/atoms/DateInput.svelte';
 	import Select from '$lib/ui/atoms/Select.svelte';
@@ -16,8 +23,19 @@
 		...store.features.items.map((f) => ({ value: f.id, label: `${f.ref} · ${f.title}` }))
 	]);
 	const priority = $derived(store.features.get(task.featureId ?? '')?.priority ?? null);
-	const importance = $derived(task.important === null ? 'auto' : task.important ? 'yes' : 'no');
-	const toImportant = (value: string) => (value === 'auto' ? null : value === 'yes');
+	const quadrant = $derived(quadrantOf(task, priority, new Date()));
+	const urgencyOptions = $derived([
+		{
+			value: 'auto',
+			label: `Automatique (${QUADRANT_LABELS[quadrantOf({ ...task, important: null, urgent: null }, priority, new Date())]})`
+		},
+		...QUADRANTS.map((q) => ({ value: q, label: QUADRANT_LABELS[q] }))
+	]);
+	const setUrgency = (value: string) =>
+		actions.tasks.update(
+			task.id,
+			value === 'auto' ? { important: null, urgent: null } : QUADRANT_AXES[value as Quadrant]
+		);
 </script>
 
 <div class="flex flex-col gap-1">
@@ -52,21 +70,14 @@
 			onchange={(dueDate) => actions.tasks.update(task.id, { dueDate })}
 		/>
 	</PropertyRow>
-	<PropertyRow label="Importance">
-		<Segmented
-			label="Importance"
-			value={importance}
-			options={[
-				{ value: 'auto', label: 'Auto' },
-				{ value: 'yes', label: 'Importante' },
-				{ value: 'no', label: 'Secondaire' }
-			]}
-			onchange={(value) => actions.tasks.update(task.id, { important: toImportant(value) })}
+	<PropertyRow label="Urgence">
+		<Select
+			label="Urgence"
+			value={isPlacedByHand(task) ? quadrant : 'auto'}
+			options={urgencyOptions}
+			onchange={setUrgency}
+			class="w-full"
 		/>
-	</PropertyRow>
-	<PropertyRow label="Priorité">
-		<span class="text-sm text-ink-2">{QUADRANT_LABELS[quadrantOf(task, priority, new Date())]}</span
-		>
 	</PropertyRow>
 	<PropertyRow label="Temps passé"><TimeSpent taskId={task.id} /></PropertyRow>
 </div>

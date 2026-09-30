@@ -67,7 +67,7 @@
 						empty="Fichiers, liens, comptes et idées liés apparaîtront ici."
 					/></Section
 				>
-				<Section title="Mentionné dans"><Backlinks id={feature.id} heading={false} /></Section>
+				<Section title="Cité dans"><Backlinks id={feature.id} heading={false} /></Section>
 			</aside>
 		</div>
 	{:else}

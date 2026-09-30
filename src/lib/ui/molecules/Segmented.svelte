@@ -10,7 +10,7 @@
 </script>
 
 <div
-	class="inline-flex shrink-0 gap-0.5 rounded-md bg-sunken p-0.5"
+	class="inline-flex max-w-full shrink-0 gap-0.5 overflow-x-auto rounded-lg bg-sunken p-0.5"
 	role="radiogroup"
 	aria-label={label}
 >
@@ -20,7 +20,7 @@
 			role="radio"
 			aria-checked={option.value === value}
 			onclick={() => onchange(option.value)}
-			class="h-7 rounded-[5px] px-2.5 text-sm transition {option.value === value
+			class="h-7 rounded-[5px] px-2.5 text-sm whitespace-nowrap transition {option.value === value
 				? `bg-surface font-medium shadow-sm ${option.tone ?? 'text-ink'}`
 				: 'text-ink-3 hover:text-ink-2'}"
 		>

@@ -43,7 +43,7 @@ export function projectActions(store: ProjectStore, meId: string) {
 				() => store.aiNotes.remove(id),
 				() => send('aiNotes.delete', { projectId: projectId(), id })
 			),
-		setTaskView: (taskView: 'kanban' | 'todo') =>
+		setTaskView: (taskView: 'kanban' | 'matrix') =>
 			attempt(() => send('identity.updatePreferences', { taskView }))
 	};
 }

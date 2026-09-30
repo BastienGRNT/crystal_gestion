@@ -11,7 +11,7 @@
 		<h3
 			class="mb-2 flex items-center gap-1.5 text-xs font-medium tracking-wide text-ink-3 uppercase"
 		>
-			<AtSign size={12} /> Mentionné dans
+			<AtSign size={12} /> Cité dans
 		</h3>
 	{/if}
 	{#each items as item (item.ref)}

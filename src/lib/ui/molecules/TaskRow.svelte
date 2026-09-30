@@ -45,8 +45,8 @@
 			type="button"
 			onclick={onstart}
 			class="flex size-7 items-center justify-center rounded-md text-ink-3 opacity-0 transition group-hover:opacity-100 hover:bg-accent-soft hover:text-accent max-sm:opacity-100"
-			aria-label="Lancer {task.title}"
-			title="Lancer le chrono"
+			aria-label="Démarrer le chrono sur {task.title}"
+			title="Démarrer le chrono"
 		>
 			<Play size={13} />
 		</button>

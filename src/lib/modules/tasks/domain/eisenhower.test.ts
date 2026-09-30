@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { isUrgent, quadrantOf } from './eisenhower';
+import { isPlacedByHand, isUrgent, QUADRANT_AXES, quadrantOf } from './eisenhower';
 
 const today = new Date(2026, 8, 30);
-const task = (dueDate: string | null, important: boolean | null = null) => ({ dueDate, important });
+const task = (
+	dueDate: string | null,
+	important: boolean | null = null,
+	urgent: boolean | null = null
+) => ({
+	dueDate,
+	important,
+	urgent
+});
 
 describe('eisenhower', () => {
 	it('is urgent within three days or when overdue', () => {
@@ -22,5 +30,17 @@ describe('eisenhower', () => {
 	it('lets the task override the feature importance', () => {
 		expect(quadrantOf(task(null, true), 'wont', today)).toBe('plan');
 		expect(quadrantOf(task('2026-10-01', false), 'must', today)).toBe('ifTime');
+	});
+
+	it('keeps a task where it was dropped in the matrix, whatever its date and feature', () => {
+		for (const [quadrant, axes] of Object.entries(QUADRANT_AXES))
+			expect(quadrantOf(task('2026-10-01', axes.important, axes.urgent), 'wont', today)).toBe(
+				quadrant
+			);
+	});
+
+	it('tells a placed-by-hand task from an automatic one', () => {
+		expect(isPlacedByHand(task(null))).toBe(false);
+		expect(isPlacedByHand(task(null, null, false))).toBe(true);
 	});
 });

@@ -10,6 +10,7 @@ const fields = z.object({
 	featureId: id.nullable(),
 	dueDate: dateKey.nullable(),
 	important: z.boolean().nullable(),
+	urgent: z.boolean().nullable(),
 	assigneeIds: z.array(id)
 });
 const target = projectScoped.extend({ id });

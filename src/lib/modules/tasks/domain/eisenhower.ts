@@ -14,13 +14,25 @@ export const QUADRANT_LABELS: Record<Quadrant, string> = {
 	later: 'Plus tard'
 };
 
-type Classifiable = Pick<Task, 'important' | 'dueDate'>;
+type Classifiable = Pick<Task, 'important' | 'urgent' | 'dueDate'>;
 
 export const isImportant = (task: Classifiable, featurePriority: Moscow | null) =>
 	task.important ?? isImportantPriority(featurePriority);
 
 export const isUrgent = (task: Classifiable, today: Date) =>
-	task.dueDate !== null && daysUntil(task.dueDate, today) <= URGENCY_THRESHOLD_DAYS;
+	task.urgent ??
+	(task.dueDate !== null && daysUntil(task.dueDate, today) <= URGENCY_THRESHOLD_DAYS);
+
+/** Where each quadrant sits on the two axes: moving a task there sets both overrides. */
+export const QUADRANT_AXES: Record<Quadrant, { important: boolean; urgent: boolean }> = {
+	do: { important: true, urgent: true },
+	plan: { important: true, urgent: false },
+	ifTime: { important: false, urgent: true },
+	later: { important: false, urgent: false }
+};
+
+export const isPlacedByHand = (task: Classifiable) =>
+	task.important !== null || task.urgent !== null;
 
 export function quadrantOf(
 	task: Classifiable,

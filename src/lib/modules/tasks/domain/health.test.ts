@@ -12,6 +12,7 @@ const base: Task = {
 	featureId: null,
 	dueDate: null,
 	important: null,
+	urgent: null,
 	assigneeIds: [],
 	status: 'in_progress',
 	position: 1,

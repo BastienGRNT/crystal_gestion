@@ -4,7 +4,7 @@ import type { makeMoveTask } from './move-task';
 
 type MoveTask = ReturnType<typeof makeMoveTask>;
 
-/** "Lancer": the task goes in progress and the actor's timer starts on it. */
+/** "Démarrer le chrono": the task goes in progress and the actor's timer starts on it. */
 export const makeStartTask =
 	(deps: TaskDeps, moveTask: MoveTask) => async (actor: Actor, target: TaskTarget) => {
 		const task = await moveTask(actor, { ...target, status: 'in_progress' });

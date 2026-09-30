@@ -13,6 +13,7 @@ export const makeCreateTask = (deps: TaskDeps) => async (actor: Actor, input: Ne
 		featureId: null,
 		dueDate: null,
 		important: null,
+		urgent: null,
 		assigneeIds: [],
 		...input,
 		status,

@@ -20,6 +20,7 @@ export function taskActions(store: ProjectStore, meId: string) {
 		featureId: null,
 		dueDate: null,
 		important: null,
+		urgent: null,
 		assigneeIds: [],
 		status: 'todo',
 		position: Number.MAX_SAFE_INTEGER,

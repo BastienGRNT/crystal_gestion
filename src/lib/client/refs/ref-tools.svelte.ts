@@ -55,7 +55,7 @@ export class RefTools {
 			.map((member) => ({ id: member.id, label: member.name, insert: `@${member.name}` }));
 	};
 
-	/** Elements whose texts reference the given element: the "Mentionné dans" section. */
+	/** Elements whose texts reference the given element: the "Cité dans" section. */
 	backlinks = (id: string) =>
 		this.store.references
 			.filter((reference) => reference.targetId === id)

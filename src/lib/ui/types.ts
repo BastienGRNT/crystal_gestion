@@ -89,3 +89,11 @@ export interface NavSection {
 	label: string;
 	items: NavEntry[];
 }
+
+export interface MatrixCell {
+	key: string;
+	label: string;
+	hint: string;
+	tone: string;
+	cards: TaskCardView[];
+}

@@ -41,7 +41,7 @@
 		{#if !done && !running}<Button
 				variant="primary"
 				size="sm"
-				onclick={() => actions.tasks.start(task.id)}><Play size={13} /> Lancer</Button
+				onclick={() => actions.tasks.start(task.id)}><Play size={13} /> Démarrer le chrono</Button
 			>{/if}
 		{#if running}<Button size="sm" onclick={() => actions.tasks.stopTimer()}
 				>Arrêter le chrono</Button

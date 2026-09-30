@@ -13,6 +13,7 @@ const task: Task = {
 	featureId: null,
 	dueDate: null,
 	important: null,
+	urgent: null,
 	assigneeIds: [],
 	status: 'todo',
 	position: 1,

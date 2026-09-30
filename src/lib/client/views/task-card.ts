@@ -1,7 +1,7 @@
 import type { Feature, Moscow } from '$lib/modules/features/domain/feature';
 import type { Member } from '$lib/modules/projects/domain/project';
 import { daysUntil } from '$lib/modules/kernel/domain/dates';
-import { URGENCY_THRESHOLD_DAYS } from '$lib/modules/tasks/domain/eisenhower';
+import { isPlacedByHand, URGENCY_THRESHOLD_DAYS } from '$lib/modules/tasks/domain/eisenhower';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import { isRunning, totalMinutes, type TimeEntry } from '$lib/modules/time/domain/time-entry';
 
@@ -16,6 +16,8 @@ export interface TaskCardView {
 	dueTone: 'late' | 'soon' | null;
 	running: boolean;
 	minutes: number;
+	/** Moved by hand in the matrix instead of following its date and feature. */
+	pinned: boolean;
 }
 
 interface Sources {
@@ -55,6 +57,7 @@ export function toTaskCard(
 		dueDate: task.dueDate,
 		dueTone: dueTone(task.dueDate, task.status === 'done', today),
 		running: own.some(isRunning),
-		minutes: totalMinutes(own, today)
+		minutes: totalMinutes(own, today),
+		pinned: isPlacedByHand(task)
 	};
 }
