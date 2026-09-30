@@ -122,3 +122,25 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 | Fil d'activité                      | Modifications successives d'un même élément par la même personne en < 30 min = une ligne                                                                           | Montrer ce qui a bougé, pas chaque frappe                                             |
 | Transformer un message              | Crée l'élément avec « Depuis #M-x » dans son texte                                                                                                                 | Le lien apparaît dans les backlinks du message, sans champ dédié                      |
 | Contexte IA                         | `ai.context(projectId)` agrège cadrage, features, tâches, journal, références (refs lisibles) et notes ; exposé sur `/api/projects/:id/ai/context`                 | Prêt pour brancher un fournisseur sans toucher aux modules                            |
+
+## 5. Avancement — itération 2
+
+Reprendre au premier point non coché. Décisions prises en route : voir « Décisions itération 2 » ci-dessous.
+
+- [ ] 1. Chrono : bug corrigé, un seul actif, survit au refresh, visible partout, temps réel, bloc de planning, tests
+- [ ] 2. Chasse aux bugs (parcours Playwright de toutes les pages)
+- [ ] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
+- [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
+- [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
+- [ ] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
+- [ ] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
+- [ ] 8. Build de production testé
+- [ ] 9. Lint
+- [ ] 10. Découpage des gros fichiers (container, project-store, composants UI)
+- [ ] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
+- [ ] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
+- [ ] 13. Créneau qui traverse minuit dans le planning
+- [ ] 14. Aperçus PDF et vidéo vérifiés
+- [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
+
+### Décisions itération 2
