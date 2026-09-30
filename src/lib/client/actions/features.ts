@@ -3,6 +3,7 @@ import { send } from '../commands';
 import { draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
+import { deleteWithUndo } from '../live/undoable';
 
 export function featureActions(store: ProjectStore) {
 	const projectId = () => store.project.id;
@@ -29,7 +30,8 @@ export function featureActions(store: ProjectStore) {
 				() => send('features.update', { projectId: projectId(), id, changes })
 			),
 		remove: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Feature supprimée',
 				() => store.features.remove(id),
 				() => send('features.delete', { projectId: projectId(), id })
 			)

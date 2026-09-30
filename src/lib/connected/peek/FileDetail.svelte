@@ -2,7 +2,7 @@
 	import { Download } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
 	import type { ElementSummary } from '$lib/modules/kernel/domain/element';
-	import ConfirmDelete from '$lib/ui/molecules/ConfirmDelete.svelte';
+	import DeleteButton from '$lib/ui/atoms/DeleteButton.svelte';
 	import InlineText from '$lib/ui/molecules/InlineText.svelte';
 	import Backlinks from '../Backlinks.svelte';
 	import FilePreview from '../resources/FilePreview.svelte';
@@ -23,7 +23,7 @@
 			class="font-display text-3xl leading-tight break-all"
 		/>
 		<span class="mt-2"
-			><ConfirmDelete onconfirm={() => (actions.files.remove(file.id), onclose())} /></span
+			><DeleteButton onconfirm={() => (actions.files.remove(file.id), onclose())} /></span
 		>
 	</div>
 	<a

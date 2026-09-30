@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
 	import InlineText from '$lib/ui/molecules/InlineText.svelte';
-	import ConfirmDelete from '$lib/ui/molecules/ConfirmDelete.svelte';
+	import DeleteButton from '$lib/ui/atoms/DeleteButton.svelte';
 
 	interface Props {
 		title: string;
@@ -41,6 +41,6 @@
 		</p>
 	</div>
 	<div class="transition md:opacity-0 md:group-focus-within:opacity-100 md:group-hover:opacity-100">
-		<ConfirmDelete onconfirm={onremove} />
+		<DeleteButton onconfirm={onremove} />
 	</div>
 </header>

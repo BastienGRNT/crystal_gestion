@@ -2,6 +2,7 @@ import type { Framing } from '$lib/modules/projects/domain/project';
 import { send } from '../commands';
 import { attempt, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
+import { deleteWithUndo } from '../live/undoable';
 
 export function projectActions(store: ProjectStore, meId: string) {
 	const projectId = () => store.project.id;
@@ -39,7 +40,8 @@ export function projectActions(store: ProjectStore, meId: string) {
 				() => send('aiNotes.update', { projectId: projectId(), id, content })
 			),
 		removeNote: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Note supprimée',
 				() => store.aiNotes.remove(id),
 				() => send('aiNotes.delete', { projectId: projectId(), id })
 			),

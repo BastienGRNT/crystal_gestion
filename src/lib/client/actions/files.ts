@@ -3,6 +3,7 @@ import { send } from '../commands';
 import { optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { toasts } from '../toasts.svelte';
+import { deleteWithUndo } from '../live/undoable';
 
 export function fileActions(store: ProjectStore) {
 	const projectId = () => store.project.id;
@@ -25,7 +26,8 @@ export function fileActions(store: ProjectStore) {
 				() => send('files.update', { ...target(id), changes })
 			),
 		remove: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Fichier supprimé',
 				() => store.files.remove(id),
 				() => send('files.delete', target(id))
 			)

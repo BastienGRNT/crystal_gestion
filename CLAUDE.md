@@ -55,6 +55,13 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 - `src/lib/connected/` = composants branchés (lisent `useProject()`, appellent `actions`). Les pages (`src/routes`) aussi.
 - `useProject()` → `{ store, actions, refs, me, realtime, peek }`. `store.<collection>.items` est réactif.
 - Toute action utilisateur passe par `actions.*` (optimiste : `optimistic()` / `createOptimistically()` puis commande).
+- Suppressions : **toujours** `deleteWithUndo(message, retraitLocal, commande)` (`client/live/undoable.ts`) — retrait
+  immédiat, toast « Annuler » 6 s, commande envoyée à l'expiration (ou au `pagehide`). Pas de `confirm()` ni de double clic :
+  bouton `ui/atoms/DeleteButton`.
+- Typo : échelle `text-2xs` (11,5 px, plancher) · `xs` · `sm` · `base` (14,5 px, corps) · `lg` · `xl` · `2xl`…`6xl` (titres
+  serif). Jamais de `text-[13px]`. Titres de section en sans `font-semibold` ; `font-display` réservé aux titres de page et
+  grands chiffres. Libellés : glossaire de `PLAN.md` §5.
+- Mise en page : `Page` pleine largeur (max 1480 px), padding intérieur généreux dans les composants (lignes ≥ 48 px).
 - Tokens : `src/lib/ui/tokens/theme.css` (clair + `[data-theme='dark']`), mappés dans `src/app.css` (`bg-surface`, `text-ink-2`,
   `border-line`, `bg-accent-soft`, `text-must`…). Jamais de couleur en dur dans un composant. `font-display` = Instrument Serif.
 - Le dégradé `prism` est réservé : logo, chrono en cours, 100 % d'avancement.

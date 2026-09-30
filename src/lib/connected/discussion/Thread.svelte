@@ -35,7 +35,9 @@
 		<ThreadComposer
 			{featureId}
 			bind:replyTo
-			placeholder={feature ? `Écrire sur ${feature.title}…` : 'Écrire dans #général…'}
+			placeholder={feature
+				? `Écrire sur ${feature.title}… (@ pour citer, # pour lier)`
+				: 'Écrire à toute l’équipe… (@ pour citer quelqu’un, # pour lier une tâche)'}
 		/>
 	</div>
 </div>

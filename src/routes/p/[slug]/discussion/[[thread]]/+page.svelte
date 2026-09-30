@@ -22,18 +22,20 @@
 	);
 </script>
 
-<svelte:head><title>{feature?.title ?? '#général'} · {store.project.name}</title></svelte:head>
+<svelte:head><title>{feature?.title ?? 'Général'} · {store.project.name}</title></svelte:head>
 
 <div class="flex h-full min-h-0">
-	<aside class="hidden w-64 shrink-0 overflow-y-auto border-r border-line px-3 pt-12 pb-6 md:block">
-		<p class="mb-3 px-2.5 font-display text-3xl leading-none">Fils</p>
+	<aside class="hidden w-64 shrink-0 overflow-y-auto border-r border-line px-3 pt-8 pb-6 md:block">
+		<p class="mb-2 px-2.5 text-2xs font-semibold tracking-[0.08em] text-ink-3 uppercase">
+			Fils de discussion
+		</p>
 		<ThreadList {threads} />
 	</aside>
 	<section
 		class="flex min-w-0 flex-1 flex-col pb-[calc(3.6rem+env(safe-area-inset-bottom))] md:pb-0"
 	>
 		<div class="border-b border-line px-4 pt-4 pb-3 sm:px-6 md:pt-12 md:pb-4">
-			<ThreadHeader title={feature?.title ?? 'général'} feature={featureLink} />
+			<ThreadHeader title={feature?.title ?? 'Général'} feature={featureLink} />
 			<div class="mt-3 md:hidden"><ThreadTabs {threads} /></div>
 		</div>
 		{#if ref && !feature}

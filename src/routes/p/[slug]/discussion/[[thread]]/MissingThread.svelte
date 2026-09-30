@@ -10,8 +10,8 @@
 	<EmptyState
 		icon={MessageSquareOff}
 		title="Ce fil n’existe plus"
-		text="La feature a peut-être été supprimée. Ses messages ont rejoint #général."
+		text="La feature a peut-être été supprimée. Ses messages ont rejoint Général."
 	>
-		<a {href}><Button size="sm">Aller dans #général</Button></a>
+		<a {href}><Button size="sm">Aller dans Général</Button></a>
 	</EmptyState>
 </div>

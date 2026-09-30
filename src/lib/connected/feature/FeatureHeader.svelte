@@ -6,7 +6,7 @@
 	import { progressOf } from '$lib/modules/tasks/domain/progress';
 	import ProgressBar from '$lib/ui/atoms/ProgressBar.svelte';
 	import AssigneePicker from '$lib/ui/molecules/AssigneePicker.svelte';
-	import ConfirmButton from '$lib/ui/molecules/ConfirmButton.svelte';
+	import Button from '$lib/ui/atoms/Button.svelte';
 	import InlineText from '$lib/ui/molecules/InlineText.svelte';
 	import PriorityMenu from '$lib/ui/molecules/PriorityMenu.svelte';
 
@@ -31,7 +31,8 @@
 			onchange={(priority) => actions.features.update(feature.id, { priority })}
 		/>
 		<span class="ml-auto"
-			><ConfirmButton onconfirm={remove}><Trash2 size={13} /> Supprimer</ConfirmButton></span
+			><Button variant="ghost" size="sm" onclick={remove}><Trash2 size={13} /> Supprimer</Button
+			></span
 		>
 	</div>
 	<InlineText

@@ -3,7 +3,7 @@
 	import { useProject } from '$lib/client/context';
 	import type { ProjectFile } from '$lib/modules/files/domain/project-file';
 	import IconLink from '$lib/ui/atoms/IconLink.svelte';
-	import ConfirmDelete from '$lib/ui/molecules/ConfirmDelete.svelte';
+	import DeleteButton from '$lib/ui/atoms/DeleteButton.svelte';
 	import IconSelect from '$lib/ui/molecules/IconSelect.svelte';
 	import { featureOptions, fileUrl } from './options';
 
@@ -21,4 +21,4 @@
 	onchange={(id) => actions.files.update(file.id, { featureId: id || null })}
 	><FolderInput size={13} /></IconSelect
 >
-<ConfirmDelete onconfirm={() => actions.files.remove(file.id)} />
+<DeleteButton onconfirm={() => actions.files.remove(file.id)} />

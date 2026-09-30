@@ -4,6 +4,7 @@ import type { EntityName } from '$lib/modules/kernel/domain/realtime';
 import { draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
+import { deleteWithUndo } from '../live/undoable';
 
 type IdeaInput = { title: string; note?: string; featureId?: string | null };
 
@@ -55,7 +56,8 @@ export function ideaActions(store: ProjectStore, meId: string) {
 				() => send('ideas.keep', target(id))
 			),
 		remove: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Idée supprimée',
 				() => store.ideas.remove(id),
 				() => send('ideas.delete', target(id))
 			),

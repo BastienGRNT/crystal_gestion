@@ -4,6 +4,7 @@ import { combine, draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
 import { timerActions } from './timer';
+import { deleteWithUndo } from '../live/undoable';
 
 export type NewTask = Pick<TaskFields, 'title'> &
 	Partial<TaskFields> & { status?: TaskStatus; position?: number };
@@ -55,7 +56,8 @@ export function taskActions(store: ProjectStore, meId: string) {
 			),
 		move,
 		remove: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Tâche supprimée',
 				() => combine(store.tasks.remove(id), timer.stopLocally(id)),
 				() => send('tasks.delete', { projectId: projectId(), id })
 			),

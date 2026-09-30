@@ -167,8 +167,8 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [ ] 8. Build de production testé
 - [ ] 9. Lint
 - [ ] 10. Découpage des gros fichiers (container, project-store, composants UI)
-- [ ] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
-- [ ] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
+- [x] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
+- [x] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
 - [ ] 13. Créneau qui traverse minuit dans le planning
 - [ ] 14. Aperçus PDF et vidéo vérifiés
 - [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
@@ -185,3 +185,6 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
   « Automatique » dans l'aperçu les remet à `null`. Vue Tâches = « Par urgence » (matrice, par défaut) ou « Par statut »
   (kanban) ; l'ancienne « Ma liste » vit sur Aujourd'hui.
 - Navigation : Journal et Mémoire IA sont rattachés à Projet (onglets) pour passer de 10 à 8 entrées.
+- Suppression : un seul mécanisme, « supprimer puis Annuler » (toast 6 s), pour toutes les entités ; la commande de
+  suppression n'est envoyée qu'à l'expiration, donc pas besoin de restauration côté serveur. Les doubles clics de
+  confirmation (ressources, feature) sont retirés.

@@ -5,7 +5,7 @@
 	import type { Link } from '$lib/modules/resources/domain/resources';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
 	import Tag from '$lib/ui/atoms/Tag.svelte';
-	import ConfirmDelete from '$lib/ui/molecules/ConfirmDelete.svelte';
+	import DeleteButton from '$lib/ui/atoms/DeleteButton.svelte';
 	import { copy } from './clipboard';
 	import FeatureChip from './FeatureChip.svelte';
 	import LinkTitle from './LinkTitle.svelte';
@@ -40,7 +40,7 @@
 					label="Copier l’URL"
 					onclick={() => copy(link.url, 'Lien')}><Copy size={13} /></IconButton
 				>{/if}
-			<ConfirmDelete onconfirm={() => actions.resources.removeLink(link.id)} />
+			<DeleteButton onconfirm={() => actions.resources.removeLink(link.id)} />
 		</span>
 	</div>
 </li>

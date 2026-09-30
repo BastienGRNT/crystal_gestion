@@ -3,6 +3,7 @@ import { send } from '../commands';
 import { draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
+import { deleteWithUndo } from '../live/undoable';
 
 export interface NewMessage {
 	featureId: string | null;
@@ -39,7 +40,8 @@ export function discussionActions(store: ProjectStore, meId: string) {
 				() => send('messages.edit', { ...target(id), body })
 			),
 		remove: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Message supprimé',
 				() => store.messages.remove(id),
 				() => send('messages.delete', target(id))
 			),

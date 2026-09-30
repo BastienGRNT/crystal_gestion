@@ -42,7 +42,7 @@
 	onreply={() => onreply(message)}
 	onquestion={(isQuestion) => actions.discussion.markQuestion(message.id, isQuestion)}
 	onedit={() => ((draft = decodeMentions(message.body, store.members.items)), (editing = true))}
-	ondelete={() => confirm('Supprimer ce message ?') && actions.discussion.remove(message.id)}
+	ondelete={() => actions.discussion.remove(message.id)}
 	onconvert={convert}
 	onresolve={() => actions.discussion.resolveQuestion(message.id)}
 />

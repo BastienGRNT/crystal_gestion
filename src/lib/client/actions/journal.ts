@@ -3,6 +3,7 @@ import { send } from '../commands';
 import { draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
+import { deleteWithUndo } from '../live/undoable';
 
 type EntryInput = Omit<JournalFields, 'kind' | 'details'> & {
 	kind: 'decision' | 'fix';
@@ -43,7 +44,8 @@ export function journalActions(store: ProjectStore, meId: string) {
 				() => send('journal.update', { projectId: projectId(), id, changes })
 			),
 		remove: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Entrée du journal supprimée',
 				() => store.journal.remove(id),
 				() => send('journal.delete', { projectId: projectId(), id })
 			)

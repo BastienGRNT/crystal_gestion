@@ -3,7 +3,7 @@ import type { ElementBase } from '$lib/modules/kernel/domain/element';
 export interface Message extends ElementBase {
 	kind: 'message';
 	projectId: string;
-	/** `null` is the project's #général channel; otherwise the feature's thread. */
+	/** `null` is the project's Général channel; otherwise the feature's thread. */
 	featureId: string | null;
 	authorId: string;
 	body: string;

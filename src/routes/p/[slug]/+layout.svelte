@@ -3,6 +3,7 @@
 	import { afterNavigate, goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createActions } from '$lib/client/actions';
+	import { flushPendingDeletes } from '$lib/client/live/undoable';
 	import { setProjectContext } from '$lib/client/context';
 	import { ProjectStore } from '$lib/client/project-store.svelte';
 	import { RealtimeClient } from '$lib/client/realtime/socket.svelte';
@@ -45,6 +46,8 @@
 		return () => (unsubscribe(), realtime.close());
 	});
 </script>
+
+<svelte:window onpagehide={flushPendingDeletes} />
 
 <svelte:head><title>{store.project.name} · Crystal</title></svelte:head>
 

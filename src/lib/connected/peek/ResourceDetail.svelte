@@ -2,7 +2,7 @@
 	import { useProject } from '$lib/client/context';
 	import type { ElementSummary } from '$lib/modules/kernel/domain/element';
 	import InlineText from '$lib/ui/molecules/InlineText.svelte';
-	import ConfirmDelete from '$lib/ui/molecules/ConfirmDelete.svelte';
+	import DeleteButton from '$lib/ui/atoms/DeleteButton.svelte';
 	import PropertyRow from '$lib/ui/molecules/PropertyRow.svelte';
 	import AccountFields from '../resources/AccountFields.svelte';
 	import ContactFields from '../resources/ContactFields.svelte';
@@ -26,7 +26,7 @@
 			onsave={ops.rename}
 			class="font-display text-3xl leading-tight"
 		/>
-		<span class="mt-2"><ConfirmDelete onconfirm={() => (ops.remove(), onclose())} /></span>
+		<span class="mt-2"><DeleteButton onconfirm={() => (ops.remove(), onclose())} /></span>
 	</div>
 	<DetailMeta {element} />
 	<ResourceShortcut {item} />

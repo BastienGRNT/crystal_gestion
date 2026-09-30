@@ -4,6 +4,7 @@ import { send } from '../commands';
 import { draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
 import { createOptimistically } from './create';
+import { deleteWithUndo } from '../live/undoable';
 
 type Range = { startsAt: string; endsAt: string };
 type BlockRange = { startedAt: string; endedAt: string };
@@ -41,7 +42,8 @@ export function planningActions(store: ProjectStore, meId: string) {
 				() => send('time.updateBlock', { id, changes })
 			),
 		removeBlock: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Bloc de temps supprimé',
 				() => store.timeEntries.remove(id),
 				() => send('time.deleteBlock', { id })
 			),

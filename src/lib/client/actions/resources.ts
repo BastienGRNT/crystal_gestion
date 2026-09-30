@@ -6,6 +6,7 @@ import type {
 import { send } from '../commands';
 import { attempt, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
+import { deleteWithUndo } from '../live/undoable';
 
 type Input<F> = Partial<F> & { title: string };
 
@@ -24,7 +25,8 @@ export function resourceActions(store: ProjectStore) {
 				() => send('accounts.update', { ...target(id), changes })
 			),
 		removeAccount: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Compte supprimé',
 				() => store.accounts.remove(id),
 				() => send('accounts.delete', target(id))
 			),
@@ -38,7 +40,8 @@ export function resourceActions(store: ProjectStore) {
 				() => send('links.update', { ...target(id), changes })
 			),
 		removeLink: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Lien supprimé',
 				() => store.links.remove(id),
 				() => send('links.delete', target(id))
 			),
@@ -52,7 +55,8 @@ export function resourceActions(store: ProjectStore) {
 				() => send('contacts.update', { ...target(id), changes })
 			),
 		removeContact: (id: string) =>
-			optimistic(
+			deleteWithUndo(
+				'Contact supprimé',
 				() => store.contacts.remove(id),
 				() => send('contacts.delete', target(id))
 			)

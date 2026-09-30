@@ -14,11 +14,11 @@
 
 <header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
 	<div class="min-w-0">
-		<p class="mb-1 font-mono text-2xs tracking-[0.14em] text-ink-3 uppercase">
-			Discussion{#if feature}&nbsp;· {feature.ref}{/if}
+		<p class="mb-1 font-mono text-2xs font-medium tracking-[0.14em] text-ink-3 uppercase">
+			Discussion{#if feature}&nbsp;· feature {feature.ref}{:else}&nbsp;· toute l’équipe{/if}
 		</p>
 		<h1 class="truncate font-display text-3xl leading-[1.05] sm:text-4xl">
-			{#if !feature}<span class="text-ink-3 italic">#</span>{/if}{title}
+			{title}
 		</h1>
 	</div>
 	{#if feature}
