@@ -160,8 +160,8 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [x] 1. Chrono : bug corrigé, un seul actif, survit au refresh, visible partout, temps réel, bloc de planning, tests
 - [x] 2. Chasse aux bugs (parcours Playwright de toutes les pages ; les suivants sont corrigés au fil des refontes)
 - [x] 3. Page d'inscription (lien d'invitation ou code d'accès en config)
-- [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
-- [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
+- [x] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
+- [x] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
 - [x] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
 - [x] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
 - [x] 8. Build de production testé
@@ -200,3 +200,13 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - Seed : réécrit dans `scripts/seed/` (un fichier par domaine). Les 3 fichiers de test (`moodboard.png`,
   `notes-reunion.txt`, `depose.txt`, envoyés à la main lors de tests) sont remplacés par de vrais fichiers générés
   (image, PDF, vidéo, texte) ; ajout d'un second projet « Carnet de recettes » (guide de démarrage, changement de projet).
+- Parcours : chaque page a un sous-titre « ce que tu fais ici » (`hint` de `client/navigation.ts`, repris dans Cmd+K) ;
+  guide « Pour bien démarrer » sur Aujourd'hui, calculé depuis les données (rien à cocher à la main), masquable.
+- Cmd+K : groupe « Infos clés » (`client/destinations.ts`) — objectif, équipe, inviter, mots de passe, dispos, temps
+  passé… trouvables avec des mots courants, accents ignorés.
+- UI : pas de changement de police (Geist lisible) ; le problème venait des tailles (30 valeurs, jusqu'à 9 px), du
+  contraste d'`ink-3` et des pages étroites. Titres de section en sans, serif réservée aux titres de page et aux grands
+  chiffres (tuiles d'Aujourd'hui).
+
+Reste éventuel (non bloquant) : vue « Bilan des semaines » non retravaillée visuellement ; libellés des e-mails de
+notification inexistants (pas de SMTP).

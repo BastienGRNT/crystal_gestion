@@ -14,7 +14,7 @@ npm test                    # vitest (domaine + cas d'usage)
 npm run check               # svelte-check (types)
 npm run lint                # prettier + eslint   ·   npm run format pour corriger
 npm run build && npm start  # prod : server.js = handler SvelteKit + WebSocket
-npx tsx scripts/seed-demo.ts                        # base vide + dev lancé → projet de démo (bastien@crystal.test / crystal-demo)
+npx tsx scripts/seed-demo.ts                        # base vide + dev lancé → démo complète (bastien@crystal.test / crystal-demo), contenu dans scripts/seed/
 npx tsx scripts/screenshots.ts <dir> /p/atelier-pixel/tasks   # captures clair/sombre, desktop/mobile
 ```
 
@@ -67,6 +67,9 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 - Le dégradé `prism` est réservé : logo, chrono en cours, 100 % d'avancement.
 - Textes : `RefTextArea` (saisie avec `#` et `@`) et `RichText` (rendu refs/mentions/liens). Mentions stockées `<@userId>`,
   affichées `@Nom` (`client/refs/mentions.ts`).
+- Navigation : `client/navigation.ts` (8 entrées en 3 groupes, `hint` = sous-titre de page). Infos clés de Cmd+K :
+  `client/destinations.ts`. Couleurs de features du planning : `--feature-0…7` via `client/views/feature-colors.ts`.
+- États vides : toujours une phrase qui dit quoi faire + un bouton/lien vers l'action (`EmptyState`, `compact` en colonne).
 - Ouvrir un élément : `peek(ref)` (tiroir `?peek=T-12`) ; features → `/p/[slug]/features/F-3` ; messages → `/p/[slug]/go/M-4`.
 
 ## Conventions
@@ -83,3 +86,6 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 - Hub temps réel et pool SQL vivent sur `globalThis` (survivent au HMR). Modif du hub → redémarrer `npm run dev`.
 - Postgres écoute sur 55432 (5432–5434 déjà pris sur la machine de dev).
 - `tsc` ne comprend pas les exports de `.svelte` : types partagés dans des `.ts`.
+- Prod : `ORIGIN` doit être l'URL publique (défaut `http://localhost:$PORT` dans `server.js`), sinon formulaires en 403.
+- Inscription libre seulement si `REGISTRATION_CODE` est défini ; sinon `/register` n'accepte qu'un lien d'invitation.
+- Les smoke tests (`scripts/smoke-*.ts`) écrivent dans la base : relancer le seed après pour une démo propre.
