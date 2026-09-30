@@ -17,7 +17,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const isPublic = PUBLIC_PATHS.some((path) => event.url.pathname.startsWith(path));
 	if (!event.locals.user && !isPublic && !event.url.pathname.startsWith('/api')) {
-		redirect(303, (await container.identity.hasUsers()) ? '/login' : '/setup');
+		if (!(await container.identity.hasUsers())) redirect(303, '/setup');
+		const back = event.url.pathname === '/' ? '' : event.url.pathname + event.url.search;
+		redirect(303, back ? `/login?redirect=${encodeURIComponent(back)}` : '/login');
 	}
 	return resolve(event);
 };

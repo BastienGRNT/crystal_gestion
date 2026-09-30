@@ -19,28 +19,66 @@ const matches = (label: string, query: string) => label.toLowerCase().includes(q
 function createItems(query: string, intents: PaletteIntents): PaletteItem[] {
 	if (!query) return [];
 	return [
-		{ id: 'new-task', label: `Nouvelle tâche « ${query} »`, icon: Plus, run: () => intents.createTask(query) },
-		{ id: 'new-idea', label: `Nouvelle idée « ${query} »`, icon: Lightbulb, run: () => intents.createIdea(query) },
-		{ id: 'new-decision', label: `Tracer une décision « ${query} »`, icon: BookOpen, run: () => intents.createDecision(query) }
+		{
+			id: 'new-task',
+			label: `Nouvelle tâche « ${query} »`,
+			icon: Plus,
+			run: () => intents.createTask(query)
+		},
+		{
+			id: 'new-idea',
+			label: `Nouvelle idée « ${query} »`,
+			icon: Lightbulb,
+			run: () => intents.createIdea(query)
+		},
+		{
+			id: 'new-decision',
+			label: `Tracer une décision « ${query} »`,
+			icon: BookOpen,
+			run: () => intents.createDecision(query)
+		}
 	];
 }
 
 /** Everything Cmd+K can do for a query: create, jump to an element, go to a page, act. */
-export function paletteGroups(query: string, elements: ElementSummary[], intents: PaletteIntents): PaletteGroup[] {
-	const found = searchElements(elements.filter((element) => !element.id.startsWith('draft-')), query, query ? 8 : 5);
+export function paletteGroups(
+	query: string,
+	elements: ElementSummary[],
+	intents: PaletteIntents
+): PaletteGroup[] {
+	const found = searchElements(
+		elements.filter((element) => !element.id.startsWith('draft-')),
+		query,
+		query ? 8 : 5
+	);
 	return [
-		{ label: 'Créer', items: createItems(query, intents) },
 		{
 			label: 'Éléments',
-			items: found.map((element) => ({ id: element.id, label: element.title, hint: element.ref, icon: KIND_META[element.kind].icon, run: () => intents.open(element) }))
+			items: found.map((element) => ({
+				id: element.id,
+				label: element.title,
+				hint: element.ref,
+				icon: KIND_META[element.kind].icon,
+				run: () => intents.open(element)
+			}))
 		},
 		{
 			label: 'Aller à',
-			items: NAVIGATION.filter((item) => matches(item.label, query)).map((item) => ({ id: item.key, label: item.label, icon: item.icon, hint: item.shortcut.toUpperCase(), run: () => intents.navigate(item.path) }))
+			items: NAVIGATION.filter((item) => matches(item.label, query)).map((item) => ({
+				id: item.key,
+				label: item.label,
+				icon: item.icon,
+				hint: item.shortcut.toUpperCase(),
+				run: () => intents.navigate(item.path)
+			}))
 		},
 		{
 			label: 'Actions',
-			items: [{ id: 'theme', label: 'Changer de thème', icon: SunMoon, run: intents.toggleTheme }].filter((item) => matches(item.label, query))
-		}
+			items: [
+				{ id: 'theme', label: 'Changer de thème', icon: SunMoon, run: intents.toggleTheme }
+			].filter((item) => matches(item.label, query))
+		},
+		// Last: Enter must open what the search found, creating is the fallback.
+		{ label: 'Créer', items: createItems(query, intents) }
 	];
 }
