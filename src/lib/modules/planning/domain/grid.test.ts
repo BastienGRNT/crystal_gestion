@@ -6,7 +6,10 @@ import {
 	moveRange,
 	pxToMinutes,
 	pxToSnappedMinutes,
-	rangeBetween
+	rangeBetween,
+	resizeEnd,
+	resizeStart,
+	toDayRange
 } from './grid';
 
 const scale = { hourHeight: 48 };
@@ -40,5 +43,19 @@ describe('agenda grid', () => {
 	it('creates one-hour slots on tap', () => {
 		expect(hourAt(615)).toEqual({ start: 600, end: 660 });
 		expect(hourAt(1435)).toEqual({ start: 1380, end: 1440 });
+	});
+
+	it('draws a slot across midnight, whichever way the pointer goes', () => {
+		const week = 7 * 1440;
+		expect(toDayRange(rangeBetween(1380, 1500, week))).toEqual({ day: 0, start: 1380, end: 1500 });
+		expect(toDayRange(rangeBetween(1500, 1380, week))).toEqual({ day: 0, start: 1380, end: 1500 });
+	});
+
+	it('moves and resizes past midnight within the displayed days', () => {
+		expect(moveRange(1320, 1380, 1410, 2880)).toEqual({ start: 1410, end: 1470 });
+		expect(moveRange(1320, 1380, 2870, 2880)).toEqual({ start: 2820, end: 2880 });
+		expect(resizeEnd(1320, 1560, 2880)).toBe(1560);
+		expect(resizeEnd(1320, 3000, 2880)).toBe(2760);
+		expect(resizeStart(1560, 0)).toBe(120);
 	});
 });

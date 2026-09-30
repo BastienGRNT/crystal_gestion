@@ -22,6 +22,8 @@ export interface AgendaItem {
 	editable: boolean;
 	column: number;
 	columns: number;
+	/** Full details for the hover card: blocks are often too small to show them. */
+	info: { title: string; lines: string[] };
 }
 
 export interface AgendaLane {

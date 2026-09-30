@@ -163,13 +163,13 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - [ ] 4. Parcours utilisateur : navigation, libellés, glossaire, premier usage, Cmd+K
 - [ ] 5. UI : typographie, espace, hiérarchie (tokens + atoms d'abord)
 - [x] 6. Matrice de priorité 2×2 + libellés MoSCoW en français
-- [ ] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
+- [x] 7. Planning lisible : couleur par feature, légende, récap temps, infobulles
 - [ ] 8. Build de production testé
 - [ ] 9. Lint
 - [ ] 10. Découpage des gros fichiers (container, project-store, composants UI)
 - [x] 11. Confirmation in-app pour supprimer un message (plus de `confirm()` natif)
 - [x] 12. Undo (toast) pour suppression d'idée / entrée du journal, même mécanisme partout
-- [ ] 13. Créneau qui traverse minuit dans le planning
+- [x] 13. Créneau qui traverse minuit dans le planning
 - [ ] 14. Aperçus PDF et vidéo vérifiés
 - [ ] 15. Seed de démo : fichiers de test supprimés, toutes les fonctionnalités couvertes
 
@@ -188,3 +188,8 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 - Suppression : un seul mécanisme, « supprimer puis Annuler » (toast 6 s), pour toutes les entités ; la commande de
   suppression n'est envoyée qu'à l'expiration, donc pas besoin de restauration côté serveur. Les doubles clics de
   confirmation (ressources, feature) sont retirés.
+- Planning : couleur = feature (palette `--feature-0…7` des tokens, attribuée par ancienneté de la feature, teinte
+  + liseré lisibles en clair comme en sombre) ; panneau « Temps passé » (total, par feature, par personne en vue équipe)
+  qui sert aussi de légende ; infobulle au survol (tâche, feature, personne, horaires, durée, dispo ou non).
+- Minuit : les gestes se calculent en minutes depuis le premier jour affiché ; glisser sous 24 h ou dans la colonne
+  suivante prolonge au lendemain (24 h max). L'élément est dessiné en deux morceaux, « … » marque la coupure.

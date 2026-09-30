@@ -6,7 +6,7 @@
 	const swatch = 'inline-block h-3 w-4 rounded-[3px]';
 </script>
 
-<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-ink-3">
+<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-2">
 	<span class="flex items-center gap-1.5"
 		><span class="{swatch} border-l-2 border-accent bg-accent-soft"></span>Dispo</span
 	>
@@ -15,7 +15,10 @@
 			class="{swatch} border border-dashed border-accent/60 bg-[repeating-linear-gradient(135deg,var(--accent-soft)_0_2px,transparent_2px_5px)]"
 		></span>Peut-être</span
 	>
-	<span class="flex items-center gap-1.5"><span class="{swatch} bg-ink"></span>Travail</span>
+	<span class="flex items-center gap-1.5"
+		><span class="{swatch} border-l-[3px] border-feature-0 bg-feature-0/20"></span>Temps passé
+		(couleur de la feature, voir le récap)</span
+	>
 	{#if team}
 		<span class="flex items-center gap-1.5"
 			><span class="{swatch} border-l-2 border-accent bg-accent/10"></span>On peut bosser ensemble</span

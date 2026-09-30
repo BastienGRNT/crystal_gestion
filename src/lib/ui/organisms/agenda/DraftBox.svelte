@@ -15,6 +15,6 @@
 	style={boxStyle(draft, lanes, hourHeight)}
 >
 	<span class="font-mono text-2xs font-medium"
-		>{clockLabel(draft.start)}–{clockLabel(draft.end)}</span
+		>{clockLabel(draft.start)}–{clockLabel(draft.end % 1440)}</span
 	>
 </div>

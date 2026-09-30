@@ -40,3 +40,9 @@ export function pointerAt(
 	const day = columnAt(event.clientX - rect.left, rect.width, days);
 	return { day, minutes: pxToMinutes(event.clientY - rect.top, { hourHeight }) };
 }
+
+/** Hours shown on an item; "…" marks the side cut at midnight (the item goes on the other day). */
+export const rangeLabel = (
+	item: Pick<AgendaItem, 'start' | 'end' | 'clippedStart' | 'clippedEnd'>,
+	clock: (m: number) => string
+) => `${item.clippedStart ? '…' : clock(item.start)}–${item.clippedEnd ? '…' : clock(item.end)}`;

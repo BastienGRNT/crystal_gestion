@@ -13,7 +13,8 @@ export class AgendaDrag {
 
 	constructor(
 		private locate: Locate,
-		private handlers: () => AgendaHandlers
+		private handlers: () => AgendaHandlers,
+		private days: () => number
 	) {}
 
 	begin(event: PointerEvent, mode: DragMode, layer: AgendaLayer, lane: number, item?: AgendaItem) {
@@ -36,7 +37,7 @@ export class AgendaDrag {
 		p.moved = true;
 		if (p.touch && !p.item) return;
 		if (p.item && (!p.item.editable || p.item.running)) return;
-		this.draft = previewAt(p, this.locate(event));
+		this.draft = previewAt(p, this.locate(event), this.days());
 	};
 
 	#end = (event: PointerEvent) => {

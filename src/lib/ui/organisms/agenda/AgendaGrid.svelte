@@ -2,10 +2,12 @@
 	import AgendaColumn from './AgendaColumn.svelte';
 	import AgendaHeader from './AgendaHeader.svelte';
 	import AgendaHours from './AgendaHours.svelte';
+	import AgendaTooltip from './AgendaTooltip.svelte';
 	import NowLine from './NowLine.svelte';
 	import { AgendaDrag } from './drag.svelte';
+	import { draftIn } from './drag-preview';
 	import { pointerAt } from './geometry';
-	import type { AgendaGridProps } from './types';
+	import type { AgendaGridProps, AgendaItem } from './types';
 
 	let {
 		days,
@@ -20,13 +22,28 @@
 	}: AgendaGridProps = $props();
 	let surface = $state<HTMLElement>();
 	const locate = (event: PointerEvent) => pointerAt(surface!, event, days.length, hourHeight);
-	const drag = new AgendaDrag(locate, () => handlers);
+	const drag = new AgendaDrag(
+		locate,
+		() => handlers,
+		() => days.length
+	);
 	const scrollToMorning = (node: HTMLElement) => void (node.scrollTop = 7.5 * hourHeight);
+	let hover = $state<{ item: AgendaItem; x: number; y: number } | null>(null);
+	function track(event: PointerEvent) {
+		const id = (event.target as HTMLElement)
+			.closest('[data-agenda-item]')
+			?.getAttribute('data-agenda-item');
+		const item = !drag.draft && event.pointerType !== 'touch' && items.find((i) => i.id === id);
+		hover = item ? { item, x: event.clientX, y: event.clientY } : null;
+	}
 </script>
 
 <div
 	class="h-full overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface"
 	{@attach scrollToMorning}
+	onpointermove={track}
+	onpointerleave={() => (hover = null)}
+	role="presentation"
 >
 	<AgendaHeader {days} {lanes} />
 	<div class="relative flex" style="height:{24 * hourHeight}px">
@@ -44,7 +61,7 @@
 					{layer}
 					{hourHeight}
 					today={day.today}
-					draft={drag.draft?.day === index ? drag.draft : null}
+					draft={draftIn(drag.draft, index)}
 					draggingId={drag.draft?.id ?? null}
 					onbegin={(event, mode, item) =>
 						drag.begin(event, mode, item?.layer ?? layer, item?.lane ?? myLane, item)}
@@ -54,3 +71,4 @@
 		</div>
 	</div>
 </div>
+{#if hover}<AgendaTooltip {...hover} />{/if}

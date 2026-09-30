@@ -29,6 +29,16 @@
 	--night: #0d0d12;
 	--night-ink: #ece8df;
 	--night-ink-2: #9a97a4;
+	/* One color per feature on the planning (by feature order), distinct from priority colors. */
+	--feature-0: #0e9384;
+	--feature-1: #e8590c;
+	--feature-2: #d6336c;
+	--feature-3: #5c940d;
+	--feature-4: #1c7ed6;
+	--feature-5: #ae3ec9;
+	--feature-6: #a0612d;
+	--feature-7: #0b7285;
+	--feature-none: #7d7a86;
 	color-scheme: light;
 }
 
@@ -56,5 +66,14 @@
 	--warning: #f2b33d;
 	--shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
 	--shadow-pop: 0 1px 2px rgb(0 0 0 / 0.4), 0 16px 40px -8px rgb(0 0 0 / 0.65);
+	--feature-0: #2cc5b0;
+	--feature-1: #ff8a3d;
+	--feature-2: #f06595;
+	--feature-3: #94d82d;
+	--feature-4: #4dabf7;
+	--feature-5: #da77f2;
+	--feature-6: #d19a66;
+	--feature-7: #3bc9db;
+	--feature-none: #8f8b9b;
 	color-scheme: dark;
 }

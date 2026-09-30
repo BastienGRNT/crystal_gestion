@@ -26,9 +26,9 @@
 	aria-label={item.label}
 	class="group absolute transition-opacity duration-150 select-none {active
 		? `z-10 ${draggable ? 'cursor-grab touch-none' : 'cursor-pointer'}`
-		: 'pointer-events-none opacity-45'} {dragging ? 'opacity-25' : ''}"
+		: 'opacity-45'} {dragging ? 'opacity-25' : ''}"
 	style={boxStyle(item, lanes, hourHeight)}
-	onpointerdown={begin('move')}
+	onpointerdown={active ? begin('move') : undefined}
 	data-agenda-item={item.id}
 >
 	{#if item.layer === 'availability'}<AvailabilityFace {item} {compact} />{:else}<BlockFace

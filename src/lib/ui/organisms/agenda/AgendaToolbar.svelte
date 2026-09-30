@@ -48,14 +48,14 @@
 		]}
 	/>
 	<div class="ml-auto flex items-center gap-2">
-		<span class="hidden text-xs text-ink-3 lg:inline">Glisser pour ajouter</span>
+		<span class="hidden text-sm text-ink-2 lg:inline">Glisse sur la grille pour ajouter :</span>
 		<Segmented
-			label="Ce que le glisser crée"
+			label="Ce que tu ajoutes en glissant"
 			value={layer}
 			onchange={onlayer}
 			options={[
-				{ value: 'availability', label: 'Dispos', tone: 'text-accent' },
-				{ value: 'block', label: 'Travail' }
+				{ value: 'availability', label: 'Mes dispos', tone: 'text-accent-text' },
+				{ value: 'block', label: 'Temps passé' }
 			]}
 		/>
 	</div>

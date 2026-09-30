@@ -35,6 +35,7 @@
 	--color-danger: var(--danger);
 	--color-success: var(--success);
 	--color-warning: var(--warning);
+	--color-feature-0: var(--feature-0);
 	--shadow-pop: var(--shadow-pop);
 	--shadow-card: var(--shadow-card);
 	/* Type scale: 11.5px is the floor, body text is 14.5px. */

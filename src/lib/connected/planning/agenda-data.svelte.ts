@@ -1,4 +1,5 @@
 import { useProject } from '$lib/client/context';
+import { featureColors } from '$lib/client/views/feature-colors';
 import { minutesFrom, sameDay } from '$lib/modules/planning/domain/calendar';
 import { agendaItems } from './agenda-items';
 import { sharedBands } from './agenda-bands';
@@ -20,6 +21,8 @@ export function useAgendaData(view: () => AgendaView) {
 	);
 	const lanes = $derived(team ? members : members.filter((member) => member.id === me.id));
 	const tasks = $derived(new Map(store.tasks.items.map((task) => [task.id, task])));
+	const features = $derived(new Map(store.features.items.map((f) => [f.id, f])));
+	const colorOf = $derived(featureColors(store.features.items));
 	const items = $derived(
 		agendaItems({
 			days: view().days,
@@ -29,7 +32,11 @@ export function useAgendaData(view: () => AgendaView) {
 			now,
 			availabilities: store.availabilities.items,
 			entries: store.timeEntries.items,
-			taskOf: (id) => (id ? tasks.get(id) : undefined)
+			taskOf: (id) => (id ? tasks.get(id) : undefined),
+			featureOf: (id) => {
+				const feature = id ? features.get(id) : undefined;
+				return feature && { title: feature.title, color: colorOf(feature.id) };
+			}
 		})
 	);
 	const nameOf = (id: string) => store.members.get(id)?.name ?? '';

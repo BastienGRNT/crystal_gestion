@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { clockLabel } from '$lib/modules/planning/domain/calendar';
-	import { availabilityFill, tint } from './geometry';
+	import { availabilityFill, rangeLabel, tint } from './geometry';
 	import type { AgendaItem } from './types';
 
 	let { item, compact }: { item: AgendaItem; compact: boolean } = $props();
@@ -14,8 +14,6 @@
 >
 	<span class="truncate font-medium text-ink">{item.maybe ? 'Peut-être' : item.label}</span>
 	{#if !compact}
-		<span class="truncate font-mono text-2xs text-ink-3"
-			>{clockLabel(item.start)}–{clockLabel(item.end)}</span
-		>
+		<span class="truncate font-mono text-2xs text-ink-3">{rangeLabel(item, clockLabel)}</span>
 	{/if}
 </div>
