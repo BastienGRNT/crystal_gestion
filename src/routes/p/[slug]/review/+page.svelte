@@ -13,7 +13,8 @@
 	import ReviewFlow from '$lib/connected/review/ReviewFlow.svelte';
 	import StuckTasks from '$lib/connected/review/StuckTasks.svelte';
 	import HeaderButton from '$lib/ui/molecules/HeaderButton.svelte';
-	import LinkSegments from '$lib/ui/molecules/LinkSegments.svelte';
+	import { CalendarCheck, CalendarRange } from '@lucide/svelte';
+	import PageTabs from '$lib/ui/molecules/PageTabs.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
@@ -65,17 +66,24 @@
 
 <svelte:head><title>Faire le point · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Faire le point" meta={daily ? '≈ 2 minutes' : '≈ 10 minutes'}>
+<PageHeader
+	title="Faire le point"
+	meta={daily
+		? '2 minutes : ce que tu as fait, ce qui coince, ce que tu fais demain.'
+		: '10 minutes : où en sont les Feats, ce qui bloque, les questions, les idées.'}
+>
 	{#snippet actions()}
-		<LinkSegments
+		<HeaderButton href={home}><X size={16} />Quitter</HeaderButton>
+	{/snippet}
+	{#snippet tabs()}
+		<PageTabs
 			label="Quel point"
 			value={daily ? 'day' : 'week'}
 			tabs={[
-				{ value: 'day', label: 'Du jour', href: '?mode=day' },
-				{ value: 'week', label: 'De la semaine', href: '?mode=week' }
+				{ value: 'day', label: 'Le point du jour', icon: CalendarCheck, href: '?mode=day' },
+				{ value: 'week', label: 'La revue de la semaine', icon: CalendarRange, href: '?mode=week' }
 			]}
 		/>
-		<HeaderButton href={home}><X size={14} />Quitter</HeaderButton>
 	{/snippet}
 </PageHeader>
 <Page width="max-w-[1000px]">

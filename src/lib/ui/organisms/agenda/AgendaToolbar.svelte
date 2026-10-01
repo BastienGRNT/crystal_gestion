@@ -21,12 +21,12 @@
 	const next = $derived(scale === 'week' ? 'Semaine suivante' : 'Jour suivant');
 </script>
 
-<div class="mb-3 flex flex-wrap items-center gap-2">
+<div class="mb-4 flex flex-wrap items-center gap-2.5">
 	<div class="flex items-center gap-0.5">
 		<IconButton label="{previous} (←)" onclick={() => onstep(-1)}
 			><ChevronLeft size={16} /></IconButton
 		>
-		<Button size="sm" onclick={ontoday} title="Aujourd’hui (T)">Aujourd’hui</Button>
+		<Button size="sm" onclick={ontoday} title="Aujourd’hui (A)">Aujourd’hui</Button>
 		<IconButton label="{next} (→)" onclick={() => onstep(1)}><ChevronRight size={16} /></IconButton>
 	</div>
 	<Segmented

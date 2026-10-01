@@ -13,7 +13,7 @@
 	let { assignees, options, ontoggle }: Props = $props();
 </script>
 
-<div class="relative flex w-16 shrink-0 justify-end">
+<div class="relative flex w-16 shrink-0 justify-end max-sm:w-auto">
 	<PickMenu title="Assigner à" multiple {options} onpick={ontoggle} align="end">
 		{#snippet trigger(toggle)}
 			<button

@@ -43,7 +43,9 @@
 </script>
 
 <!-- Title, then quiet metadata. The title button covers the row; cells sit above it. -->
-<div class="group relative flex min-h-[52px] items-center gap-3.5 px-5 transition hover:bg-hover">
+<div
+	class="group relative flex min-h-[52px] items-center gap-3.5 px-5 transition hover:bg-hover max-sm:gap-2.5 max-sm:px-4 max-sm:py-2"
+>
 	<button
 		type="button"
 		onclick={() => ontoggle(!task.done)}
@@ -59,11 +61,13 @@
 	<button
 		type="button"
 		onclick={onopen}
-		class="min-w-0 flex-1 truncate text-left text-[15px] after:absolute after:inset-0 after:content-[''] {task.done
+		class="min-w-0 flex-1 text-left text-[15px] leading-snug after:absolute after:inset-0 after:content-[''] max-sm:line-clamp-2 sm:truncate {task.done
 			? 'text-ink-3 line-through decoration-ink-3/40'
 			: ''}">{task.title}</button
 	>
-	{#if waiting}<span class="shrink-0 text-xs font-bold text-accent-text">À valider</span>{/if}
+	{#if waiting}<span class="shrink-0 text-xs font-bold text-accent-text max-sm:hidden"
+			>À valider</span
+		>{/if}
 	{@render extra?.()}
 	<TimerCell running={task.running} {ontimer} />
 	{#if withFeature}

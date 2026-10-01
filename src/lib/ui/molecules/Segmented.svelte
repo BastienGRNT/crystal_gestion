@@ -8,11 +8,12 @@
 		label: string;
 	}
 
+	/** A switch between a few settings of a view (Semaine / Jour), big enough to read and hit. */
 	let { value, options, onchange, label }: Props = $props();
 </script>
 
 <div
-	class="inline-flex max-w-full shrink-0 gap-0.5 overflow-x-auto rounded-lg bg-sunken p-0.5"
+	class="inline-flex max-w-full shrink-0 gap-1 overflow-x-auto rounded-[12px] border-[1.5px] border-line-strong bg-surface p-1"
 	role="radiogroup"
 	aria-label={label}
 >
@@ -22,12 +23,12 @@
 			role="radio"
 			aria-checked={option.value === value}
 			onclick={() => onchange(option.value)}
-			class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-ui font-medium whitespace-nowrap transition {option.value ===
+			class="inline-flex h-8 items-center gap-2 rounded-[8px] px-3 text-sm font-bold whitespace-nowrap transition {option.value ===
 			value
-				? `bg-panel shadow-sm ${option.tone ?? 'text-ink'}`
-				: 'text-ink-3 hover:text-ink'}"
+				? `bg-primary text-primary-ink ${option.tone ?? ''}`
+				: 'text-ink-2 hover:bg-hover hover:text-ink'}"
 		>
-			{#if option.icon}<option.icon size={14} />{/if}{option.label}
+			{#if option.icon}<option.icon size={15} />{/if}{option.label}
 		</button>
 	{/each}
 </div>

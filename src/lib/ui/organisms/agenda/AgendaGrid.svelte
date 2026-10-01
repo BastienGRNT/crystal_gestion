@@ -33,7 +33,7 @@
 </script>
 
 <div
-	class="h-full overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface"
+	class="h-full overflow-y-auto overscroll-contain rounded-[18px] border-[1.5px] border-line bg-surface"
 	{@attach scrollToMorning}
 	onpointermove={(event) => (hover = hoverAt(event, items, !!drag.draft))}
 	onpointerleave={() => (hover = null)}

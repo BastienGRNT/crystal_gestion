@@ -85,18 +85,19 @@ backoff puis `invalidateAll()` (resynchronisation complète via le snapshot).
 Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `SecretCipher` (identité en V1),
 `PasswordHasher`, `AiProvider` (null en V1).
 
-## 3. Direction visuelle — « Crystal »
+## 3. Direction visuelle — « Crystal » (itération 4)
 
-Éditorial + technique. Contraste entre une serif italique expressive et une UI très nette.
+Un outil d'équipe lisible d'un coup d'œil : grandes tailles, questions écrites en clair, aucune pastille décorative.
 
-- **Typo** : _Geist_ partout (titres en semibold serré), _Geist Mono_ (refs `T-12`, durées).
-- **Clair** : papier chaud `#F4F1EA`, surfaces blanches, encre `#16151B`, accent outremer électrique `#3D2BFF`.
-- **Sombre** : encre profonde `#0D0D12`, surfaces `#16161D`, texte ivoire `#ECE8DF`, accent lavande lumineuse `#9D8CFF`.
-- **Signature** : le prisme — dégradé conique (outremer → magenta → ambre → turquoise) réservé à 3 endroits : logo,
-  chrono en cours (anneau animé), feature terminée. Partout ailleurs, sobriété.
-- MoSCoW : Must vermillon, Should ambre, Could turquoise, Won't ardoise. Refs en chips mono.
-- Layout : sidebar étroite (projet, navigation, raccourcis), grand titre serif, contenu dense façon Linear.
-  Mobile : barre d'onglets en bas. Micro-animations 120–180 ms.
+- **Coque** : barre latérale encre (`--bg-sidebar`, sombre dans les deux thèmes), pages posées sur du papier chaud
+  (`--bg` `#F5F3EE` / `#111015` en sombre), cartes blanches arrondies (18 px, bordure 1,5 px).
+- **Typo** : _Plus Jakarta Sans_ (corps 15 px, titres de page 32 px extra-gras), _Geist Mono_ pour les heures.
+- **Boutons** : principal = encre (`--primary`), secondaires bordés ; chaque bouton de création affiche sa touche.
+- **Couleurs** : une couleur par Feat (`--feature-0…7`), accent bleu `#3550FF` pour liens, focus et sélection.
+  Priorités : Indispensable rouge, Si possible ambre, Bonus turquoise, Icebox gris.
+- **Signature** : le prisme, réservé au logo, au chrono en cours et aux Feats terminées.
+- **Navigation** : 6 entrées dans la barre latérale + les Feats en cours ; dans une page, de **grands onglets**
+  sous le titre (`PageTabs`), jamais de petites pilules dans un coin.
 
 ## 4. Arbitrages
 
@@ -133,13 +134,13 @@ Un mot = un concept, partout (menus, titres, boutons, états vides, Cmd+K). Tuto
 | Terme                                           | Sens                                                                                                                 | À ne plus écrire                      |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Projet                                          | Objectif, public, date limite, hors périmètre, « c'est fini quand », équipe                                          | Cadrage (seul)                        |
-| Feature                                         | Un morceau du produit (ex. « Paiement Stripe ») ; sa page, son fil, son dossier ; s'archive quand elle est finie     | Epic, module                          |
+| Feat                                            | Un morceau du produit (ex. « Paiement Stripe ») ; sa page, son fil, son dossier ; s'archive quand elle est finie     | Feature, epic, module                 |
 | Icebox                                          | Idées de features, notées pour plus tard : tâches au statut Icebox et features en priorité Icebox                    | Cold idea, backlog                    |
 | Priorité (d'une feature)                        | Choisie : **Indispensable** (Must), **Si possible** (Should), **Bonus** (Could), **Icebox** (Won't)                  | Must/Should/Could/Won't seuls         |
-| Tâche                                           | Action concrète, assignée, échéance facultative ; peut être un Bug                                                   | Ticket, issue                         |
+| Task · Fix                                      | Task = action concrète ; Fix = quelque chose à corriger (`tasks.is_fix`) ; valideur facultatif                       | Tâche, bug, ticket                    |
 | Urgence (d'une tâche)                           | Calculée (matrice) : **Faire maintenant**, **Planifier**, **Si j'ai le temps**, **Plus tard** ; déplaçable à la main | Priorité (pour une tâche), Eisenhower |
 | Important / Urgent                              | Important = feature Indispensable ou Si possible (ou forcé) ; urgent = échéance ≤ 3 j                                |                                       |
-| Statut                                          | Icebox · À faire · En cours · À valider · Fait                                                                       | Todo, done                            |
+| Statut                                          | Icebox · À faire · En cours · À valider · Fait ; cocher = Fait, ou À valider s'il y a un valideur                    | Todo, done                            |
 | Chrono                                          | Mesure le temps sur une tâche ; **Démarrer** / **Arrêter** ; crée un bloc de temps                                   | Timer, pause                          |
 | Bloc de temps                                   | Temps passé sur une tâche, visible dans le Planning                                                                  | Time entry, travail                   |
 | Dispo                                           | Créneau où tu peux travailler (« Dispo » ou « Peut-être »)                                                           | Disponibilité (long)                  |
@@ -154,10 +155,11 @@ Un mot = un concept, partout (menus, titres, boutons, états vides, Cmd+K). Tuto
 | Cité dans                                       | Éléments qui mentionnent celui-ci avec `#`                                                                           | Mentionné dans, backlinks             |
 | Mémoire IA                                      | Ce que l'IA sait du projet                                                                                           |                                       |
 
-Navigation (6 entrées, touches 1–6) : **Accueil** (reprendre le fil) · **Gestion** (Liste par feature · Tableau ·
-Matrice ; Icebox, Idées, Archivées) · **Discussion** · **Planning** · **Drive** · **Ressources**. Les features en cours sont
-listées sous la navigation. Menu du projet (en haut à gauche) : Le projet, Journal des décisions, Mémoire IA, Faire le point.
-Créer : bouton « Nouveau » ou une lettre (C tâche, B bug, F feature, I idée, D décision).
+Navigation (6 entrées, touches 1–6) : **Accueil** (reprendre le fil) · **Gestion** (onglets Liste · Tableau · Matrice ·
+Idées · Archives) · **Discussion** · **Planning** · **Drive** · **Ressources**. Les Feats en cours sont listées sous la
+navigation. Menu du projet (en haut à gauche) : Le projet (objectif, équipe, Décisions), Faire le point, Mémoire IA.
+Créer : **là où la chose vit**, avec un bouton nommé qui affiche sa touche (T Task, X Fix, F Feat, I Idée) ; les
+décisions se gardent depuis un message (« Garder comme décision »). Pas de bouton « Nouveau » global.
 
 ## 6. Avancement
 
@@ -244,3 +246,20 @@ revue cachée dans Idées, pas de glisser-déposer sur l'accueil, features finie
 - **Planning** : au-dessus de chaque jour, les échéances (drapeau) et les tâches finies ce jour-là (avec qui).
 - **Faire le point** : `/review?mode=day` (fait aujourd'hui, bloqué, choisir demain) ou semaine ; bouton sur l'Accueil.
 - Anciennes routes `/features` et `/ideas` → redirigent vers Gestion.
+
+### Itération 4 — vraie refonte visuelle
+
+Retour : « même interface, même design system, même parcours ». Corrigé en partant d'une maquette validée.
+
+- Nouveau design system (voir §3) appliqué à toutes les pages ; anciennes pilules d'onglets remplacées par `PageTabs`.
+- Création contextuelle : plus de fenêtre « Nouveau » à onglets de types. Formulaires dédiés (`TaskForm`, `FeatForm`,
+  `IdeaForm`) faits de questions (« Dans quelle Feat ? », « Qui s'en occupe ? », « Pour quand ? », « Qui valide ? »).
+  Le panneau d'une Task reprend les mêmes champs, enregistrés au fil de l'eau.
+- Vocabulaire : **Feat**, **Task**, **Fix** (un Fix se corrige, on ne « signale » pas un bug).
+- Valideur (`tasks.reviewer_id`) : cocher une Task qui a un valideur l'envoie « À valider » et le notifie (type
+  `review`) ; le valideur la coche à son tour → Fait. Ses validations en attente apparaissent sur son Accueil.
+- Gestion : onglets Idées et Archives visibles ; chaque Feat est une carte (avancement, responsable, « Ajouter une
+  Task à … », « Ajouter un Fix ») ; Icebox en carte pointillée.
+- Ressources : formulaires d'ajout en fenêtre avec champs étiquetés.
+- Mémoire IA : gardée, discrète (menu du projet, lien en bas de « Le projet »).
+- Raccourci « Aujourd'hui » du planning : A (T crée une Task partout).

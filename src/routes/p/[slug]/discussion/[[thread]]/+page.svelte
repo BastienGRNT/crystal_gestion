@@ -43,17 +43,17 @@
 
 <!-- Fills the page card: the thread scrolls, not the page. -->
 <div class="flex min-h-0 flex-1 max-md:h-dvh">
-	<aside class="hidden w-60 shrink-0 overflow-y-auto border-r border-line px-2 py-3 md:block">
-		<p class="mx-2.5 mt-1 mb-1.5 text-2xs font-semibold tracking-[0.04em] text-ink-3 uppercase">
-			Fils
-		</p>
+	<aside
+		class="hidden w-72 shrink-0 overflow-y-auto border-r-[1.5px] border-line bg-surface-2 px-3 py-6 md:block"
+	>
+		<h1 class="mb-4 px-3 text-2xl font-extrabold tracking-[-0.02em]">Discussion</h1>
 		<ThreadList team={links.team} features={links.features} oncreate={create} />
 	</aside>
 	<section
 		class="flex min-w-0 flex-1 flex-col pb-[calc(3.6rem+env(safe-area-inset-bottom))] md:pb-0"
 	>
 		<div
-			class="flex min-h-12 shrink-0 flex-col justify-center border-b border-line px-4 py-2 sm:px-6"
+			class="flex min-h-[72px] shrink-0 flex-col justify-center border-b-[1.5px] border-line px-5 py-3 sm:px-8"
 		>
 			<ThreadHeader
 				title={feature?.title ?? channel?.name ?? 'Général'}

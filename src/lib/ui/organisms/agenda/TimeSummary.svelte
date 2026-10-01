@@ -16,7 +16,10 @@
 		`${Math.max(4, Math.round((minutes / Math.max(total, 1)) * 100))}%`;
 </script>
 
-<section class="rounded-xl border border-line bg-surface p-4 shadow-card" aria-label="Temps passé">
+<section
+	class="rounded-[18px] border-[1.5px] border-line bg-surface p-4 shadow-card"
+	aria-label="Temps passé"
+>
 	<p class="text-2xs font-semibold tracking-[0.08em] text-ink-3 uppercase">
 		Temps passé · {period}
 	</p>

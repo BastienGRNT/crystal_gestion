@@ -7,7 +7,8 @@
 	import { HistoryView } from '$lib/connected/planning/history-view.svelte';
 	import { periodLabel } from '$lib/connected/planning/period-label';
 	import { hrefWith } from '$lib/connected/planning/url-state';
-	import LinkSegments from '$lib/ui/molecules/LinkSegments.svelte';
+	import { CalendarDays, ChartColumn } from '@lucide/svelte';
+	import PageTabs from '$lib/ui/molecules/PageTabs.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
@@ -24,14 +25,24 @@
 	$effect(() => void (agenda.compact = matchMedia('(max-width: 767px)').matches));
 </script>
 
-<PageHeader title="Planning" meta={tab === 'agenda' ? periodLabel(agenda.days) : historyTitle}>
-	{#snippet actions()}
-		<LinkSegments
+<PageHeader
+	title="Planning"
+	meta={tab === 'agenda'
+		? `Quand chacun est dispo, le temps passé, les échéances · ${periodLabel(agenda.days)}`
+		: historyTitle}
+>
+	{#snippet tabs()}
+		<PageTabs
 			label="Vues du planning"
 			value={tab}
 			tabs={[
-				{ value: 'agenda', label: 'Agenda', href: hrefWith({ tab: null }) },
-				{ value: 'history', label: 'Bilan des semaines', href: hrefWith({ tab: 'historique' }) }
+				{ value: 'agenda', label: 'Agenda', icon: CalendarDays, href: hrefWith({ tab: null }) },
+				{
+					value: 'history',
+					label: 'Bilan des semaines',
+					icon: ChartColumn,
+					href: hrefWith({ tab: 'historique' })
+				}
 			]}
 		/>
 	{/snippet}

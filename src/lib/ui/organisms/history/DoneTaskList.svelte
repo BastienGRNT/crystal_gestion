@@ -5,7 +5,7 @@
 	let { tasks, onopen }: { tasks: DoneTask[]; onopen: (ref: string) => void } = $props();
 </script>
 
-<section class="rounded-xl border border-line bg-surface p-4">
+<section class="rounded-[18px] border-[1.5px] border-line bg-surface p-4">
 	<h3 class="mb-2 text-xs font-medium tracking-wide text-ink-3 uppercase">
 		Terminé <span class="font-mono text-ink-2">{tasks.length}</span>
 	</h3>

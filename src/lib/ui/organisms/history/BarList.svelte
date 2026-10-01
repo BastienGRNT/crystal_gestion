@@ -5,7 +5,7 @@
 	const max = $derived(Math.max(1, ...rows.map((row) => row.minutes)));
 </script>
 
-<section class="rounded-xl border border-line bg-surface p-4">
+<section class="rounded-[18px] border-[1.5px] border-line bg-surface p-4">
 	<h3 class="mb-3 text-xs font-medium tracking-wide text-ink-3 uppercase">{title}</h3>
 	{#each rows as row (row.key)}
 		<div class="mb-2.5 last:mb-0" title="{row.label} : {row.value}">

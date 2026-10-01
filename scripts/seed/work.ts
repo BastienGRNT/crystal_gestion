@@ -74,6 +74,7 @@ export async function seedWork(s: Seed) {
 		stripe: await task(ana, 'Créer le compte Stripe et les clés de test', {
 			featureId: pay.id,
 			assigneeIds: [a],
+			reviewerId: b,
 			dueDate: dateKey(2)
 		}),
 		webhook: await task(ana, 'Webhook de confirmation de commande', {
@@ -132,7 +133,8 @@ export async function seedWork(s: Seed) {
 		['Export CSV des commandes', emails.id]
 	] as const)
 		await task(bastien, title, { featureId, status: 'icebox' });
-	await ana.command('tasks.move', { projectId, id: t.stripe.id, status: 'review' });
+	// Ana ticks it: it waits « À valider » for Bastien, its reviewer.
+	await ana.command('tasks.finish', { projectId, id: t.stripe.id });
 	await leo.command('tasks.move', { projectId, id: t.texts.id, status: 'in_progress' });
 	for (const [client, title, userId] of [
 		[bastien, 'Initialiser le dépôt', b],

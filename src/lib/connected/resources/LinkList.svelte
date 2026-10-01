@@ -28,7 +28,7 @@
 	/>
 </div>
 {#if links.length}
-	<ul class="mt-3 divide-y divide-line rounded-lg border border-line bg-surface">
+	<ul class="mt-3 divide-y divide-line rounded-[16px] border-[1.5px] border-line bg-surface">
 		{#each links as link (link.id)}<LinkRow {link} ontag={(next) => (tag = next)} />{/each}
 	</ul>
 {:else}

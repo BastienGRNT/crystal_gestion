@@ -11,7 +11,7 @@
 </script>
 
 <article
-	class="group flex animate-rise flex-col rounded-lg border border-line bg-surface p-4 transition hover:border-line-strong"
+	class="group flex animate-rise flex-col rounded-[16px] border-[1.5px] border-line bg-surface p-4 transition hover:border-line-strong"
 >
 	<CardHeader
 		title={account.title}

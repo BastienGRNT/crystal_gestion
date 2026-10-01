@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
 	import QuickCreate from '$lib/ui/organisms/QuickCreate.svelte';
-	import FeatureChip from './FeatureChip.svelte';
+	import FeatQuestion from './FeatQuestion.svelte';
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 	const { actions } = useProject();
@@ -15,7 +15,7 @@
 
 <QuickCreate
 	bind:open
-	label="Nouveau lien"
+	label="Ajouter un lien"
 	fields={[
 		{ key: 'title', label: 'Titre', placeholder: 'Titre — Maquettes Figma, Repo…' },
 		{ key: 'url', label: 'URL', type: 'url', mono: true, placeholder: 'https://…' },
@@ -23,5 +23,5 @@
 	]}
 	onsubmit={create}
 >
-	{#snippet extra()}<FeatureChip value={featureId} onchange={(id) => (featureId = id)} />{/snippet}
+	{#snippet extra()}<FeatQuestion value={featureId} onchange={(id) => (featureId = id)} />{/snippet}
 </QuickCreate>

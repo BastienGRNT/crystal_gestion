@@ -7,7 +7,7 @@
 	import GenericDetail from './peek/GenericDetail.svelte';
 	import { PEEK_DETAILS } from './peek/registry';
 
-	const { refs } = useProject();
+	const { refs, store } = useProject();
 	const element = $derived.by(() => {
 		const ref = page.url.searchParams.get('peek');
 		return ref ? refs.find(ref) : undefined;
@@ -26,7 +26,9 @@
 	<Drawer onclose={close}>
 		{#snippet header()}
 			<p class="flex items-center gap-2 text-ink-3">
-				<Icon size={15} /><span class="text-xs">{KIND_META[element.kind].label}</span>
+				<Icon size={16} /><span class="text-ui font-semibold"
+					>{store.tasks.get(element.id)?.isFix ? 'Fix' : KIND_META[element.kind].label}</span
+				>
 				<span class="font-mono text-xs text-ink-2">{element.ref}</span>
 			</p>
 		{/snippet}

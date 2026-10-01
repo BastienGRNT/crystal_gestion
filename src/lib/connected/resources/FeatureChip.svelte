@@ -9,7 +9,7 @@
 		placeholder?: string;
 	}
 
-	let { value, onchange, placeholder = 'Sans feature' }: Props = $props();
+	let { value, onchange, placeholder = 'Sans Feat' }: Props = $props();
 	const { store } = useProject();
 </script>
 

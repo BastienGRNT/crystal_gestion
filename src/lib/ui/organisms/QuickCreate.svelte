@@ -1,60 +1,70 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import Button from '../atoms/Button.svelte';
-	import AddRow from '../molecules/AddRow.svelte';
+	import { Plus } from '@lucide/svelte';
+	import FormField from '../molecules/form/FormField.svelte';
+	import TextField from '../molecules/form/TextField.svelte';
 	import type { QuickField } from '../types';
-	import QuickFields from './QuickFields.svelte';
+	import FormDialog from './FormDialog.svelte';
 
 	interface Props {
 		label: string;
+		/** The first field is the required name; the others are optional. */
 		fields: [QuickField, ...QuickField[]];
 		onsubmit: (values: Record<string, string>) => Promise<unknown>;
 		open?: boolean;
+		/** More questions under the fields (the feat it belongs to…). */
 		extra?: Snippet;
+		submitLabel?: string;
 	}
 
-	let { label, fields, onsubmit, open = $bindable(false), extra }: Props = $props();
+	let {
+		label,
+		fields,
+		onsubmit,
+		open = $bindable(false),
+		extra,
+		submitLabel = 'Ajouter'
+	}: Props = $props();
 	let values = $state<Record<string, string>>({});
-	let busy = $state(false);
 	const [head, ...rest] = $derived(fields);
 	const close = () => ((open = false), (values = {}));
 
-	async function submit(event: SubmitEvent) {
-		event.preventDefault();
+	async function submit() {
 		const title = values[head.key]?.trim();
-		if (!title || busy) return;
-		busy = true;
-		await onsubmit({ ...values, [head.key]: title });
-		busy = false;
+		if (!title) return;
+		const sent = { ...values, [head.key]: title };
 		close();
+		await onsubmit(sent);
 	}
 </script>
 
+<button
+	type="button"
+	onclick={() => (open = true)}
+	class="mb-5 flex h-14 w-full items-center gap-3 rounded-[16px] border-[1.5px] border-dashed border-line-strong px-5 text-[15px] font-bold text-ink-2 transition hover:border-ink-3 hover:bg-surface hover:text-ink"
+>
+	<Plus size={18} />{label}
+</button>
 {#if open}
-	<!-- Escape bubbles up from any input of the form: one listener closes it. -->
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<form
-		novalidate
+	<FormDialog
+		title={label}
+		{submitLabel}
+		disabled={!values[head.key]?.trim()}
 		onsubmit={submit}
-		onkeydown={(event) => event.key === 'Escape' && close()}
-		class="animate-rise rounded-lg border border-accent/50 bg-surface p-4 shadow-pop"
+		onclose={close}
+		width="max-w-[560px]"
 	>
-		<!-- svelte-ignore a11y_autofocus -->
-		<input
-			autofocus
-			aria-label={head.label}
-			placeholder={head.placeholder ?? head.label}
-			value={values[head.key] ?? ''}
-			oninput={(event) => (values[head.key] = event.currentTarget.value)}
-			class="w-full bg-transparent font-display text-3xl leading-tight outline-none placeholder:text-ink-3/70"
-		/>
-		<QuickFields fields={rest} {values} oninput={(key, value) => (values[key] = value)} />
-		<div class="mt-4 flex flex-wrap items-center gap-2">
-			{@render extra?.()}
-			<Button variant="ghost" size="sm" class="ml-auto" onclick={close}>Annuler</Button>
-			<Button variant="primary" size="sm" type="submit" loading={busy}>Créer</Button>
-		</div>
-	</form>
-{:else}
-	<AddRow {label} onclick={() => (open = true)} />
+		{#each [head, ...rest] as field, i (field.key)}
+			<FormField label={field.label} optional={i > 0}>
+				<TextField
+					main={i === 0}
+					type={field.type ?? 'text'}
+					mono={field.mono}
+					placeholder={field.placeholder?.replace(/^.*? — /, 'Ex. ') ?? ''}
+					bind:value={values[field.key]}
+				/>
+			</FormField>
+		{/each}
+		{@render extra?.()}
+	</FormDialog>
 {/if}

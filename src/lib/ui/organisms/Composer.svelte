@@ -30,7 +30,7 @@
 </script>
 
 <div
-	class="rounded-xl border border-line bg-surface shadow-sm transition focus-within:border-line-strong focus-within:shadow-pop"
+	class="rounded-[18px] border-[1.5px] border-line bg-surface shadow-sm transition focus-within:border-line-strong focus-within:shadow-pop"
 >
 	{#if replyingTo}<ReplyBanner {...replyingTo} oncancel={oncancelreply} />{/if}
 	<div class="px-3.5 pt-2.5">

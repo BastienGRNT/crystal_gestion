@@ -5,7 +5,7 @@
 	const max = $derived(Math.max(1, ...weeks.map((week) => week.minutes)));
 </script>
 
-<section class="rounded-xl border border-line bg-surface p-4">
+<section class="rounded-[18px] border-[1.5px] border-line bg-surface p-4">
 	<h3 class="mb-3 text-xs font-medium tracking-wide text-ink-3 uppercase">Par semaine</h3>
 	<div class="flex h-36 items-end gap-1.5">
 		{#each weeks as week, index (week.key)}

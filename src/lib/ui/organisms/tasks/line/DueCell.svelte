@@ -20,7 +20,7 @@
 	);
 </script>
 
-<div class="relative w-[96px] shrink-0">
+<div class="relative w-[96px] shrink-0 max-sm:w-auto">
 	<PickMenu title="Échéance" {options} {onpick} align="end">
 		{#snippet trigger(toggle)}
 			<button

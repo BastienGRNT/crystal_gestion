@@ -15,5 +15,11 @@
 
 <svelte:head><title>Drive · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Drive" meta="{count} fichier{count > 1 ? 's' : ''}" />
+<PageHeader
+	title="Drive"
+	meta="Les fichiers du projet : un dossier Général et un dossier par Feat · {count} fichier{count >
+	1
+		? 's'
+		: ''}"
+/>
 <Page width="max-w-[1240px]"><FilesTab {initial} /></Page>

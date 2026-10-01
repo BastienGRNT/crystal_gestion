@@ -21,7 +21,7 @@
 </script>
 
 {#if !dismissed && max > 0}
-	<section class="rounded-xl border border-line bg-surface px-4 py-3.5">
+	<section class="rounded-[18px] border-[1.5px] border-line bg-surface px-4 py-3.5">
 		<div class="mb-2.5 flex items-center justify-between gap-3">
 			<h2 class="text-sm font-semibold">Tu es dispo aujourd’hui ?</h2>
 			{#if !mine.length}<button

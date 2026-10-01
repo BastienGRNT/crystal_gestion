@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Layers } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
 	import { formatDay, timeAgo } from '$lib/client/format';
 	import { featureColors } from '$lib/client/views/feature-colors';
@@ -7,7 +6,7 @@
 	import { needsTriage, type Idea } from '$lib/modules/ideas/domain/idea';
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
 	import FeatureMark from '$lib/ui/atoms/FeatureMark.svelte';
-	import PropButton from '$lib/ui/molecules/PropButton.svelte';
+	import SelectField from '$lib/ui/molecules/form/SelectField.svelte';
 	import PropertyRow from '$lib/ui/molecules/PropertyRow.svelte';
 
 	let { idea }: { idea: Idea } = $props();
@@ -23,14 +22,16 @@
 <div class="flex flex-col">
 	<PropertyRow label="État"><span class="px-2.5 text-ui text-ink-2">{state}</span></PropertyRow>
 	<PropertyRow label="Feat">
-		<PropButton
-			ghost
-			label="Aucune"
-			icon={Layers}
+		<SelectField
+			label="Feat"
 			options={featureOptions(store.features.items, idea.featureId)}
 			onpick={(featureId) => actions.ideas.update(idea.id, { featureId })}
-			value={feature ? featureValue : undefined}
-		/>
+		>
+			{#snippet value()}
+				{#if feature}<FeatureMark title={feature.title} color={colorOf(feature.id)} />
+				{:else}<span class="text-ink-3">Aucune</span>{/if}
+			{/snippet}
+		</SelectField>
 	</PropertyRow>
 	<PropertyRow label="Notée">
 		<span

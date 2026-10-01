@@ -58,23 +58,24 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 - Suppressions : **toujours** `deleteWithUndo(message, retraitLocal, commande)` (`client/live/undoable.ts`) — retrait
   immédiat, toast « Annuler » 6 s, commande envoyée à l'expiration (ou au `pagehide`). Pas de `confirm()` ni de double clic :
   bouton `ui/atoms/DeleteButton`.
-- Typo (tout en Geist) : échelle `text-2xs` (11,5 px, plancher) · `xs` (12,5) · `ui` (13, boutons/lignes) · `sm` · `base`
-  (14 px, corps) · `lg` (15) · `xl` · `2xl`… Jamais de `text-[13px]`. Titres de section `text-sm font-semibold`.
-  Libellés : glossaire de `PLAN.md` §5.
-- Mise en page : `Page` pleine largeur (max 1480 px), padding intérieur généreux dans les composants (lignes ≥ 48 px).
+- Typo (Plus Jakarta Sans) : `text-2xs` (12 px, plancher) · `xs` (13) · `ui` (14) · `sm` (14,5) · `base` (15, corps) ·
+  `lg` · `xl` · `2xl` · `3xl` (32, titres de page, `font-extrabold`). Jamais de `text-[13px]` hors titres de cartes.
+  Vocabulaire : **Feat**, **Task**, **Fix**, Icebox, Idée (glossaire de `PLAN.md` §5).
+- Mise en page : `PageHeader` (titre 32 px, phrase d'explication en `meta`, boutons nommés en `actions`, grands onglets
+  `PageTabs` en `tabs`) puis `Page`. Cartes `rounded-[18px] border-[1.5px] border-line bg-surface`, lignes ≥ 52 px.
 - Tokens : `src/lib/ui/tokens/theme.css` (clair + `[data-theme='dark']`), mappés dans `src/app.css` (`bg-surface`, `text-ink-2`,
   `border-line`, `bg-accent-soft`, `text-must`…). Jamais de couleur en dur dans un composant. `font-display` = Geist semibold serré.
 - Le dégradé `prism` est réservé : logo, chrono en cours, 100 % d'avancement.
 - Textes : `RefTextArea` (saisie avec `#` et `@`) et `RichText` (rendu refs/mentions/liens). Mentions stockées `<@userId>`,
   affichées `@Nom` (`client/refs/mentions.ts`).
-- Coque : sidebar sur `bg`, chaque page dans une carte `bg-panel` (`#page` = conteneur qui défile). Page = `PageHeader`
-  (barre 56 px : titre, `meta`, actions à droite) puis `Page` (contenu). Onglets d'une page = `LinkSegments` dans la barre.
-- Créer : une seule fenêtre « Nouveau » `connected/create/CreateDialog` (`overlays.openCreate(kind, seed)`), touches C B F I D.
-  Le titre est lu par `client/views/quick-entry.ts` (`@Ana #feature demain`) ; toute ligne « + Ajouter » passe par
-  `quickTask()` (`client/views/quick-add.ts`). Ajout en série : `ui/molecules/AddLine`.
-- Propriétés éditables : **toujours** `ui/molecules/PropButton` (bouton → `PickMenu`), options dans `client/views/task-menus.ts`
-  (`featureOptions`, `peopleOptions`, `dueOptions`, `statusOptions`, `priorityOptions`). Pas de pastilles (`Pill`, `Badge`)
-  dans les listes : statut = `StatusIcon`, feature = `FeatureMark` (couleur `featureColors`), date en texte.
+- Coque : barre latérale encre (`bg-sidebar`, textes `text-side-ink*`), pages sur papier (`#page` = conteneur qui défile).
+  Jamais de petites pilules d'onglets dans un coin : `PageTabs`. `Segmented` seulement pour régler une vue (Semaine/Jour).
+- Créer : **là où la chose vit**, jamais via un bouton global. Boutons nommés avec leur touche (`HeaderButton shortcut`)
+  et lignes `AddLine` (« Ajouter une Task à … »). Formulaires : `connected/create/{TaskForm,FeatForm,IdeaForm}` via
+  `overlays.openCreate(kind, seed)`, touches T X F I. Le titre est lu par `client/views/quick-entry.ts` (`@Ana demain`).
+- Formulaires : `ui/organisms/FormDialog` + `ui/molecules/form/*` (`FormField` = une question, `ChoiceCards`,
+  `FeatChoice`, `PeopleChoice`, `WhenChoice`, `LineList`, `SelectField`, `TextField`). Le panneau d'un élément utilise
+  les mêmes champs. Dans les listes : statut = `StatusIcon`, Feat = `FeatureMark`, date en texte, pas de `Badge`.
 - Parler d'un élément : `connected/peek/ElementTalk` (messages qui citent l'élément, postés dans le fil de sa feature).
 - Navigation : `client/navigation.ts` (6 entrées, touches 1–6 ; `SUB_PAGES` = pages du menu projet, trouvées par Cmd+K).
   Features en cours listées dans la barre latérale (`client/views/sidebar-features.ts`). Infos clés de Cmd+K :

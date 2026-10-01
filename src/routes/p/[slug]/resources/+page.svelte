@@ -8,7 +8,7 @@
 	import { Search } from '@lucide/svelte';
 	import { overlays } from '$lib/client/overlays.svelte';
 	import HeaderButton from '$lib/ui/molecules/HeaderButton.svelte';
-	import LinkSegments from '$lib/ui/molecules/LinkSegments.svelte';
+	import PageTabs from '$lib/ui/molecules/PageTabs.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
@@ -19,9 +19,9 @@
 		links: () => store.links.items.length,
 		contacts: () => store.contacts.items.length
 	};
-	const tabs = $derived(
+	const resourceTabs = $derived(
 		RESOURCE_TABS.map((t) => ({
-			...{ value: t.value, label: 'short' in t ? t.short : t.label },
+			...{ value: t.value, label: t.label, icon: t.icon },
 			...{ href: `?tab=${t.value}`, count: counts[t.value]() }
 		}))
 	);
@@ -29,13 +29,16 @@
 
 <svelte:head><title>Ressources · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Ressources">
+<PageHeader
+	title="Ressources"
+	meta="Les comptes partagés (mots de passe), les liens utiles et les contacts du projet."
+>
 	{#snippet actions()}
-		<LinkSegments label="Type de ressource" value={tab} {tabs} />
 		<HeaderButton title="Chercher partout (⌘K)" onclick={() => overlays.openPalette()}
-			><Search size={14} />Chercher</HeaderButton
+			><Search size={16} />Chercher</HeaderButton
 		>
 	{/snippet}
+	{#snippet tabs()}<PageTabs label="Type de ressource" value={tab} tabs={resourceTabs} />{/snippet}
 </PageHeader>
 <Page width="max-w-[1100px]">
 	<div>

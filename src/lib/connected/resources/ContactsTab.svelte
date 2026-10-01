@@ -16,7 +16,7 @@
 {#if contacts.length || open}
 	<QuickCreate
 		bind:open
-		label="Nouveau contact"
+		label="Ajouter un contact"
 		fields={[
 			{ key: 'title', label: 'Nom', placeholder: 'Nom — Claire Martin' },
 			{ key: 'role', label: 'Rôle', placeholder: 'Rôle — cliente, comptable…' },

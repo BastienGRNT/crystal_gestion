@@ -17,7 +17,7 @@
 </script>
 
 <article
-	class="group relative animate-rise overflow-hidden rounded-lg border border-line bg-surface transition hover:border-line-strong"
+	class="group relative animate-rise overflow-hidden rounded-[16px] border-[1.5px] border-line bg-surface transition hover:border-line-strong"
 >
 	<button
 		type="button"
