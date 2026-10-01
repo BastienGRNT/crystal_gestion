@@ -1,8 +1,15 @@
 <script lang="ts">
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
+	import DayMarks from './DayMarks.svelte';
 	import type { AgendaDay, AgendaLane } from './types';
 
-	let { days, lanes }: { days: AgendaDay[]; lanes: AgendaLane[] } = $props();
+	interface Props {
+		days: AgendaDay[];
+		lanes: AgendaLane[];
+		onmark?: (ref: string) => void;
+	}
+
+	let { days, lanes, onmark }: Props = $props();
 </script>
 
 <div class="sticky top-0 z-30 flex border-b border-line bg-surface/95 backdrop-blur">
@@ -18,6 +25,7 @@
 				>
 					{day.date}
 				</p>
+				<DayMarks marks={day.marks} {onmark} />
 				{#if lanes.length > 1}
 					<div class="mt-1.5 flex justify-around">
 						{#each lanes as lane (lane.id)}

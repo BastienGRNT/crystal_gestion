@@ -14,7 +14,7 @@
 	import { agendaShortcuts } from './agenda-shortcuts';
 
 	let { view }: { view: AgendaView } = $props();
-	const { store, actions } = useProject();
+	const { store, actions, peek } = useProject();
 	const data = useAgendaData(() => view);
 	const summary = useTimeSummary(
 		() => view,
@@ -46,7 +46,8 @@
 <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
 	<div class="h-[calc(100dvh-16rem)] min-h-[420px] md:h-[calc(100dvh-21rem)]">
 		<AgendaGrid
-			days={agendaDays(view.days, data.now)}
+			days={agendaDays(view.days, data.now, data.marks)}
+			onmark={peek}
 			lanes={data.lanes}
 			items={data.items}
 			bands={data.bands}

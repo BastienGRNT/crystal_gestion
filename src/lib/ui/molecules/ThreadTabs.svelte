@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Hash } from '@lucide/svelte';
 	import type { ThreadLink } from '../discussion';
-	import PriorityDot from '../atoms/PriorityDot.svelte';
 
 	let { threads }: { threads: ThreadLink[] } = $props();
 </script>
@@ -18,7 +17,8 @@
 				? 'border-ink bg-ink font-medium text-bg'
 				: 'border-line bg-surface text-ink-2'}"
 		>
-			{#if thread.priority}<PriorityDot priority={thread.priority} />{:else}<Hash size={12} />{/if}
+			{#if thread.color}<span class="size-2 rounded-[3px]" style="background:{thread.color}"
+				></span>{:else}<Hash size={12} />{/if}
 			<span class="truncate">{thread.label}</span>
 		</a>
 	{/each}

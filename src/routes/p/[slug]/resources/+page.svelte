@@ -3,7 +3,6 @@
 	import { useProject } from '$lib/client/context';
 	import AccountsTab from '$lib/connected/resources/AccountsTab.svelte';
 	import ContactsTab from '$lib/connected/resources/ContactsTab.svelte';
-	import FilesTab from '$lib/connected/resources/FilesTab.svelte';
 	import LinksTab from '$lib/connected/resources/LinksTab.svelte';
 	import { parseTab, RESOURCE_TABS, type ResourceTab } from '$lib/connected/resources/tabs';
 	import { Search } from '@lucide/svelte';
@@ -18,8 +17,7 @@
 	const counts: Record<ResourceTab, () => number> = {
 		accounts: () => store.accounts.items.length,
 		links: () => store.links.items.length,
-		contacts: () => store.contacts.items.length,
-		files: () => store.files.items.length
+		contacts: () => store.contacts.items.length
 	};
 	const tabs = $derived(
 		RESOURCE_TABS.map((t) => ({
@@ -44,8 +42,7 @@
 		{#key tab}
 			{#if tab === 'accounts'}<AccountsTab />
 			{:else if tab === 'links'}<LinksTab />
-			{:else if tab === 'contacts'}<ContactsTab />
-			{:else}<FilesTab />{/if}
+			{:else}<ContactsTab />{/if}
 		{/key}
 	</div>
 </Page>

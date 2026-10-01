@@ -20,7 +20,7 @@
 		<InlineText
 			value={file.title}
 			onsave={(title) => actions.files.update(file.id, { title })}
-			class="font-display text-3xl leading-tight break-all"
+			class="text-xl leading-snug font-semibold tracking-[-0.01em] break-all"
 		/>
 		<span class="mt-2"
 			><DeleteButton onconfirm={() => (actions.files.remove(file.id), onclose())} /></span
@@ -33,5 +33,5 @@
 		><Download size={13} />Télécharger</a
 	>
 	<div class="mt-5 border-t border-line pt-3"><FileProperties {file} /></div>
-	<div class="mt-6 border-t border-line pt-5"><Backlinks id={file.id} /></div>
+	<Backlinks id={file.id} framed />
 {/if}

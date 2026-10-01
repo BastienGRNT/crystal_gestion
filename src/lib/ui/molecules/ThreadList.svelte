@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Hash } from '@lucide/svelte';
 	import type { ThreadLink } from '../discussion';
-	import PriorityDot from '../atoms/PriorityDot.svelte';
 	import InlineCreate from './InlineCreate.svelte';
 
 	interface Props {
@@ -21,11 +20,12 @@
 			? 'ml-4'
 			: ''} {thread.active ? 'bg-hover font-semibold text-ink' : 'text-ink hover:bg-hover'}"
 	>
-		{#if thread.priority}
-			<span class="flex w-3.5 justify-center"><PriorityDot priority={thread.priority} /></span>
+		{#if thread.color}
+			<span class="flex w-3.5 justify-center"
+				><span class="size-2.5 rounded-[3px]" style="background:{thread.color}"></span></span
+			>
 		{:else}<Hash size={14} class="text-ink-3" />{/if}
 		<span class="min-w-0 flex-1 truncate">{thread.label}</span>
-		{#if thread.ref}<span class="font-mono text-2xs text-ink-3">{thread.ref}</span>{/if}
 	</a>
 {/snippet}
 

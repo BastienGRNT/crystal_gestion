@@ -10,7 +10,9 @@
 	{#if view.pending}
 		<span class="text-xs text-ink-3">envoi…</span>
 	{:else}
-		<span class="font-mono text-2xs text-ink-3/70">{view.ref}</span>
+		<span class="font-mono text-2xs text-ink-3/70 opacity-0 transition group-hover:opacity-100"
+			>{view.ref}</span
+		>
 	{/if}
 	{#if view.edited}<span class="text-xs text-ink-3 italic">modifié</span>{/if}
 </header>

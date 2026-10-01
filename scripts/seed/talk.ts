@@ -76,14 +76,30 @@ export async function seedTalk(s: Seed, { features: f, tasks: t }: Work, files: 
 		changes: { priority: 'wont' }
 	});
 
-	const idea = (client: DemoClient, title: string, featureId: string | null = null) =>
-		client.command<Created>('ideas.create', { projectId, title, note: '', featureId });
-	await idea(leo, 'Codes promo pour les abonnés');
-	await idea(bastien, 'Mode sombre pour la boutique', f.shop.id);
-	const csv = await idea(ana, 'Export CSV des commandes');
-	await ana.command('ideas.keep', { projectId, id: csv.id });
-	const referral = await idea(leo, 'Programme de parrainage');
-	await leo.command('ideas.archive', { projectId, id: referral.id, archived: true });
+	// Ideas outside the product: people to contact, leads to follow.
+	const idea = (client: DemoClient, title: string, note = '') =>
+		client.command<Created>('ideas.create', { projectId, title, note, featureId: null });
+	await idea(bastien, 'Contacter Intel pour présenter l’app', 'Via le contact de Léo au salon.');
+	await idea(leo, 'Demander un témoignage à 3 illustratrices');
+	const ulule = await idea(ana, 'Écrire à Ulule pour un partenariat');
+	await ana.command('ideas.keep', { projectId, id: ulule.id });
+	const radio = await idea(leo, 'Passer dans un podcast design');
+	await leo.command('ideas.archive', { projectId, id: radio.id, archived: true });
+
+	// Talking about a task from its panel: the message cites it and lands in the feature thread.
+	await post(ana, `#${t.font.ref} Je verrais une serif pour les titres, sans pour le reste ?`, {
+		featureId: f.shop.id
+	});
+	await post(bastien, `#${t.font.ref} Ok, je teste Fraunces + Inter ce soir.`, {
+		featureId: f.shop.id
+	});
+	const marketing = await bastien.command<Created>('channels.create', {
+		projectId,
+		name: 'Marketing'
+	});
+	await post(leo, 'On prépare un post Instagram pour le lancement ?', {
+		channelId: marketing.id
+	});
 
 	for (const content of [
 		'Ana gère tout ce qui touche au paiement ; Léo aux textes et à l’onboarding.',

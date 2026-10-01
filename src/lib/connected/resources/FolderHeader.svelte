@@ -33,35 +33,39 @@
 
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3 md:items-end">
 	<div class="min-w-0 flex-1">
-		<nav
-			aria-label="Chemin du dossier"
-			class="flex flex-wrap items-center gap-1 text-xs text-ink-3"
-		>
-			{#if root.ref}
-				<a
-					href="/p/{store.project.slug}/features/{root.ref}"
-					class="font-mono transition hover:text-accent">{root.ref}</a
-				>
-				<span>·</span>
-			{/if}
-			<button type="button" onclick={() => onopen(null)} class="transition hover:text-accent"
-				>{root.label}</button
+		{#if path.length}
+			<nav
+				aria-label="Chemin du dossier"
+				class="flex flex-wrap items-center gap-1 text-xs text-ink-3"
 			>
-			{#each path.slice(0, -1) as parent (parent.id)}
-				<ChevronRight size={12} />
-				<button type="button" onclick={() => onopen(parent.id)} class="transition hover:text-accent"
-					>{parent.name}</button
+				<button type="button" onclick={() => onopen(null)} class="transition hover:text-accent"
+					>{root.label}</button
 				>
-			{/each}
-		</nav>
+				{#each path.slice(0, -1) as parent (parent.id)}
+					<ChevronRight size={12} />
+					<button
+						type="button"
+						onclick={() => onopen(parent.id)}
+						class="transition hover:text-accent">{parent.name}</button
+					>
+				{/each}
+			</nav>
+		{:else if root.ref}
+			<a
+				href="/p/{store.project.slug}/features/{root.ref}"
+				class="text-xs text-ink-3 transition hover:text-accent">Voir la feature →</a
+			>
+		{/if}
 		{#if folder}
 			<InlineText
 				value={folder.name}
 				onsave={(name) => actions.folders.rename(folder.id, name)}
-				class="truncate font-display text-3xl leading-tight"
+				class="truncate text-xl font-semibold tracking-[-0.01em]"
 			/>
 		{:else}
-			<h2 class="hidden truncate font-display text-3xl leading-tight md:block">{root.label}</h2>
+			<h2 class="hidden truncate text-xl font-semibold tracking-[-0.01em] md:block">
+				{root.label}
+			</h2>
 		{/if}
 	</div>
 	<div class="flex items-center gap-2">

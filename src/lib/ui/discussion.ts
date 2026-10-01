@@ -1,5 +1,4 @@
 import type { Component } from 'svelte';
-import type { Moscow } from '$lib/modules/features/domain/feature';
 import type { RefView } from './types';
 
 export type ConvertKind = 'decision' | 'fix' | 'task' | 'idea';
@@ -35,7 +34,8 @@ export interface ThreadLink {
 	label: string;
 	href: string;
 	ref?: string;
-	priority?: Moscow;
+	/** Feature color square; channels show a #. */
+	color?: string;
 	/** A channel under Général, shown indented below it. */
 	channel?: boolean;
 	active: boolean;

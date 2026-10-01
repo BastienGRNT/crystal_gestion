@@ -45,7 +45,7 @@
 	<div class="mt-6 border-t border-line pt-5">
 		<ElementTalk element={task} featureId={task.featureId} />
 	</div>
-	<div class="mt-6 border-t border-line pt-5"><Backlinks id={task.id} except="message" /></div>
+	<Backlinks id={task.id} except="message" framed />
 	<div class="mt-6 flex justify-end">
 		<Button variant="ghost" size="sm" onclick={() => (actions.tasks.remove(task.id), onclose())}
 			><Trash2 size={13} /> Supprimer</Button

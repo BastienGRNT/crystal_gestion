@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { useProject } from '$lib/client/context';
 	import { sameLocation } from '$lib/modules/files/domain/folder';
 	import DropZone from '$lib/ui/organisms/DropZone.svelte';
@@ -8,9 +9,11 @@
 	import { folderFeatureId, folders, GENERAL_FOLDER } from './options';
 	import { UploadQueue } from './uploads.svelte';
 
+	/** `initial`: the folder to open first (a feature id), e.g. from a feature page. */
+	let { initial = GENERAL_FOLDER }: { initial?: string } = $props();
 	const { store, actions } = useProject();
 	const queue = new UploadQueue(actions.files.upload);
-	let selected = $state(GENERAL_FOLDER);
+	let selected = $state(untrack(() => initial));
 	let openId = $state<string | null>(null);
 	const list = $derived(folders(store.features.items, store.files.items));
 	// A deleted feature takes its folder with it: fall back to "Général" instead of an empty view.

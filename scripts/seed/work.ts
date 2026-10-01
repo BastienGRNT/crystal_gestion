@@ -117,16 +117,37 @@ export async function seedWork(s: Seed) {
 			urgent: true
 		})
 	};
+	const bug = (client: DemoClient, title: string, extra: object) =>
+		task(client, title, { isFix: true, ...extra });
+	await bug(ana, 'Le panier se vide quand on rafraîchit la page', {
+		featureId: shop.id,
+		assigneeIds: [a],
+		dueDate: dateKey(1)
+	});
+	await bug(leo, 'Le lien « mot de passe oublié » renvoie une 404', { assigneeIds: [l] });
+	// Icebox: product ideas, noted for later.
+	for (const [title, featureId] of [
+		['Mode sombre pour la boutique', shop.id],
+		['Codes promo pour les abonnés', null],
+		['Export CSV des commandes', emails.id]
+	] as const)
+		await task(bastien, title, { featureId, status: 'icebox' });
 	await ana.command('tasks.move', { projectId, id: t.stripe.id, status: 'review' });
 	await leo.command('tasks.move', { projectId, id: t.texts.id, status: 'in_progress' });
 	for (const [client, title, userId] of [
 		[bastien, 'Initialiser le dépôt', b],
-		[ana, 'Choisir l’hébergeur', a],
-		[leo, 'Logo provisoire', l]
+		[ana, 'Choisir l’hébergeur', a]
 	] as const) {
 		const done = await task(client, title, { assigneeIds: [userId] });
 		await client.command('tasks.finish', { projectId, id: done.id });
 	}
+	// A finished feature, put away: still readable, out of every list.
+	const brand = await feature(leo, 'Logo et charte', 'should', 'Identité visuelle de la V1.', l);
+	for (const title of ['Logo provisoire en SVG', 'Palette et typographies'] as const) {
+		const done = await task(leo, title, { featureId: brand.id, assigneeIds: [l] });
+		await leo.command('tasks.finish', { projectId, id: done.id });
+	}
+	await leo.command('features.archive', { projectId, id: brand.id, archived: true });
 	return { features: { shop, pay, onboarding, emails, insta }, tasks: t };
 }
 

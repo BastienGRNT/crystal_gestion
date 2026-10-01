@@ -1,8 +1,9 @@
 import type { Channel } from '$lib/modules/discussion/domain/channel';
-import { byPriority, type Feature } from '$lib/modules/features/domain/feature';
+import { byPriority, isArchived, type Feature } from '$lib/modules/features/domain/feature';
+import { featureColors } from '$lib/client/views/feature-colors';
 import type { ThreadLink } from '$lib/ui/discussion';
 
-/** Général and its channels, then one thread per feature, most important first. */
+/** Général and its channels, then one thread per feature in progress, most important first. */
 export function threadLinks(
 	features: Feature[],
 	channels: Channel[],
@@ -20,11 +21,13 @@ export function threadLinks(
 			active: channel.id === active
 		}))
 	];
-	const byFeature: ThreadLink[] = [...features].sort(byPriority).map((feature) => ({
+	const colorOf = featureColors(features);
+	const open = features.filter((f) => !isArchived(f) || f.ref === active);
+	const byFeature: ThreadLink[] = open.sort(byPriority).map((feature) => ({
 		key: feature.id,
 		label: feature.title,
 		ref: feature.ref,
-		priority: feature.priority,
+		color: colorOf(feature.id),
 		href: `${base}/${feature.ref}`,
 		active: feature.ref === active
 	}));

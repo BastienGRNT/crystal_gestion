@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { SendHorizontal } from '@lucide/svelte';
-	import Button from '../atoms/Button.svelte';
-	import Kbd from '../atoms/Kbd.svelte';
 	import QuestionToggle from './QuestionToggle.svelte';
 
 	interface Props {
@@ -12,15 +10,19 @@
 		onsubmit: () => void;
 	}
 
+	/** Only what is useful now: « attendre sa réponse » shows up once someone is mentioned. */
 	let { question, canAsk, canSend, onquestion, onsubmit }: Props = $props();
 </script>
 
-<div class="flex items-center gap-2 px-2 pt-1 pb-2">
-	<QuestionToggle pressed={question} disabled={!canAsk} onchange={onquestion} />
-	<span class="hidden items-center gap-1 text-xs text-ink-3 lg:inline-flex">
-		<Kbd>#</Kbd> lier <Kbd>@</Kbd> mentionner <Kbd>⇧ ⏎</Kbd> nouvelle ligne
-	</span>
-	<Button variant="primary" size="sm" class="ml-auto" disabled={!canSend} onclick={onsubmit}>
-		<SendHorizontal size={13} /> Envoyer
-	</Button>
+<div class="flex items-center gap-2 px-2 pb-2">
+	{#if canAsk}<QuestionToggle pressed={question} disabled={false} onchange={onquestion} />{/if}
+	<button
+		type="button"
+		disabled={!canSend}
+		onclick={onsubmit}
+		aria-label="Envoyer (Entrée)"
+		title="Envoyer (Entrée)"
+		class="ml-auto flex size-8 items-center justify-center rounded-lg bg-accent text-accent-ink transition hover:brightness-110 disabled:opacity-35"
+		><SendHorizontal size={15} /></button
+	>
 </div>

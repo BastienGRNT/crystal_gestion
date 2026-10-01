@@ -1,20 +1,19 @@
 <script lang="ts">
 	import { ArrowUpRight } from '@lucide/svelte';
-	import type { Moscow } from '$lib/modules/features/domain/feature';
 	import DeleteButton from '../atoms/DeleteButton.svelte';
 	import InlineText from '../molecules/InlineText.svelte';
 
 	interface Props {
 		title: string;
 		/** Feature threads link back to their feature. */
-		feature?: { ref: string; priority: Moscow; href: string };
+		feature?: { ref: string; href: string };
 		/** Channels can be renamed and deleted from their header. */
 		channel?: { onrename: (name: string) => void; ondelete: () => void };
 	}
 
 	let { title, feature, channel }: Props = $props();
 	const scope = $derived(
-		feature ? `feature ${feature.ref}` : channel ? 'canal de Général' : 'toute l’équipe'
+		feature ? 'fil de la feature' : channel ? 'canal de Général' : 'toute l’équipe'
 	);
 </script>
 
@@ -30,7 +29,7 @@
 		<a
 			href={feature.href}
 			class="inline-flex h-6 items-center gap-1.5 rounded-md border border-line px-2 text-xs text-ink-2 hover:bg-hover hover:no-underline"
-			><span class="font-mono">{feature.ref}</span>Voir la feature <ArrowUpRight size={12} /></a
+			>Voir la feature <ArrowUpRight size={12} /></a
 		>
 	{:else if channel}
 		<div>

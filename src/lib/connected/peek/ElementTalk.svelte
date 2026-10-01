@@ -32,7 +32,11 @@
 					author: author ?? { name: 'Quelqu’un', color: 'var(--ink-3)' },
 					body: m.body.startsWith(prefix) ? m.body.slice(prefix.length) : m.body,
 					when: timeAgo(m.createdAt),
-					thread: store.features.get(m.featureId ?? '')?.title ?? 'Général',
+					// Named only when it is not the usual thread of this element.
+					thread:
+						m.featureId === featureId && !m.channelId
+							? ''
+							: (store.features.get(m.featureId ?? '')?.title ?? 'Général'),
 					href: refs.href(m),
 					pending: isDraft(m.id)
 				};

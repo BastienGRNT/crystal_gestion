@@ -24,7 +24,7 @@
 		<InlineText
 			value={item.title}
 			onsave={ops.rename}
-			class="font-display text-3xl leading-tight"
+			class="text-xl leading-snug font-semibold tracking-[-0.01em]"
 		/>
 		<span class="mt-2"><DeleteButton onconfirm={() => (ops.remove(), onclose())} /></span>
 	</div>
@@ -42,5 +42,5 @@
 			</PropertyRow>
 		</div>
 	{/if}
-	<div class="mt-6 border-t border-line pt-5"><Backlinks id={item.id} /></div>
+	<Backlinks id={item.id} framed />
 {/if}

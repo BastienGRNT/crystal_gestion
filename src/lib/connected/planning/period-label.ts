@@ -1,5 +1,5 @@
 import { formatDay } from '$lib/client/format';
-import type { AgendaDay } from '$lib/ui/organisms/agenda/types';
+import type { AgendaDay, DayMark } from '$lib/ui/organisms/agenda/types';
 import { dayKey, sameDay } from '$lib/modules/planning/domain/calendar';
 
 const short = { day: 'numeric', month: 'short' } as const;
@@ -10,10 +10,11 @@ export function periodLabel(days: Date[]) {
 	return `${formatDay(days[0], short)} – ${formatDay(days.at(-1)!, short)}`;
 }
 
-export const agendaDays = (days: Date[], today: Date): AgendaDay[] =>
-	days.map((day) => ({
+export const agendaDays = (days: Date[], today: Date, marks: DayMark[][]): AgendaDay[] =>
+	days.map((day, index) => ({
 		key: dayKey(day),
 		weekday: formatDay(day, { weekday: 'short' }),
 		date: String(day.getDate()),
-		today: sameDay(day, today)
+		today: sameDay(day, today),
+		marks: marks[index] ?? []
 	}));

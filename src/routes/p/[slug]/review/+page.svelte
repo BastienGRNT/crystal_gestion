@@ -1,24 +1,41 @@
 <script lang="ts">
-	import { ArrowRight, X } from '@lucide/svelte';
+	import { X } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { useProject } from '$lib/client/context';
+	import { toasts } from '$lib/client/toasts.svelte';
 	import { needsTriage } from '$lib/modules/ideas/domain/idea';
+	import DoneToday from '$lib/connected/review/DoneToday.svelte';
 	import FeatureProgress from '$lib/connected/review/FeatureProgress.svelte';
 	import IdeaTriage from '$lib/connected/review/IdeaTriage.svelte';
 	import OpenQuestions from '$lib/connected/review/OpenQuestions.svelte';
+	import PlanTomorrow from '$lib/connected/review/PlanTomorrow.svelte';
+	import ReviewFlow from '$lib/connected/review/ReviewFlow.svelte';
 	import StuckTasks from '$lib/connected/review/StuckTasks.svelte';
 	import HeaderButton from '$lib/ui/molecules/HeaderButton.svelte';
-	import ReviewStepper from '$lib/ui/organisms/review/ReviewStepper.svelte';
+	import LinkSegments from '$lib/ui/molecules/LinkSegments.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
 	const { store } = useProject();
-	const ideasPage = $derived(`/p/${store.project.slug}/ideas`);
-	let step = $state(0);
+	const home = $derived(`/p/${store.project.slug}`);
+	const daily = $derived(page.url.searchParams.get('mode') === 'day');
 	let stuck = $state(0);
+	let myStuck = $state(0);
 	const questions = $derived(store.questions.items.filter((q) => !q.resolvedAt).length);
 	const ideas = $derived(store.ideas.items.filter(needsTriage).length);
-	const steps = $derived([
+	const finish = (message: string) => (toasts.show(message, 'success'), goto(home));
+	const dailySteps = $derived([
+		{ label: 'Aujourd’hui', hint: 'Ce que tu as fait', title: 'Ta journée', clear: false },
+		{
+			label: 'Bloqué',
+			hint: 'En retard, pas bougé',
+			title: 'Qu’est-ce qui coince ?',
+			clear: myStuck === 0
+		},
+		{ label: 'Demain', hint: 'Choisir 1 à 3 tâches', title: 'Demain, tu fais quoi ?', clear: false }
+	]);
+	const weeklySteps = $derived([
 		{
 			label: 'Avancement',
 			hint: 'Où en sont les features',
@@ -44,43 +61,47 @@
 			clear: ideas === 0
 		}
 	]);
-	const last = $derived(step === steps.length - 1);
-	const next = () => (last ? goto(ideasPage) : (step += 1));
 </script>
 
-<svelte:head><title>Revue · {store.project.name}</title></svelte:head>
+<svelte:head><title>Faire le point · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Revue de la semaine" meta="Étape {step + 1} sur 4 · ≈ 10 minutes">
+<PageHeader title="Faire le point" meta={daily ? '≈ 2 minutes' : '≈ 10 minutes'}>
 	{#snippet actions()}
-		<HeaderButton href={ideasPage}><X size={14} />Quitter</HeaderButton>
+		<LinkSegments
+			label="Quel point"
+			value={daily ? 'day' : 'week'}
+			tabs={[
+				{ value: 'day', label: 'Du jour', href: '?mode=day' },
+				{ value: 'week', label: 'De la semaine', href: '?mode=week' }
+			]}
+		/>
+		<HeaderButton href={home}><X size={14} />Quitter</HeaderButton>
 	{/snippet}
 </PageHeader>
 <Page width="max-w-[1000px]">
-	<div class="grid items-start gap-7 md:grid-cols-[230px_minmax(0,1fr)]">
-		<ReviewStepper {steps} current={step} onpick={(i) => (step = i)} />
-		<div class="flex min-w-0 flex-col gap-4">
-			<h2 class="text-xl font-semibold tracking-[-0.01em]">{steps[step].title}</h2>
-			<!-- Every step stays mounted so « Bloqué » can report its count from the start. -->
-			<div class:hidden={step !== 0}><FeatureProgress /></div>
-			<div class:hidden={step !== 1}><StuckTasks bind:count={stuck} /></div>
-			<div class:hidden={step !== 2}><OpenQuestions /></div>
-			<div class:hidden={step !== 3}><IdeaTriage /></div>
-			<div class="mt-2 flex justify-between">
-				{#if step > 0}
-					<button
-						type="button"
-						onclick={() => (step -= 1)}
-						class="h-9 rounded-lg border border-line px-3.5 text-sm font-medium hover:bg-hover"
-						>Précédent</button
-					>
-				{:else}<span></span>{/if}
-				<button
-					type="button"
-					onclick={next}
-					class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-sm font-medium text-accent-ink"
-					>{last ? 'Terminer la revue' : 'Suivant'}<ArrowRight size={15} /></button
-				>
-			</div>
-		</div>
-	</div>
+	{#key daily}
+		{#if daily}
+			<ReviewFlow
+				steps={dailySteps}
+				panels={[doneToday, myBlocked, tomorrow]}
+				finishLabel="C’est noté, à demain"
+				onfinish={() => finish('Point du jour fait. Bonne soirée !')}
+			/>
+		{:else}
+			<ReviewFlow
+				steps={weeklySteps}
+				panels={[progress, blocked, open, triage]}
+				finishLabel="Terminer la revue"
+				onfinish={() => finish('Revue de la semaine terminée.')}
+			/>
+		{/if}
+	{/key}
 </Page>
+
+{#snippet doneToday()}<DoneToday />{/snippet}
+{#snippet myBlocked()}<StuckTasks mine bind:count={myStuck} />{/snippet}
+{#snippet tomorrow()}<PlanTomorrow />{/snippet}
+{#snippet progress()}<FeatureProgress />{/snippet}
+{#snippet blocked()}<StuckTasks bind:count={stuck} />{/snippet}
+{#snippet open()}<OpenQuestions />{/snippet}
+{#snippet triage()}<IdeaTriage />{/snippet}

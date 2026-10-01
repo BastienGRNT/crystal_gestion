@@ -9,12 +9,16 @@ export const featureOptions = (features: Feature[], none = 'Aucune feature') => 
 	...features.map((f) => ({ value: f.id, label: `${f.ref} · ${f.title}`, short: f.title }))
 ];
 
-/** Folders are derived, never stored: "Général" plus one per feature, always in sync. */
+/** Folders are derived, never stored: "Général" plus one per feature (archived ones last). */
 export function folders(features: Feature[], files: ProjectFile[]) {
 	const count = (featureId: string | null) => files.filter((f) => f.featureId === featureId).length;
+	const ordered = [...features].sort((a, b) => Number(!!a.archivedAt) - Number(!!b.archivedAt));
 	return [
 		{ id: GENERAL_FOLDER, label: 'Général', count: count(null) },
-		...features.map((f) => ({ id: f.id, label: f.title, ref: f.ref, count: count(f.id) }))
+		...ordered.map((f) => ({
+			...{ id: f.id, label: f.archivedAt ? `${f.title} (archivée)` : f.title },
+			...{ ref: f.ref, count: count(f.id) }
+		}))
 	];
 }
 

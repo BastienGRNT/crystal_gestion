@@ -21,7 +21,6 @@
 	const featureLink = $derived(
 		feature && {
 			ref: feature.ref,
-			priority: feature.priority,
 			href: `/p/${slug}/features/${feature.ref}`
 		}
 	);

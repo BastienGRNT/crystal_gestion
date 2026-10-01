@@ -1,58 +1,69 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { Trash2 } from '@lucide/svelte';
+	import { Flag, UserRound } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
-	import type { Feature } from '$lib/modules/features/domain/feature';
+	import { featureColors } from '$lib/client/views/feature-colors';
+	import { peopleOptions, priorityOptions } from '$lib/client/views/task-menus';
+	import { MOSCOW_LABELS, type Feature } from '$lib/modules/features/domain/feature';
 	import { progressOf } from '$lib/modules/tasks/domain/progress';
-	import ProgressBar from '$lib/ui/atoms/ProgressBar.svelte';
-	import AssigneePicker from '$lib/ui/molecules/AssigneePicker.svelte';
-	import Button from '$lib/ui/atoms/Button.svelte';
+	import Dot from '$lib/ui/atoms/Dot.svelte';
+	import ProgressRing from '$lib/ui/atoms/ProgressRing.svelte';
+	import AvatarStack from '$lib/ui/molecules/AvatarStack.svelte';
+	import InlineRichText from '$lib/ui/molecules/InlineRichText.svelte';
 	import InlineText from '$lib/ui/molecules/InlineText.svelte';
-	import PriorityMenu from '$lib/ui/molecules/PriorityMenu.svelte';
+	import PropButton from '$lib/ui/molecules/PropButton.svelte';
+	import { PRIORITY_COLORS } from '$lib/ui/tones';
 
 	let { feature }: { feature: Feature } = $props();
-	const { store, actions } = useProject();
+	const { store, actions, refs, me } = useProject();
+	const color = $derived(featureColors(store.features.items)(feature.id));
 	const progress = $derived(
 		progressOf(store.tasks.items.filter((task) => task.featureId === feature.id))
 	);
-
-	function remove() {
-		actions.features.remove(feature.id);
-		goto(`/p/${store.project.slug}/features`);
-	}
+	const owner = $derived(store.members.get(feature.ownerId ?? ''));
+	const update = (changes: Partial<Feature>) => actions.features.update(feature.id, changes);
 </script>
 
 <header class="mb-8">
-	<div class="mb-3 flex items-center gap-3 text-sm text-ink-3">
-		<span class="font-mono text-xs">{feature.ref}</span>
-		<PriorityMenu
-			priority={feature.priority}
-			onchange={(priority) => actions.features.update(feature.id, { priority })}
+	<div class="flex items-center gap-3">
+		<span class="size-4 shrink-0 rounded-[5px]" style="background:{color}"></span>
+		<InlineText
+			value={feature.title}
+			onsave={(title) => update({ title })}
+			class="text-2xl font-semibold tracking-[-0.02em]"
 		/>
-		<span class="ml-auto"
-			><Button variant="ghost" size="sm" onclick={remove}><Trash2 size={13} /> Supprimer</Button
-			></span
-		>
 	</div>
-	<InlineText
-		value={feature.title}
-		onsave={(title) => actions.features.update(feature.id, { title })}
-		class="font-display text-2xl"
-	/>
-	<div class="mt-5 flex flex-wrap items-center gap-x-8 gap-y-3">
-		<span class="flex items-center gap-2 text-sm text-ink-3"
-			>Responsable
-			<AssigneePicker
-				people={store.members.items}
-				selected={feature.ownerId ? [feature.ownerId] : []}
-				onchange={(ids) => actions.features.update(feature.id, { ownerId: ids.at(-1) ?? null })}
-			/>
-		</span>
-		<span class="flex min-w-60 flex-1 items-center gap-3 text-sm text-ink-3">
-			Avancement <span class="max-w-72 flex-1"
-				><ProgressBar ratio={progress.ratio} label="Avancement" /></span
-			>
-			<span class="font-mono text-xs">{progress.done}/{progress.total}</span>
+	<div class="mt-2 max-w-[72ch] text-base text-ink-2">
+		<InlineRichText
+			value={feature.description}
+			resolve={refs.resolve}
+			suggest={refs.suggest}
+			placeholder="À quoi sert cette feature ? (une phrase)"
+			onsave={(description) => update({ description })}
+		/>
+	</div>
+	<div class="mt-4 flex flex-wrap items-center gap-2">
+		<PropButton
+			label="Priorité"
+			icon={Flag}
+			options={priorityOptions(feature.priority)}
+			onpick={(priority) => update({ priority })}
+		>
+			{#snippet value()}<Dot color={PRIORITY_COLORS[feature.priority]} size={8} />{MOSCOW_LABELS[
+					feature.priority
+				]}{/snippet}
+		</PropButton>
+		<PropButton
+			label="Responsable"
+			icon={UserRound}
+			options={peopleOptions(store.members.items, me.id, feature.ownerId ? [feature.ownerId] : [])}
+			onpick={(id) => update({ ownerId: id === feature.ownerId ? null : id })}
+			value={owner ? ownerValue : undefined}
+		/>
+		<span class="inline-flex h-8 items-center gap-2 px-2.5 text-ui text-ink-2">
+			<ProgressRing ratio={progress.ratio} {color} size={16} />
+			{progress.done} sur {progress.total} faite{progress.done > 1 ? 's' : ''}
 		</span>
 	</div>
 </header>
+
+{#snippet ownerValue()}<AvatarStack people={[owner!]} size={18} />{owner!.name}{/snippet}

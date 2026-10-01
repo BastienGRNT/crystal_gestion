@@ -18,6 +18,7 @@
 		now,
 		myLane,
 		hourHeight = 48,
+		onmark,
 		...handlers
 	}: AgendaGridProps = $props();
 	let surface = $state<HTMLElement>();
@@ -38,7 +39,7 @@
 	onpointerleave={() => (hover = null)}
 	role="presentation"
 >
-	<AgendaHeader {days} {lanes} />
+	<AgendaHeader {days} {lanes} {onmark} />
 	<div class="relative flex" style="height:{24 * hourHeight}px">
 		<AgendaHours {hourHeight} />
 		<div

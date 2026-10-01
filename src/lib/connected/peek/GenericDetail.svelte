@@ -11,7 +11,7 @@
 	const label = $derived(element.kind === 'message' ? 'Voir dans la discussion' : 'Ouvrir la page');
 </script>
 
-<h2 class="font-display text-3xl leading-tight">{element.title}</h2>
+<h2 class="text-xl leading-snug font-semibold tracking-[-0.01em]">{element.title}</h2>
 {#if !href.includes('?peek=')}
 	<a
 		{href}
@@ -19,4 +19,4 @@
 		>{label}<ArrowUpRight size={14} /></a
 	>
 {/if}
-<div class="mt-6 border-t border-line pt-5"><Backlinks id={element.id} /></div>
+<Backlinks id={element.id} framed />

@@ -3,6 +3,7 @@ import { featureColors } from '$lib/client/views/feature-colors';
 import { minutesFrom, sameDay } from '$lib/modules/planning/domain/calendar';
 import { agendaItems } from './agenda-items';
 import { sharedBands } from './agenda-bands';
+import { dayMarks } from './day-marks';
 import type { AgendaView } from './agenda-view.svelte';
 
 const TICK_MS = 30_000;
@@ -45,6 +46,9 @@ export function useAgendaData(view: () => AgendaView) {
 		const day = view().days.findIndex((d) => sameDay(d, now));
 		return day === -1 ? null : { day, minutes: minutesFrom(view().days[day], now) };
 	});
+	const marks = $derived(
+		dayMarks(view().days, { tasks: store.tasks.items, people: lanes, colorOf, today: now })
+	);
 	const people = $derived(members.map((m) => ({ ...m, online: store.online.includes(m.id) })));
 	return {
 		get now() {
@@ -64,6 +68,9 @@ export function useAgendaData(view: () => AgendaView) {
 		},
 		get people() {
 			return people;
+		},
+		get marks() {
+			return marks;
 		}
 	};
 }

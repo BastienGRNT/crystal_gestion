@@ -7,6 +7,7 @@
 	import Backlinks from '../Backlinks.svelte';
 	import JournalProperties from './JournalProperties.svelte';
 	import JournalTexts from './JournalTexts.svelte';
+	import ElementTalk from './ElementTalk.svelte';
 
 	let { element, onclose }: { element: ElementSummary; onclose: () => void } = $props();
 	const { store, actions } = useProject();
@@ -17,7 +18,7 @@
 	<InlineText
 		value={entry.title}
 		onsave={(title) => actions.journal.update(entry.id, { title })}
-		class="font-display text-3xl leading-tight"
+		class="text-xl leading-snug font-semibold tracking-[-0.01em]"
 	/>
 	<div class="mt-3 flex items-center gap-2">
 		{#if entry.kind === 'scope'}<span class="text-sm text-ink-3">Consigné automatiquement</span
@@ -33,6 +34,9 @@
 	<div class="mt-4"><JournalProperties {entry} /></div>
 	<div class="mt-6 flex flex-col gap-6">
 		<JournalTexts {entry} />
-		<div class="border-t border-line pt-5"><Backlinks id={entry.id} /></div>
+		<div class="border-t border-line pt-5">
+			<ElementTalk element={entry} featureId={entry.featureId} />
+		</div>
+		<Backlinks id={entry.id} except="message" framed />
 	</div>
 {/if}

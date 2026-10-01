@@ -57,11 +57,23 @@ export interface AgendaHandlers {
 }
 
 /** A column header of the agenda, already formatted by the caller. */
+export interface DayMark {
+	id: string;
+	ref: string;
+	/** `due`: planned to end that day; `done`: finished that day. */
+	kind: 'due' | 'done';
+	title: string;
+	color: string;
+	late: boolean;
+	person?: { name: string; color: string };
+}
+
 export interface AgendaDay {
 	key: string;
 	weekday: string;
 	date: string;
 	today: boolean;
+	marks: DayMark[];
 }
 
 export interface AgendaGridProps extends AgendaHandlers {
@@ -75,4 +87,6 @@ export interface AgendaGridProps extends AgendaHandlers {
 	/** Lane where new items are drawn: the current user's. */
 	myLane: number;
 	hourHeight?: number;
+	/** Opens a due or finished task shown above a day. */
+	onmark?: (ref: string) => void;
 }

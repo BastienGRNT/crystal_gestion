@@ -28,14 +28,14 @@ export function startSteps(s: ProjectState): StartStep[] {
 		{
 			key: 'features',
 			label: 'Liste les features',
-			hint: 'Les gros morceaux du produit, avec leur priorité.',
-			path: '/features',
+			hint: 'Les gros morceaux du produit : bouton + à côté de « Features » à gauche.',
+			path: '/tasks',
 			done: s.featureCount > 0
 		},
 		{
 			key: 'tasks',
 			label: 'Crée les premières tâches',
-			hint: 'Des actions concrètes, rattachées à une feature.',
+			hint: 'Dans Gestion, tape-les sous chaque feature, une par ligne.',
 			path: '/tasks',
 			done: s.taskCount > 0
 		},

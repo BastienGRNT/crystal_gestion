@@ -46,8 +46,8 @@
 			{channelId}
 			bind:replyTo
 			placeholder={feature || channel
-				? `Écrire dans ${feature?.title ?? `#${channel?.name}`}… (@ pour citer, # pour lier)`
-				: 'Écrire à toute l’équipe… (@ pour citer quelqu’un, # pour lier une tâche)'}
+				? `Écrire dans ${feature?.title ?? channel?.name}…`
+				: 'Écrire à toute l’équipe…'}
 		/>
 	</div>
 </div>

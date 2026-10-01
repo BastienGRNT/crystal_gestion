@@ -33,9 +33,8 @@
 					type="button"
 					onclick={() => (showArchived = !showArchived)}
 					class="ml-2 text-xs text-ink-3 hover:text-ink"
-					>{showArchived ? 'Masquer' : 'Voir'} les {archived.length} archivée{archived.length > 1
-						? 's'
-						: ''}</button
+					>{showArchived ? 'Masquer' : 'Voir'}
+					{archived.length > 1 ? `les ${archived.length} archivées` : 'l’idée archivée'}</button
 				>
 				{#if showArchived}<IdeaList ideas={archived} />{/if}
 			{/if}

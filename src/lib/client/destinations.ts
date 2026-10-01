@@ -87,7 +87,7 @@ export const DESTINATIONS = [
 	{
 		id: 'files',
 		label: 'Fichiers',
-		path: '/resources?tab=files',
+		path: '/drive',
 		icon: Paperclip,
 		keywords: 'fichiers documents images pdf dossiers'
 	}

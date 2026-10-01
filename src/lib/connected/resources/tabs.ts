@@ -1,10 +1,9 @@
-import { Contact, FolderOpen, KeyRound, Link } from '@lucide/svelte';
+import { Contact, KeyRound, Link } from '@lucide/svelte';
 
 export const RESOURCE_TABS = [
 	{ value: 'accounts', label: 'Comptes partagés', short: 'Comptes', icon: KeyRound },
 	{ value: 'links', label: 'Liens', icon: Link },
-	{ value: 'contacts', label: 'Contacts', icon: Contact },
-	{ value: 'files', label: 'Fichiers', icon: FolderOpen }
+	{ value: 'contacts', label: 'Contacts', icon: Contact }
 ] as const;
 
 export type ResourceTab = (typeof RESOURCE_TABS)[number]['value'];

@@ -35,7 +35,7 @@ describe('digestByPerson', () => {
 			activity('ana', 'created', 'T-3', '2026-09-27T10:00:00Z')
 		]);
 		expect(digest.map((d) => d.actorId)).toEqual(['ana', 'leo']);
-		expect(digest[0].summary).toBe('a terminé 2 tâches, créé 1 élément');
+		expect(digest[0].summary).toBe('a terminé 2 tâches · créé 1 tâche');
 		expect(digest[1].summary).toBe('a écrit 1 message');
 	});
 

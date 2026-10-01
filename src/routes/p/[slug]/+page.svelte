@@ -28,7 +28,9 @@
 			<GettingStartedCard />
 			<WhereYouWere />
 			<Section title="Ta matrice">
-				{#snippet action()}Glisse une tâche d’une case à l’autre pour la reclasser{/snippet}
+				{#snippet action()}<span class="max-sm:hidden"
+						>Glisse une tâche d’une case à l’autre pour la reclasser</span
+					>{/snippet}
 				<MyMatrix />
 			</Section>
 		</div>
