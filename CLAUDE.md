@@ -69,9 +69,15 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
   affichées `@Nom` (`client/refs/mentions.ts`).
 - Coque : sidebar sur `bg`, chaque page dans une carte `bg-panel` (`#page` = conteneur qui défile). Page = `PageHeader`
   (barre 56 px : titre, `meta`, actions à droite) puis `Page` (contenu). Onglets d'une page = `LinkSegments` dans la barre.
-- Créer : une seule fenêtre `connected/create/CreateDialog` (`overlays.openCreate(kind, seed)`), touches C B F I D R.
-  Choix en un clic : `Pill`/`DotPills`/`PersonPills` ; menus de ligne : `PickMenu` (options de `client/views/task-menus.ts`).
-- Navigation : `client/navigation.ts` (7 entrées, touches 1–7 ; `SUB_PAGES` = onglets/pages rattachés, trouvés par Cmd+K). Infos clés de Cmd+K :
+- Créer : une seule fenêtre « Nouveau » `connected/create/CreateDialog` (`overlays.openCreate(kind, seed)`), touches C B F I D.
+  Le titre est lu par `client/views/quick-entry.ts` (`@Ana #feature demain`) ; toute ligne « + Ajouter » passe par
+  `quickTask()` (`client/views/quick-add.ts`). Ajout en série : `ui/molecules/AddLine`.
+- Propriétés éditables : **toujours** `ui/molecules/PropButton` (bouton → `PickMenu`), options dans `client/views/task-menus.ts`
+  (`featureOptions`, `peopleOptions`, `dueOptions`, `statusOptions`, `priorityOptions`). Pas de pastilles (`Pill`, `Badge`)
+  dans les listes : statut = `StatusIcon`, feature = `FeatureMark` (couleur `featureColors`), date en texte.
+- Parler d'un élément : `connected/peek/ElementTalk` (messages qui citent l'élément, postés dans le fil de sa feature).
+- Navigation : `client/navigation.ts` (6 entrées, touches 1–6 ; `SUB_PAGES` = pages du menu projet, trouvées par Cmd+K).
+  Features en cours listées dans la barre latérale (`client/views/sidebar-features.ts`). Infos clés de Cmd+K :
   `client/destinations.ts`. Couleurs de features du planning : `--feature-0…7` via `client/views/feature-colors.ts`.
 - États vides : toujours une phrase qui dit quoi faire + un bouton/lien vers l'action (`EmptyState`, `compact` en colonne).
 - Ouvrir un élément : `peek(ref)` (tiroir `?peek=T-12`) ; features → `/p/[slug]/features/F-3` ; messages → `/p/[slug]/go/M-4`.

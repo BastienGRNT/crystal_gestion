@@ -15,7 +15,7 @@
 </script>
 
 <section
-	class="mb-10 rounded-xl border border-accent/25 bg-surface p-5 shadow-card sm:p-6"
+	class="rounded-xl border border-accent/25 bg-surface p-5 shadow-card sm:p-6"
 	aria-labelledby="start-title"
 >
 	<header class="mb-4 flex items-start gap-4">

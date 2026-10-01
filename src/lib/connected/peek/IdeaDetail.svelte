@@ -54,7 +54,11 @@
 		/>
 	</div>
 	<div class="mt-6 border-t border-line pt-5">
-		<ElementTalk element={idea} featureId={idea.featureId} />
+		<ElementTalk
+			element={idea}
+			featureId={idea.featureId}
+			concerned={idea.createdBy ? [idea.createdBy] : []}
+		/>
 	</div>
 	<Backlinks id={idea.id} except="message" framed />
 	<div class="mt-6 flex justify-end">

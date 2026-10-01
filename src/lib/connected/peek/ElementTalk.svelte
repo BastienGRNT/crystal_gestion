@@ -4,6 +4,7 @@
 	import { useProject } from '$lib/client/context';
 	import { timeAgo } from '$lib/client/format';
 	import { isDraft } from '$lib/client/live/optimistic';
+	import { encodeMentions } from '$lib/client/refs/mentions';
 	import RefTextArea from '$lib/ui/molecules/RefTextArea.svelte';
 	import TalkList from '$lib/ui/organisms/TalkList.svelte';
 	import { byCreatedAt, loadAbout } from '../discussion/thread-loader';
@@ -12,12 +13,18 @@
 		element: { id: string; ref: string };
 		/** Where new messages go: the feature's thread, or Général. */
 		featureId: string | null;
+		/** People in charge (assignees, owner): mentioned by default so they get notified. */
+		concerned?: string[];
 	}
 
 	/** Talk about this element right here; messages also land in the thread, linked with #ref. */
-	let { element, featureId }: Props = $props();
-	const { store, actions, refs } = useProject();
+	let { element, featureId, concerned = [] }: Props = $props();
+	const { store, actions, refs, me } = useProject();
 	let draft = $state('');
+	let notify = $state(true);
+	const others = $derived(
+		store.members.items.filter((m) => concerned.includes(m.id) && m.id !== me.id)
+	);
 	const prefix = $derived(`#${element.ref} `);
 	const citing = $derived(new Set(refs.backlinks(element.id).map((e) => e.id)));
 	const thread = $derived(store.features.get(featureId ?? '')?.title ?? 'Général');
@@ -45,9 +52,12 @@
 	onMount(() => void loadAbout(store, element.id).catch(() => {}));
 
 	function send() {
-		const body = draft.trim();
-		if (!body) return;
-		actions.discussion.post({ featureId, channelId: null, body: `${prefix}${body}` });
+		const text = draft.trim();
+		if (!text) return;
+		const named = notify ? others.filter((p) => !text.includes(`@${p.name}`)) : [];
+		const mentions = named.map((p) => `@${p.name} `).join('');
+		const body = encodeMentions(`${prefix}${mentions}${text}`, store.members.items);
+		actions.discussion.post({ featureId, channelId: null, body });
 		draft = '';
 	}
 </script>
@@ -82,5 +92,13 @@
 			><SendHorizontal size={15} /></button
 		>
 	</div>
-	<p class="mt-1.5 text-xs text-ink-3">Aussi visible dans la discussion « {thread} ».</p>
+	<div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
+		{#if others.length}
+			<label class="flex items-center gap-1.5 text-ink-2">
+				<input type="checkbox" bind:checked={notify} class="accent-[var(--accent)]" />
+				Prévenir {others.map((p) => p.name).join(', ')}
+			</label>
+		{/if}
+		<span>Aussi visible dans la discussion « {thread} ».</span>
+	</div>
 </section>

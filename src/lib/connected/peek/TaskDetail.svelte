@@ -43,7 +43,7 @@
 		/>
 	</div>
 	<div class="mt-6 border-t border-line pt-5">
-		<ElementTalk element={task} featureId={task.featureId} />
+		<ElementTalk element={task} featureId={task.featureId} concerned={task.assigneeIds} />
 	</div>
 	<Backlinks id={task.id} except="message" framed />
 	<div class="mt-6 flex justify-end">

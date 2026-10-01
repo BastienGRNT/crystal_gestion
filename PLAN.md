@@ -29,7 +29,7 @@ idées. IA : le futur `ProjectContextBuilder` agrège FK + références + journa
 
 - `users` (email, nom, hash scrypt, couleur, préférences jsonb : vue tâches par défaut) · `sessions` · `invitations`
 - `projects` (slug, nom, objectif, cible, date limite, hors périmètre, définition de fini) · `project_members` (rôle, `last_seen_at`, `recap_since`)
-- `features` (titre, description, priorité MoSCoW, responsable, critères de fini)
+- `features` (titre, description, priorité MoSCoW, responsable, critères de fini, `archived_at`)
 - `tasks` (titre, description, feature?, statut, date limite?, importance forcée?, position, correctif?, `completed_at`) · `task_assignees`
 - `time_entries` (user, tâche?, début, fin? — `null` = chrono en cours, source `timer|manual`) : chrono **et** blocs de travail du planning = même objet
 - `availabilities` (user, début, fin, statut `available|maybe`) — globales à l'utilisateur, visibles dans tous ses projets
@@ -113,7 +113,7 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 | Tâche bloquée                       | Pas de statut en plus : « en retard » (échéance passée) + « au point mort » (En cours/À valider sans modification depuis 7 j)                                      | Colonnes fixes, détection automatique                                                 |
 | Questions                           | Résolues par une réponse (`reply_to`) de la personne ou « marquer comme traité »                                                                                   | Explicite et fiable                                                                   |
 | Journal auto                        | Changement de priorité MoSCoW, suppression de feature, ajout de feature après les 24 h de cadrage                                                                  | Évite de polluer le journal au démarrage                                              |
-| Icebox                              | Premier statut des tâches (kanban « Par statut ») ; hors matrice, « Ma liste » et avancement des features. Idées = hors produit                                    | Une idée produit reste une tâche, prête à être reprise                                |
+| Icebox                              | Idées de features : tâches au statut Icebox + features « Icebox » (Won't) ; hors matrice et avancement. Les **Idées** restent à part : hors produit                | Une idée produit reste une tâche ou une feature, prête à être reprise                 |
 | Bug                                 | Tag d'une tâche (`tasks.is_fix`), dans une feature ou non ; icône insecte rouge, touche B, filtre « Bugs seulement »                                               | Une feature a plusieurs tâches, un fix est l'une d'elles                              |
 | Sous-dossiers / canaux              | Un dossier ne se supprime que vide ; supprimer un canal supprime ses messages (undo 6 s)                                                                           | Aucun fichier perdu par erreur ; un canal est un sujet jetable                        |
 | « Dispo aujourd'hui ? »             | Puces Matin (9–12) / Aprèm (14–18) / Soir (19–23) / Pas dispo                                                                                                      | Un clic, créneaux ajustables ensuite dans le planning                                 |
@@ -133,9 +133,9 @@ Un mot = un concept, partout (menus, titres, boutons, états vides, Cmd+K). Tuto
 | Terme                                           | Sens                                                                                                                 | À ne plus écrire                      |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Projet                                          | Objectif, public, date limite, hors périmètre, « c'est fini quand », équipe                                          | Cadrage (seul)                        |
-| Feature                                         | Un morceau du produit (ex. « Paiement Stripe ») ; page Features, porte des tâches et bugs                            | Epic, module                          |
-| Icebox                                          | Statut de tâche : noté pour plus tard, on n'y réfléchit pas encore                                                   | Cold idea, backlog                    |
-| Priorité (d'une feature)                        | Choisie : **Indispensable** (Must), **Si possible** (Should), **Bonus** (Could), **Pas maintenant** (Won't)          | Must/Should/Could/Won't seuls         |
+| Feature                                         | Un morceau du produit (ex. « Paiement Stripe ») ; sa page, son fil, son dossier ; s'archive quand elle est finie     | Epic, module                          |
+| Icebox                                          | Idées de features, notées pour plus tard : tâches au statut Icebox et features en priorité Icebox                    | Cold idea, backlog                    |
+| Priorité (d'une feature)                        | Choisie : **Indispensable** (Must), **Si possible** (Should), **Bonus** (Could), **Icebox** (Won't)                  | Must/Should/Could/Won't seuls         |
 | Tâche                                           | Action concrète, assignée, échéance facultative ; peut être un Bug                                                   | Ticket, issue                         |
 | Urgence (d'une tâche)                           | Calculée (matrice) : **Faire maintenant**, **Planifier**, **Si j'ai le temps**, **Plus tard** ; déplaçable à la main | Priorité (pour une tâche), Eisenhower |
 | Important / Urgent                              | Important = feature Indispensable ou Si possible (ou forcé) ; urgent = échéance ≤ 3 j                                |                                       |
@@ -147,18 +147,19 @@ Un mot = un concept, partout (menus, titres, boutons, états vides, Cmd+K). Tuto
 | Question                                        | Message qui attend la réponse d'une personne citée avec @                                                            |                                       |
 | Journal                                         | Décisions, bugs résolus, changements de périmètre : pourquoi le projet est comme il est                              | Fix (seul)                            |
 | Décision · Bug résolu · Changement de périmètre | Les trois types d'entrée du journal                                                                                  | Fix                                   |
-| Idée                                            | Hors produit (contacter quelqu'un, piste à creuser) ; se trie à la revue (→ tâche, → feature, archiver)              | Backlog                               |
-| Ressources                                      | Comptes partagés, liens, contacts, fichiers                                                                          | Boîte à outils                        |
-| Revue de la semaine                             | 4 étapes : avancement, bloqué, questions, idées à trier                                                              | Revue (seul)                          |
+| Idée                                            | Hors produit (contacter quelqu'un, piste à creuser), dans Gestion ; → tâche, → feature, archiver                     | Backlog                               |
+| Ressources                                      | Comptes partagés, liens, contacts (les fichiers sont dans **Drive**)                                                 | Boîte à outils                        |
+| Faire le point                                  | Du jour (fait, bloqué, demain) ou de la semaine (avancement, bloqué, questions, idées) ; bouton sur l'Accueil        | Revue (seul)                          |
 | Aperçu                                          | Panneau latéral qui ouvre n'importe quel élément (`T-12`, `D-3`…)                                                    | Peek                                  |
 | Cité dans                                       | Éléments qui mentionnent celui-ci avec `#`                                                                           | Mentionné dans, backlinks             |
 | Mémoire IA                                      | Ce que l'IA sait du projet                                                                                           |                                       |
 
-Navigation (7 entrées, touches 1–7) : Aujourd'hui · Tâches · Features (onglets Features · Journal · Le projet · Mémoire
-IA) · Discussion · Planning · Ressources · Idées (bouton « Lancer la revue de la semaine »). Créer : bouton de la sidebar ou
-une lettre (C tâche, B bug, F feature, I idée, D décision, R bug résolu).
+Navigation (6 entrées, touches 1–6) : **Accueil** (reprendre le fil) · **Gestion** (Liste par feature · Tableau ·
+Matrice ; Icebox, Idées, Archivées) · **Discussion** · **Planning** · **Drive** · **Ressources**. Les features en cours sont
+listées sous la navigation. Menu du projet (en haut à gauche) : Le projet, Journal des décisions, Mémoire IA, Faire le point.
+Créer : bouton « Nouveau » ou une lettre (C tâche, B bug, F feature, I idée, D décision).
 
-## 6. Avancement — itération 2
+## 6. Avancement
 
 Reprendre au premier point non coché. Décisions prises en route : voir « Décisions itération 2 » ci-dessous.
 
@@ -215,3 +216,31 @@ Reprendre au premier point non coché. Décisions prises en route : voir « Déc
 
 Reste éventuel (non bloquant) : vue « Bilan des semaines » non retravaillée visuellement ; libellés des e-mails de
 notification inexistants (pas de SMTP).
+
+### Itération 3 — refonte UX
+
+Constat : badges de toutes tailles, formulaires en murs de pastilles, parcours à deviner (Créer → type → feature…),
+revue cachée dans Idées, pas de glisser-déposer sur l'accueil, features finies visibles partout.
+
+- **Langage visuel « calme »** : plus de pastilles dans les listes. Statut = glyphe (`StatusIcon` : pointillé → vide →
+  demi → ¾ → coché), feature = carré de sa couleur + nom (`FeatureMark`, couleur `--feature-n` partout, plus la couleur
+  de priorité), échéance en texte (rouge si en retard), avatars. Refs `T-12` masquées dans les listes.
+- **Un seul style de formulaire** : `PropButton` (bouton → `PickMenu` filtrable au clavier) dans « Nouveau », l'aperçu,
+  la page feature. Plus de murs de puces ni de champ date brut (`DatePickButton` ouvre le calendrier natif).
+- **Saisie intelligente** (`client/views/quick-entry.ts`) : `@Ana`, `#boutique`, `demain`, `lundi`, `dans 3 jours`
+  remplissent les propriétés, partout où l'on tape une tâche (« Nouveau », lignes « + Ajouter », matrice). Suggestions
+  au clavier après `@` et `#`.
+- **Décomposer** : une feature se crée avec ses tâches (une par ligne) ; sous chaque feature, « + Ajouter une tâche »
+  reste ouvert après Entrée.
+- **Parler d'un élément** : bloc Discussion dans l'aperçu (tâche, idée, décision). Le message est posté dans le fil de
+  la feature (ou Général) avec `#T-12` en tête : pas de nouveau modèle, la conversation est aussi visible dans le fil.
+  Les personnes assignées sont mentionnées par défaut (« Prévenir Ana »). API : `threads?about=<elementId>`.
+- **Accueil** : phrase de synthèse, « Où tu en étais » (dernière tâche chronométrée + Reprendre), « On t'a parlé »
+  (questions + mentions/assignations non lues), « Ce qui a bougé » (une phrase par personne, détail au clic), ma
+  matrice avec glisser-déposer (fixe urgent/important), dispos.
+- **Archiver une feature** (`features.archive`, verbe d'activité `archived`) : sort de la barre latérale, des menus,
+  du tableau, de la matrice et de la discussion ; reste lisible (Gestion › Archivées, sa page, son dossier Drive).
+  Proposé quand toutes ses tâches sont faites.
+- **Planning** : au-dessus de chaque jour, les échéances (drapeau) et les tâches finies ce jour-là (avec qui).
+- **Faire le point** : `/review?mode=day` (fait aujourd'hui, bloqué, choisir demain) ou semaine ; bouton sur l'Accueil.
+- Anciennes routes `/features` et `/ideas` → redirigent vers Gestion.
