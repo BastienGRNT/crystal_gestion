@@ -18,14 +18,13 @@
 
 	function remove() {
 		actions.features.remove(feature.id);
-		goto(`/p/${store.project.slug}/project`);
+		goto(`/p/${store.project.slug}/features`);
 	}
 </script>
 
-<header class="mb-10">
-	<div class="mb-4 flex items-center gap-3 text-sm text-ink-3">
-		<a href="/p/{store.project.slug}/project" class="hover:text-ink">Features</a> /
-		<span class="font-mono">{feature.ref}</span>
+<header class="mb-8">
+	<div class="mb-3 flex items-center gap-3 text-sm text-ink-3">
+		<span class="font-mono text-xs">{feature.ref}</span>
 		<PriorityMenu
 			priority={feature.priority}
 			onchange={(priority) => actions.features.update(feature.id, { priority })}
@@ -38,7 +37,7 @@
 	<InlineText
 		value={feature.title}
 		onsave={(title) => actions.features.update(feature.id, { title })}
-		class="font-display text-4xl leading-[1.02] sm:text-5xl"
+		class="font-display text-2xl"
 	/>
 	<div class="mt-5 flex flex-wrap items-center gap-x-8 gap-y-3">
 		<span class="flex items-center gap-2 text-sm text-ink-3"

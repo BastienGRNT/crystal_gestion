@@ -29,7 +29,7 @@ export function startSteps(s: ProjectState): StartStep[] {
 			key: 'features',
 			label: 'Liste les features',
 			hint: 'Les gros morceaux du produit, avec leur priorité.',
-			path: '/project',
+			path: '/features',
 			done: s.featureCount > 0
 		},
 		{

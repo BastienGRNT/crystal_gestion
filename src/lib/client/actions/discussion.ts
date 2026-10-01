@@ -7,6 +7,7 @@ import { deleteWithUndo } from '../live/undoable';
 
 export interface NewMessage {
 	featureId: string | null;
+	channelId: string | null;
 	body: string;
 	replyToId?: string | null;
 	isQuestion?: boolean;

@@ -36,7 +36,7 @@
 	{@render trigger()}
 	{#if open}
 		<div
-			class="absolute z-40 animate-rise rounded-lg border border-line bg-surface p-1 shadow-pop {width} {align ===
+			class="absolute z-40 animate-rise rounded-[10px] border border-line bg-panel p-1 shadow-pop {width} {align ===
 			'end'
 				? 'right-0'
 				: 'left-0'} {side === 'top' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'}"

@@ -6,10 +6,16 @@ import type {
 	ReferenceSync
 } from '$lib/modules/kernel/application/ports';
 import { forbidden, notFound } from '$lib/modules/kernel/domain/errors';
-import type { MemberNames, MessageRepository, QuestionRepository } from './ports';
+import type {
+	ChannelRepository,
+	MemberNames,
+	MessageRepository,
+	QuestionRepository
+} from './ports';
 
 export interface DiscussionDeps {
 	messages: MessageRepository;
+	channels: ChannelRepository;
 	questions: QuestionRepository;
 	members: MemberNames;
 	feed: ChangeFeed;

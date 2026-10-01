@@ -6,7 +6,10 @@
 	import FilesTab from '$lib/connected/resources/FilesTab.svelte';
 	import LinksTab from '$lib/connected/resources/LinksTab.svelte';
 	import { parseTab, RESOURCE_TABS, type ResourceTab } from '$lib/connected/resources/tabs';
-	import Tabs from '$lib/ui/molecules/Tabs.svelte';
+	import { Search } from '@lucide/svelte';
+	import { overlays } from '$lib/client/overlays.svelte';
+	import HeaderButton from '$lib/ui/molecules/HeaderButton.svelte';
+	import LinkSegments from '$lib/ui/molecules/LinkSegments.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
@@ -19,20 +22,25 @@
 		files: () => store.files.items.length
 	};
 	const tabs = $derived(
-		RESOURCE_TABS.map((t) => ({ ...t, href: `?tab=${t.value}`, count: counts[t.value]() }))
+		RESOURCE_TABS.map((t) => ({
+			...{ value: t.value, label: 'short' in t ? t.short : t.label },
+			...{ href: `?tab=${t.value}`, count: counts[t.value]() }
+		}))
 	);
 </script>
 
 <svelte:head><title>Ressources · {store.project.name}</title></svelte:head>
 
-<Page>
-	<PageHeader
-		eyebrow="Le projet"
-		title="Ressources"
-		subtitle="Les accès, liens, contacts et fichiers dont l’équipe a besoin, au même endroit. Cmd+K les retrouve aussi."
-	/>
-	<Tabs label="Type de ressource" value={tab} {tabs} />
-	<div class="mt-6">
+<PageHeader title="Ressources">
+	{#snippet actions()}
+		<LinkSegments label="Type de ressource" value={tab} {tabs} />
+		<HeaderButton title="Chercher partout (⌘K)" onclick={() => overlays.openPalette()}
+			><Search size={14} />Chercher</HeaderButton
+		>
+	{/snippet}
+</PageHeader>
+<Page width="max-w-[1100px]">
+	<div>
 		{#key tab}
 			{#if tab === 'accounts'}<AccountsTab />
 			{:else if tab === 'links'}<LinksTab />

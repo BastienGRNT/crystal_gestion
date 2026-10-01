@@ -19,16 +19,18 @@
 
 <!-- The prism border is the app signature: it only ever appears around live work. -->
 <div
-	class="relative rounded-lg p-[1.5px] shadow-pop prism"
+	class="relative rounded-[10px] p-[1.5px] shadow-card prism"
 	role="status"
 	aria-label="Chrono en cours"
 >
-	<div class="flex items-center gap-1 rounded-[8.5px] bg-surface py-2 pr-1.5 pl-3">
+	<div class="flex items-center gap-1 rounded-[9px] bg-panel py-2 pr-1.5 pl-3">
 		<button class="min-w-0 flex-1 text-left" onclick={onopen} title="Ouvrir {taskRef}">
 			<p class="flex items-center gap-1.5 text-xs text-ink-3">
-				<span class="size-1.5 animate-pulse rounded-full bg-must"></span>
-				<Elapsed since={startedAt} />
-				<span class="truncate font-mono">{projectName ? `${projectName} · ` : ''}{taskRef}</span>
+				<span class="size-[7px] animate-pulse rounded-full bg-must"></span>
+				<span class="font-medium text-ink-2 tabular-nums"><Elapsed since={startedAt} /></span>
+				<span class="truncate font-mono text-2xs"
+					>{projectName ? `${projectName} · ` : ''}{taskRef}</span
+				>
 			</p>
 			<p class="truncate text-sm font-medium">{taskTitle}</p>
 		</button>

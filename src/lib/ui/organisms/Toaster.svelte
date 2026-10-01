@@ -1,34 +1,26 @@
 <script lang="ts">
 	import { toasts } from '$lib/client/toasts.svelte';
-	import { CircleAlert, CircleCheck, Info } from '@lucide/svelte';
-
-	const icons = { info: Info, error: CircleAlert, success: CircleCheck };
-	const tones = { info: 'text-accent', error: 'text-danger', success: 'text-success' };
+	import { CircleAlert } from '@lucide/svelte';
 </script>
 
+<!-- Inverted pills at the bottom: visible without covering the page header or the peek. -->
 <div
-	class="pointer-events-none fixed top-4 right-4 z-50 flex flex-col gap-2 max-md:inset-x-4 max-md:top-auto max-md:bottom-[calc(8.5rem+env(safe-area-inset-bottom))]"
+	class="pointer-events-none fixed bottom-5 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2 max-md:bottom-[calc(4.5rem+env(safe-area-inset-bottom))]"
 	aria-live="polite"
 >
 	{#each toasts.items as toast (toast.id)}
-		{@const Icon = icons[toast.tone]}
 		<div
-			class="pointer-events-auto flex max-w-sm animate-rise items-center gap-3 rounded-xl border border-line bg-surface py-2 pr-2 pl-3.5 shadow-pop md:min-w-72"
+			class="pointer-events-auto flex min-h-[42px] max-w-[calc(100vw-32px)] animate-rise items-center gap-3.5 rounded-[10px] bg-ink py-1.5 pr-2 pl-4 text-sm text-panel shadow-pop"
 			role="status"
 		>
-			<Icon size={17} class="shrink-0 {tones[toast.tone]}" />
-			<span class="min-w-0 flex-1">{toast.message}</span>
+			{#if toast.tone === 'error'}<CircleAlert size={16} class="shrink-0 text-must" />{/if}
+			<span class="min-w-0">{toast.message}</span>
 			{#if toast.action}
 				<button
-					class="h-8 rounded-lg px-3 font-semibold text-accent-text transition hover:bg-accent-soft"
+					class="h-7 shrink-0 rounded-[7px] bg-[rgb(127_127_127/0.25)] px-2.5 font-semibold"
 					onclick={() => toasts.act(toast)}>{toast.action.label}</button
 				>
 			{/if}
-			<button
-				class="h-8 rounded-lg px-2 text-ink-3 transition hover:bg-sunken hover:text-ink"
-				aria-label="Fermer"
-				onclick={() => toasts.dismiss(toast.id)}>✕</button
-			>
 		</div>
 	{/each}
 </div>

@@ -2,24 +2,21 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		eyebrow?: string;
 		title: string;
-		subtitle?: string;
+		/** Short context next to the title: a date, a count. */
+		meta?: string;
 		actions?: Snippet;
 	}
 
-	let { eyebrow, title, subtitle, actions }: Props = $props();
+	let { title, meta, actions }: Props = $props();
 </script>
 
-<header class="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-	<div class="min-w-0">
-		{#if eyebrow}<p
-				class="mb-2.5 font-mono text-2xs font-medium tracking-[0.14em] text-ink-3 uppercase"
-			>
-				{eyebrow}
-			</p>{/if}
-		<h1 class="font-display text-4xl sm:text-5xl">{title}</h1>
-		{#if subtitle}<p class="mt-3 max-w-2xl text-lg text-ink-2">{subtitle}</p>{/if}
-	</div>
+<!-- The top bar of the page card: what this is on the left, what you can do on the right. -->
+<header
+	class="sticky top-0 z-10 flex min-h-14 shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-panel py-2.5 pr-5 pl-6 max-md:px-4"
+>
+	<h1 class="text-lg font-semibold tracking-[-0.01em]">{title}</h1>
+	{#if meta}<span class="text-sm whitespace-nowrap text-ink-3">{meta}</span>{/if}
+	<div class="flex-1"></div>
 	{#if actions}<div class="flex flex-wrap items-center gap-2">{@render actions()}</div>{/if}
 </header>

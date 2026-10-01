@@ -7,6 +7,8 @@ export interface ProjectFile extends ElementBase {
 	projectId: string;
 	/** `null` is the general folder; otherwise the feature's folder. */
 	featureId: string | null;
+	/** Sub-folder inside that folder, `null` at its root. */
+	folderId: string | null;
 	mimeType: string;
 	size: number;
 	storageKey: string;

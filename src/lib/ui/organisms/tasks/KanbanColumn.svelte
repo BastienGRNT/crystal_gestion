@@ -7,17 +7,28 @@
 	interface Props {
 		label: string;
 		tone: string;
+		hint?: string;
 		cards: TaskCardView[];
 		draggingId: string | null;
 		ondragstart: (id: string) => void;
 		ondragend: () => void;
 		ondrop: (index: number) => void;
 		onopen: (ref: string) => void;
-		onadd: (title: string) => void;
+		onadd: (title: string, isFix: boolean) => void;
 	}
 
-	let { label, tone, cards, draggingId, ondragstart, ondragend, ondrop, onopen, onadd }: Props =
-		$props();
+	let {
+		label,
+		tone,
+		hint,
+		cards,
+		draggingId,
+		ondragstart,
+		ondragend,
+		ondrop,
+		onopen,
+		onadd
+	}: Props = $props();
 	let list: HTMLElement;
 	let hoverIndex = $state<number | null>(null);
 
@@ -35,17 +46,20 @@
 </script>
 
 <section
-	class="flex w-[82vw] shrink-0 snap-start flex-col rounded-xl bg-sunken/55 p-2 sm:w-auto sm:min-w-0 sm:flex-1"
+	class="flex w-[82vw] shrink-0 snap-start flex-col rounded-xl bg-sunken p-2 sm:w-auto sm:min-w-[220px] sm:flex-1"
 	aria-label={label}
 >
-	<header class="flex items-center gap-2 px-1.5 pt-1 pb-2.5">
-		<span class="size-2 rounded-full {tone}"></span>
-		<h2 class="text-sm font-semibold">{label}</h2>
-		<span class="font-mono text-2xs text-ink-3">{cards.length}</span>
+	<header class="px-1.5 pt-1.5 pb-1.5">
+		<div class="flex items-center gap-2">
+			<span class="size-2 rounded-full {tone}"></span>
+			<h2 class="text-ui font-semibold">{label}</h2>
+			<span class="text-xs text-ink-3">{cards.length}</span>
+		</div>
+		{#if hint}<p class="mt-0.5 text-xs text-ink-3">{hint}</p>{/if}
 	</header>
 	<div
 		bind:this={list}
-		class="flex min-h-24 flex-1 flex-col gap-2"
+		class="flex min-h-24 flex-1 flex-col gap-1.5"
 		role="list"
 		ondragover={over}
 		ondragleave={() => (hoverIndex = null)}
@@ -68,6 +82,8 @@
 			</div>
 		{/each}
 		{#if hoverIndex === cards.length}<div class="h-0.5 rounded-full bg-accent"></div>{/if}
-		<div class="mt-auto pt-1"><QuickAdd placeholder="Ajouter" {onadd} /></div>
+		<div class="mt-auto pt-1">
+			<QuickAdd placeholder="Ajouter…" onadd={(title) => onadd(title, false)} />
+		</div>
 	</div>
 </section>

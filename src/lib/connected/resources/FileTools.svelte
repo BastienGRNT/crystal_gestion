@@ -5,7 +5,7 @@
 	import IconLink from '$lib/ui/atoms/IconLink.svelte';
 	import DeleteButton from '$lib/ui/atoms/DeleteButton.svelte';
 	import IconSelect from '$lib/ui/molecules/IconSelect.svelte';
-	import { featureOptions, fileUrl } from './options';
+	import { decodeLocation, fileUrl, locationOptions, locationValue } from './options';
 
 	let { file }: { file: ProjectFile } = $props();
 	const { store, actions } = useProject();
@@ -16,9 +16,9 @@
 >
 <IconSelect
 	label="Déplacer vers…"
-	value={file.featureId ?? ''}
-	options={featureOptions(store.features.items, 'Général')}
-	onchange={(id) => actions.files.update(file.id, { featureId: id || null })}
+	value={locationValue(file)}
+	options={locationOptions(store.features.items, store.folders.items)}
+	onchange={(value) => actions.files.update(file.id, decodeLocation(value))}
 	><FolderInput size={13} /></IconSelect
 >
 <DeleteButton onconfirm={() => actions.files.remove(file.id)} />

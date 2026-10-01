@@ -13,6 +13,7 @@ interface Deps {
 export interface Upload {
 	projectId: string;
 	featureId: string | null;
+	folderId: string | null;
 	name: string;
 	mimeType: string;
 	bytes: Uint8Array;
@@ -25,6 +26,7 @@ export const makeUploadFile = (deps: Deps) => async (actor: Actor, upload: Uploa
 	return deps.files.create(actor, {
 		projectId: upload.projectId,
 		featureId: upload.featureId,
+		folderId: upload.folderId,
 		title: upload.name,
 		mimeType: upload.mimeType || 'application/octet-stream',
 		size: upload.bytes.byteLength,

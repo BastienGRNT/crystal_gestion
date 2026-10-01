@@ -15,6 +15,7 @@ const task: Task = {
 	important: null,
 	urgent: null,
 	assigneeIds: [],
+	isFix: false,
 	status: 'todo',
 	position: 1,
 	completedAt: null,

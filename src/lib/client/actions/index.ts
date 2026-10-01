@@ -1,7 +1,9 @@
 import type { ProjectStore } from '../project-store.svelte';
+import { channelActions } from './channels';
 import { discussionActions } from './discussion';
 import { featureActions } from './features';
 import { fileActions } from './files';
+import { folderActions } from './folders';
 import { ideaActions } from './ideas';
 import { journalActions } from './journal';
 import { planningActions } from './planning';
@@ -18,9 +20,11 @@ export function createActions(store: ProjectStore, meId: string) {
 		ideas: ideaActions(store, meId),
 		journal: journalActions(store, meId),
 		discussion: discussionActions(store, meId),
+		channels: channelActions(store),
 		planning: planningActions(store, meId),
 		resources: resourceActions(store),
-		files: fileActions(store)
+		files: fileActions(store),
+		folders: folderActions(store)
 	};
 }
 

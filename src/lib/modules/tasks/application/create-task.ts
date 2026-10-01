@@ -15,6 +15,7 @@ export const makeCreateTask = (deps: TaskDeps) => async (actor: Actor, input: Ne
 		important: null,
 		urgent: null,
 		assigneeIds: [],
+		isFix: false,
 		...input,
 		status,
 		position: input.position ?? positionAtEnd(await deps.tasks.positions(input.projectId, status)),

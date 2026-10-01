@@ -4,10 +4,12 @@ import type { Task } from '$lib/modules/tasks/domain/task';
 export interface TaskFilter {
 	person: string;
 	feature: string;
+	bugsOnly?: boolean;
 }
 
-export function matchesFilter(task: Task, { person, feature }: TaskFilter) {
+export function matchesFilter(task: Task, { person, feature, bugsOnly }: TaskFilter) {
 	if (person && !task.assigneeIds.includes(person)) return false;
+	if (bugsOnly && !task.isFix) return false;
 	if (feature === 'none') return task.featureId === null;
 	return !feature || task.featureId === feature;
 }

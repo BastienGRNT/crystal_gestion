@@ -36,6 +36,8 @@ export interface ThreadLink {
 	href: string;
 	ref?: string;
 	priority?: Moscow;
+	/** A channel under Général, shown indented below it. */
+	channel?: boolean;
 	active: boolean;
 }
 

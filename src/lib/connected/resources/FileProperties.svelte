@@ -4,7 +4,7 @@
 	import { formatSize, type ProjectFile } from '$lib/modules/files/domain/project-file';
 	import Select from '$lib/ui/atoms/Select.svelte';
 	import PropertyRow from '$lib/ui/molecules/PropertyRow.svelte';
-	import { featureOptions } from './options';
+	import { decodeLocation, locationOptions, locationValue } from './options';
 
 	let { file }: { file: ProjectFile } = $props();
 	const { store, actions } = useProject();
@@ -15,9 +15,9 @@
 	<PropertyRow label="Dossier">
 		<Select
 			label="Dossier"
-			value={file.featureId ?? ''}
-			options={featureOptions(store.features.items, 'Général')}
-			onchange={(id) => actions.files.update(file.id, { featureId: id || null })}
+			value={locationValue(file)}
+			options={locationOptions(store.features.items, store.folders.items)}
+			onchange={(value) => actions.files.update(file.id, decodeLocation(value))}
 			class="-ml-2 w-full"
 		/>
 	</PropertyRow>

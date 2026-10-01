@@ -9,7 +9,9 @@
 	import EmptyState from '$lib/ui/molecules/EmptyState.svelte';
 	import InlineRichText from '$lib/ui/molecules/InlineRichText.svelte';
 	import Section from '$lib/ui/molecules/Section.svelte';
+	import HeaderButton from '$lib/ui/molecules/HeaderButton.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
+	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
 	const { store, actions, refs } = useProject();
 	const feature = $derived(store.features.items.find((f) => f.ref === page.params.ref));
@@ -17,6 +19,15 @@
 
 <svelte:head><title>{feature?.title ?? 'Feature'} · {store.project.name}</title></svelte:head>
 
+<PageHeader title="Features" meta={feature ? `/ ${feature.ref}` : undefined}>
+	{#snippet actions()}
+		{#if feature}
+			<HeaderButton href="/p/{store.project.slug}/discussion/{feature.ref}">Discussion</HeaderButton
+			>
+		{/if}
+		<HeaderButton href="/p/{store.project.slug}/features">Toutes les features</HeaderButton>
+	{/snippet}
+</PageHeader>
 <Page>
 	{#if feature}
 		<FeatureHeader {feature} />
@@ -51,8 +62,9 @@
 			title="Feature introuvable"
 			text="Elle a peut-être été supprimée."
 		>
-			<a href="/p/{store.project.slug}/project" class="font-medium text-accent-text hover:underline"
-				>Voir toutes les features</a
+			<a
+				href="/p/{store.project.slug}/features"
+				class="font-medium text-accent-text hover:underline">Voir toutes les features</a
 			>
 		</EmptyState>
 	{/if}

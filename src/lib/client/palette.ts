@@ -1,15 +1,14 @@
-import { BookOpen, Lightbulb, Plus, SunMoon } from '@lucide/svelte';
+import { SunMoon } from '@lucide/svelte';
 import type { ElementSummary } from '$lib/modules/kernel/domain/element';
 import type { PaletteGroup, PaletteItem } from '$lib/ui/types';
+import { CREATE_KINDS, type CreateKind } from './create-kinds';
 import { DESTINATIONS, matchesWords } from './destinations';
-import { NAVIGATION } from './navigation';
+import { NAVIGATION, SUB_PAGES } from './navigation';
 import { KIND_META } from './refs/kinds';
 import { searchElements } from './refs/search';
 
 export interface PaletteIntents {
-	createTask: (title: string) => void;
-	createIdea: (title: string) => void;
-	createDecision: (title: string) => void;
+	create: (kind: CreateKind, title: string) => void;
 	open: (element: ElementSummary) => void;
 	navigate: (path: string) => void;
 	toggleTheme: () => void;
@@ -17,35 +16,27 @@ export interface PaletteIntents {
 
 function createItems(query: string, intents: PaletteIntents): PaletteItem[] {
 	if (!query) return [];
-	return [
-		{
-			id: 'new-task',
-			label: `Nouvelle tâche « ${query} »`,
-			icon: Plus,
-			run: () => intents.createTask(query)
-		},
-		{
-			id: 'new-idea',
-			label: `Nouvelle idée « ${query} »`,
-			icon: Lightbulb,
-			run: () => intents.createIdea(query)
-		},
-		{
-			id: 'new-decision',
-			label: `Tracer une décision « ${query} »`,
-			icon: BookOpen,
-			run: () => intents.createDecision(query)
-		}
-	];
+	return CREATE_KINDS.filter((kind) => kind.value !== 'fix').map((kind) => ({
+		id: `new-${kind.value}`,
+		label: `${kind.label} « ${query} »`,
+		hint: kind.key,
+		icon: kind.icon,
+		run: () => intents.create(kind.value, query)
+	}));
 }
 
 /** Everything Cmd+K can do for a query: create, jump to an element, go to a page, act. */
-const pageItems = (query: string, intents: PaletteIntents): PaletteItem[] =>
-	NAVIGATION.filter((item) => matchesWords(query, item.label, item.hint)).map((item) => ({
+const pageItems = (query: string, intents: PaletteIntents): PaletteItem[] => [
+	...NAVIGATION.filter((item) => matchesWords(query, item.label, item.hint)).map((item, i) => ({
 		...{ id: item.key, label: item.label, detail: item.hint, icon: item.icon },
-		hint: item.shortcut.toUpperCase(),
+		hint: String(i + 1),
 		run: () => intents.navigate(item.path)
-	}));
+	})),
+	...SUB_PAGES.filter((page) => query && matchesWords(query, page.label)).map((page) => ({
+		...{ id: page.key, label: page.label, icon: page.icon },
+		run: () => intents.navigate(page.path)
+	}))
+];
 
 const destinationItems = (query: string, intents: PaletteIntents): PaletteItem[] =>
 	query

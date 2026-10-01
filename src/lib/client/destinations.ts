@@ -37,7 +37,7 @@ export const DESTINATIONS = [
 	},
 	{
 		id: 'journal',
-		label: 'Journal des décisions',
+		label: 'Journal',
 		path: '/journal',
 		icon: BookOpen,
 		keywords: 'journal décisions pourquoi bugs résolus fix périmètre'

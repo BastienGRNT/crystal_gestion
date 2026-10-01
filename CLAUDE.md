@@ -58,22 +58,28 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 - Suppressions : **toujours** `deleteWithUndo(message, retraitLocal, commande)` (`client/live/undoable.ts`) — retrait
   immédiat, toast « Annuler » 6 s, commande envoyée à l'expiration (ou au `pagehide`). Pas de `confirm()` ni de double clic :
   bouton `ui/atoms/DeleteButton`.
-- Typo : échelle `text-2xs` (11,5 px, plancher) · `xs` · `sm` · `base` (14,5 px, corps) · `lg` · `xl` · `2xl`…`6xl` (titres
-  serif). Jamais de `text-[13px]`. Titres de section en sans `font-semibold` ; `font-display` réservé aux titres de page et
-  grands chiffres. Libellés : glossaire de `PLAN.md` §5.
+- Typo (tout en Geist) : échelle `text-2xs` (11,5 px, plancher) · `xs` (12,5) · `ui` (13, boutons/lignes) · `sm` · `base`
+  (14 px, corps) · `lg` (15) · `xl` · `2xl`… Jamais de `text-[13px]`. Titres de section `text-sm font-semibold`.
+  Libellés : glossaire de `PLAN.md` §5.
 - Mise en page : `Page` pleine largeur (max 1480 px), padding intérieur généreux dans les composants (lignes ≥ 48 px).
 - Tokens : `src/lib/ui/tokens/theme.css` (clair + `[data-theme='dark']`), mappés dans `src/app.css` (`bg-surface`, `text-ink-2`,
-  `border-line`, `bg-accent-soft`, `text-must`…). Jamais de couleur en dur dans un composant. `font-display` = Instrument Serif.
+  `border-line`, `bg-accent-soft`, `text-must`…). Jamais de couleur en dur dans un composant. `font-display` = Geist semibold serré.
 - Le dégradé `prism` est réservé : logo, chrono en cours, 100 % d'avancement.
 - Textes : `RefTextArea` (saisie avec `#` et `@`) et `RichText` (rendu refs/mentions/liens). Mentions stockées `<@userId>`,
   affichées `@Nom` (`client/refs/mentions.ts`).
-- Navigation : `client/navigation.ts` (8 entrées en 3 groupes, `hint` = sous-titre de page). Infos clés de Cmd+K :
+- Coque : sidebar sur `bg`, chaque page dans une carte `bg-panel` (`#page` = conteneur qui défile). Page = `PageHeader`
+  (barre 56 px : titre, `meta`, actions à droite) puis `Page` (contenu). Onglets d'une page = `LinkSegments` dans la barre.
+- Créer : une seule fenêtre `connected/create/CreateDialog` (`overlays.openCreate(kind, seed)`), touches C B F I D R.
+  Choix en un clic : `Pill`/`DotPills`/`PersonPills` ; menus de ligne : `PickMenu` (options de `client/views/task-menus.ts`).
+- Navigation : `client/navigation.ts` (7 entrées, touches 1–7 ; `SUB_PAGES` = onglets/pages rattachés, trouvés par Cmd+K). Infos clés de Cmd+K :
   `client/destinations.ts`. Couleurs de features du planning : `--feature-0…7` via `client/views/feature-colors.ts`.
 - États vides : toujours une phrase qui dit quoi faire + un bouton/lien vers l'action (`EmptyState`, `compact` en colonne).
 - Ouvrir un élément : `peek(ref)` (tiroir `?peek=T-12`) ; features → `/p/[slug]/features/F-3` ; messages → `/p/[slug]/go/M-4`.
 
 ## Conventions
 
+- **Petites modifs (UI, libellés, styles) : ne pas tester** (pas de `check`/`test`/captures/navigateur) — Bastien teste lui-même.
+  Ne lancer les vérifications que pour les changements de logique, de domaine ou de schéma.
 - SOLID/KISS/DRY, fonctions courtes, noms explicites. ~50 lignes max par fichier (exceptions : schémas, config, container).
 - Commentaires seulement pour le _pourquoi_. Pas de `any`. Dates : ISO string dans les DTO, `YYYY-MM-DD` pour les échéances.
 - UI en français, code en anglais. Commits Conventional Commits, un par étape logique, uniquement si `check` + `test` passent.

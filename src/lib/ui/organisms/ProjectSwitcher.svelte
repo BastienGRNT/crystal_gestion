@@ -16,12 +16,12 @@
 <Popover {open} onclose={() => (open = false)} width="w-56">
 	{#snippet trigger()}
 		<button
-			class="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition hover:bg-surface/70"
+			class="flex h-10 w-full items-center gap-2.5 rounded-lg px-2 text-left transition hover:bg-side-hover"
 			onclick={() => (open = !open)}
 			aria-expanded={open}
 		>
-			<Logo size={22} />
-			<span class="flex-1 truncate font-semibold tracking-tight">{current.name}</span>
+			<Logo size={20} />
+			<span class="flex-1 truncate text-sm font-semibold tracking-[-0.01em]">{current.name}</span>
 			<ChevronsUpDown size={14} class="text-ink-3" />
 		</button>
 	{/snippet}

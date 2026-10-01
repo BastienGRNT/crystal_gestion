@@ -16,6 +16,7 @@ export function ideaHandlers(context: ProjectContext, id: string): IdeaHandlers 
 			if (feature) goto(projectPath(store.project.slug, `/features/${feature.ref}`));
 		},
 		onarchive: (archived) => actions.ideas.archive(id, archived),
+		onkeep: () => actions.ideas.keep(id),
 		onremove: () => actions.ideas.remove(id)
 	};
 }

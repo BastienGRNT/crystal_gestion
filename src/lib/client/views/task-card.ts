@@ -2,7 +2,7 @@ import type { Feature, Moscow } from '$lib/modules/features/domain/feature';
 import type { Member } from '$lib/modules/projects/domain/project';
 import { daysUntil } from '$lib/modules/kernel/domain/dates';
 import { isPlacedByHand, URGENCY_THRESHOLD_DAYS } from '$lib/modules/tasks/domain/eisenhower';
-import type { Task } from '$lib/modules/tasks/domain/task';
+import type { Task, TaskStatus } from '$lib/modules/tasks/domain/task';
 import { isRunning, totalMinutes, type TimeEntry } from '$lib/modules/time/domain/time-entry';
 
 export interface TaskCardView {
@@ -10,7 +10,9 @@ export interface TaskCardView {
 	ref: string;
 	title: string;
 	done: boolean;
-	feature: { ref: string; title: string; priority: Moscow } | null;
+	status: TaskStatus;
+	fix: boolean;
+	feature: { id: string; ref: string; title: string; priority: Moscow } | null;
 	assignees: Pick<Member, 'id' | 'name' | 'color'>[];
 	dueDate: string | null;
 	dueTone: 'late' | 'soon' | null;
@@ -48,8 +50,10 @@ export function toTaskCard(
 		ref: task.ref,
 		title: task.title,
 		done: task.status === 'done',
+		status: task.status,
+		fix: task.isFix,
 		feature: feature
-			? { ref: feature.ref, title: feature.title, priority: feature.priority }
+			? { id: feature.id, ref: feature.ref, title: feature.title, priority: feature.priority }
 			: null,
 		assignees: task.assigneeIds
 			.map((id) => membersById.get(id))

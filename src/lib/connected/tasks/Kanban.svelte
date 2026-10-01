@@ -34,10 +34,16 @@
 		actions.tasks.move(id, status, dropPosition(tasksByStatus[status], id, index));
 	}
 
-	function add(status: TaskStatus, title: string) {
+	function add(status: TaskStatus, title: string, isFix: boolean) {
 		const assigneeIds = filter.person ? [filter.person] : [];
 		const featureId = filter.feature && filter.feature !== 'none' ? filter.feature : null;
-		actions.tasks.create({ title, status, assigneeIds, featureId });
+		actions.tasks.create({
+			title,
+			status,
+			assigneeIds,
+			featureId,
+			isFix: isFix || !!filter.bugsOnly
+		});
 	}
 </script>
 

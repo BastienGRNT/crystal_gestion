@@ -15,18 +15,17 @@
 
 <a
 	{href}
-	title={shortcut ? `${label} (${shortcut.toUpperCase()})` : label}
+	title={shortcut ? `${label} (${shortcut})` : label}
 	aria-current={active ? 'page' : undefined}
-	class="group relative flex h-9 items-center gap-3 rounded-lg px-2.5 text-base transition {active
-		? 'bg-surface font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]'
-		: 'text-ink-2 hover:bg-surface/60 hover:text-ink'}"
+	class="flex h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-sm transition {active
+		? 'bg-panel font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]'
+		: 'text-ink-2 hover:bg-side-hover hover:text-ink'}"
 >
-	{#if active}<span class="absolute top-2 bottom-2 -left-3 w-[3px] rounded-r-full bg-accent"
-		></span>{/if}
-	<Icon size={17} strokeWidth={active ? 2.2 : 1.8} />
+	<Icon size={16} />
 	<span class="flex-1">{label}</span>
 	{#if badge > 0}
-		<span class="rounded-full bg-accent-soft px-1.5 font-mono text-2xs font-medium text-accent-text"
+		<span
+			class="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-soft px-1.5 text-2xs font-semibold text-accent-text"
 			>{badge}</span
 		>
 	{/if}

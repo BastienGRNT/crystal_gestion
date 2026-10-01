@@ -28,13 +28,14 @@
 
 <svelte:head><title>Mémoire IA · {store.project.name}</title></svelte:head>
 
-<Page width="max-w-6xl">
-	<PageHeader
-		eyebrow="Projet"
-		title="Mémoire IA"
-		subtitle="Les notes que l’IA ajoutera au fil du temps (conventions, qui fait quoi, erreurs à ne pas refaire). Tout est visible, modifiable et supprimable par l’équipe."
-	/>
-	<ProjectTabs value="ai" />
+<PageHeader title="Features">
+	{#snippet actions()}<ProjectTabs value="ai" />{/snippet}
+</PageHeader>
+<Page width="max-w-[1000px]">
+	<p class="mb-6 text-sm text-ink-2">
+		Les notes que l’IA ajoutera au fil du temps (conventions, qui fait quoi, erreurs à ne pas
+		refaire). Tout est visible, modifiable et supprimable par l’équipe.
+	</p>
 	<Section title="Notes" count={store.aiNotes.items.length}>
 		<ul>
 			{#each store.aiNotes.items as note (note.id)}

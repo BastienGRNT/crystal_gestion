@@ -3,6 +3,7 @@
 	import { formatMinutes } from '$lib/modules/time/domain/time-entry';
 	import type { TaskCardView } from '$lib/client/views/task-card';
 	import DueDate from '../atoms/DueDate.svelte';
+	import BugMark from '../atoms/BugMark.svelte';
 	import PriorityDot from '../atoms/PriorityDot.svelte';
 	import AvatarStack from './AvatarStack.svelte';
 
@@ -34,7 +35,7 @@
 	{ondragstart}
 	{ondragend}
 	onclick={onopen}
-	class="group relative flex w-full flex-col gap-2 overflow-hidden rounded-lg border border-line bg-surface p-3 text-left shadow-[0_1px_0_rgb(0_0_0/0.03)] transition hover:border-line-strong hover:shadow-pop {dragging
+	class="group relative flex w-full flex-col gap-2 overflow-hidden rounded-[10px] border border-line bg-surface px-3 py-2.5 text-left shadow-card transition hover:border-line-strong {dragging
 		? 'opacity-40'
 		: ''}"
 >
@@ -42,6 +43,7 @@
 		></span>{/if}
 	<span class="flex items-center gap-2 text-xs text-ink-3">
 		<span class="font-mono">{task.ref}</span>
+		{#if task.fix}<BugMark />{/if}
 		{#if showPin && task.pinned}<span
 				title="Placée à la main : change-la depuis la tâche pour revenir à l’automatique"
 				><Pin size={12} /></span
@@ -52,7 +54,7 @@
 			>
 		{/if}
 	</span>
-	<span class="text-base leading-snug font-medium {task.done ? 'text-ink-3 line-through' : ''}"
+	<span class="text-sm leading-snug font-medium {task.done ? 'text-ink-3 line-through' : ''}"
 		>{task.title}</span
 	>
 	{#if task.dueDate || task.minutes || task.assignees.length}

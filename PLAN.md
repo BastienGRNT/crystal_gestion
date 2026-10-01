@@ -29,20 +29,21 @@ idées. IA : le futur `ProjectContextBuilder` agrège FK + références + journa
 
 - `users` (email, nom, hash scrypt, couleur, préférences jsonb : vue tâches par défaut) · `sessions` · `invitations`
 - `projects` (slug, nom, objectif, cible, date limite, hors périmètre, définition de fini) · `project_members` (rôle, `last_seen_at`, `recap_since`)
-- `features` (titre, description, priorité MoSCoW, responsable, critères de fini, position)
-- `tasks` (titre, description, feature?, statut, date limite?, importance forcée?, position, `completed_at`) · `task_assignees`
+- `features` (titre, description, priorité MoSCoW, responsable, critères de fini)
+- `tasks` (titre, description, feature?, statut, date limite?, importance forcée?, position, correctif?, `completed_at`) · `task_assignees`
 - `time_entries` (user, tâche?, début, fin? — `null` = chrono en cours, source `timer|manual`) : chrono **et** blocs de travail du planning = même objet
 - `availabilities` (user, début, fin, statut `available|maybe`) — globales à l'utilisateur, visibles dans tous ses projets
-- `messages` (feature? — `null` = `#général`, auteur, corps, `reply_to_id`, `is_question`) · `message_mentions` · `question_targets` (message, user, `resolved_at`)
+- `channels` (nom) — canaux sous Général · `messages` (feature?, canal? — les deux `null` = Général, auteur, corps, `reply_to_id`, `is_question`) · `message_mentions` · `question_targets` (message, user, `resolved_at`)
 - `journal_entries` (type `decision|fix|scope`, titre, feature?, `details` jsonb typé par type, message source?)
 - `ideas` (titre, note, feature?, `archived_at`, `triaged_at`)
 - `accounts` (service, identifiant, secret, url, notes, feature?) · `resource_links` (titre, url, tag, feature?) · `contacts`
-- `files` (feature? — `null` = dossier général, nom, mime, taille, clé de stockage)
+- `folders` (feature?, parent?, nom) — sous-dossiers · `files` (feature? — `null` = dossier général, sous-dossier?, nom, mime, taille, clé de stockage)
 - `activities` (acteur, verbe, élément, détails jsonb) · `notifications` (user, type `mention|question|assigned`, élément, lu?)
 - `ai_notes` (contenu, auteur `ai|user`) — page « Ce que l'IA sait du projet »
 
 « Créé automatiquement » = **par construction** : le canal `#général` = messages sans feature, le fil d'une feature =
-messages de cette feature, le dossier d'une feature = fichiers de cette feature. Aucune table « canal » ni « dossier »
+messages de cette feature, le dossier d'une feature = fichiers de cette feature. Seuls les canaux sous Général et les
+sous-dossiers sont stockés (`channels`, `folders`) ; les racines (Général, une par feature) restent dérivées, aucune
 à synchroniser, donc rien ne peut se désynchroniser.
 
 ## 2. Architecture
@@ -88,7 +89,7 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 
 Éditorial + technique. Contraste entre une serif italique expressive et une UI très nette.
 
-- **Typo** : _Instrument Serif_ (titres de pages, salutations, grands chiffres), _Geist_ (UI), _Geist Mono_ (refs `T-12`, durées).
+- **Typo** : _Geist_ partout (titres en semibold serré), _Geist Mono_ (refs `T-12`, durées).
 - **Clair** : papier chaud `#F4F1EA`, surfaces blanches, encre `#16151B`, accent outremer électrique `#3D2BFF`.
 - **Sombre** : encre profonde `#0D0D12`, surfaces `#16161D`, texte ivoire `#ECE8DF`, accent lavande lumineuse `#9D8CFF`.
 - **Signature** : le prisme — dégradé conique (outremer → magenta → ambre → turquoise) réservé à 3 endroits : logo,
@@ -112,7 +113,9 @@ Ports transverses : `Clock`, `Broadcaster`, `FileStorage` (disque local), `Secre
 | Tâche bloquée                       | Pas de statut en plus : « en retard » (échéance passée) + « au point mort » (En cours/À valider sans modification depuis 7 j)                                      | Colonnes fixes, détection automatique                                                 |
 | Questions                           | Résolues par une réponse (`reply_to`) de la personne ou « marquer comme traité »                                                                                   | Explicite et fiable                                                                   |
 | Journal auto                        | Changement de priorité MoSCoW, suppression de feature, ajout de feature après les 24 h de cadrage                                                                  | Évite de polluer le journal au démarrage                                              |
-| Won't                               | Restent des features, affichées dans « Idées / Plus tard » (dérivé, pas de copie)                                                                                  | Pas de synchronisation                                                                |
+| Icebox                              | Premier statut des tâches (kanban « Par statut ») ; hors matrice, « Ma liste » et avancement des features. Idées = hors produit                                    | Une idée produit reste une tâche, prête à être reprise                                |
+| Bug                                 | Tag d'une tâche (`tasks.is_fix`), dans une feature ou non ; icône insecte rouge, touche B, filtre « Bugs seulement »                                               | Une feature a plusieurs tâches, un fix est l'une d'elles                              |
+| Sous-dossiers / canaux              | Un dossier ne se supprime que vide ; supprimer un canal supprime ses messages (undo 6 s)                                                                           | Aucun fichier perdu par erreur ; un canal est un sujet jetable                        |
 | « Dispo aujourd'hui ? »             | Puces Matin (9–12) / Aprèm (14–18) / Soir (19–23) / Pas dispo                                                                                                      | Un clic, créneaux ajustables ensuite dans le planning                                 |
 | Récap « depuis ta dernière visite » | Nouvelle visite si inactivité > 1 h ; `recap_since` = dernière activité avant ce trou ; première visite = tout l'historique                                        | Un rafraîchissement ne vide pas le récap ; un nouvel arrivant voit ce qui s'est passé |
 | Conflits                            | Dernière écriture gagne ; exceptions : numérotation atomique, positions fractionnaires (kanban), brouillon d'édition en ligne protégé tant que le champ a le focus | Seuls cas où LWW casse vraiment                                                       |
@@ -130,28 +133,30 @@ Un mot = un concept, partout (menus, titres, boutons, états vides, Cmd+K). Tuto
 | Terme                                           | Sens                                                                                                                 | À ne plus écrire                      |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Projet                                          | Objectif, public, date limite, hors périmètre, « c'est fini quand », équipe                                          | Cadrage (seul)                        |
-| Feature                                         | Un morceau du produit (ex. « Paiement Stripe »), porte des tâches                                                    | Epic, module                          |
+| Feature                                         | Un morceau du produit (ex. « Paiement Stripe ») ; page Features, porte des tâches et bugs                            | Epic, module                          |
+| Icebox                                          | Statut de tâche : noté pour plus tard, on n'y réfléchit pas encore                                                   | Cold idea, backlog                    |
 | Priorité (d'une feature)                        | Choisie : **Indispensable** (Must), **Si possible** (Should), **Bonus** (Could), **Pas maintenant** (Won't)          | Must/Should/Could/Won't seuls         |
-| Tâche                                           | Une action concrète, assignée, avec échéance facultative                                                             | Ticket, issue                         |
+| Tâche                                           | Action concrète, assignée, échéance facultative ; peut être un Bug                                                   | Ticket, issue                         |
 | Urgence (d'une tâche)                           | Calculée (matrice) : **Faire maintenant**, **Planifier**, **Si j'ai le temps**, **Plus tard** ; déplaçable à la main | Priorité (pour une tâche), Eisenhower |
 | Important / Urgent                              | Important = feature Indispensable ou Si possible (ou forcé) ; urgent = échéance ≤ 3 j                                |                                       |
-| Statut                                          | À faire · En cours · À valider · Fait                                                                                | Todo, done                            |
+| Statut                                          | Icebox · À faire · En cours · À valider · Fait                                                                       | Todo, done                            |
 | Chrono                                          | Mesure le temps sur une tâche ; **Démarrer** / **Arrêter** ; crée un bloc de temps                                   | Timer, pause                          |
 | Bloc de temps                                   | Temps passé sur une tâche, visible dans le Planning                                                                  | Time entry, travail                   |
 | Dispo                                           | Créneau où tu peux travailler (« Dispo » ou « Peut-être »)                                                           | Disponibilité (long)                  |
-| Discussion / Général                            | Fil commun `Général` + un fil par feature                                                                            | Canal, #général                       |
+| Discussion / Général / Canal                    | Fil commun `Général`, ses canaux (Marketing…), un fil par feature                                                    | #général                              |
 | Question                                        | Message qui attend la réponse d'une personne citée avec @                                                            |                                       |
 | Journal                                         | Décisions, bugs résolus, changements de périmètre : pourquoi le projet est comme il est                              | Fix (seul)                            |
 | Décision · Bug résolu · Changement de périmètre | Les trois types d'entrée du journal                                                                                  | Fix                                   |
-| Idée                                            | Pour plus tard ; se trie à la revue (→ tâche, → feature, archiver)                                                   | Backlog                               |
+| Idée                                            | Hors produit (contacter quelqu'un, piste à creuser) ; se trie à la revue (→ tâche, → feature, archiver)              | Backlog                               |
 | Ressources                                      | Comptes partagés, liens, contacts, fichiers                                                                          | Boîte à outils                        |
 | Revue de la semaine                             | 4 étapes : avancement, bloqué, questions, idées à trier                                                              | Revue (seul)                          |
 | Aperçu                                          | Panneau latéral qui ouvre n'importe quel élément (`T-12`, `D-3`…)                                                    | Peek                                  |
 | Cité dans                                       | Éléments qui mentionnent celui-ci avec `#`                                                                           | Mentionné dans, backlinks             |
 | Mémoire IA                                      | Ce que l'IA sait du projet                                                                                           |                                       |
 
-Navigation (8 entrées) : **Au quotidien** Aujourd'hui · Tâches · Discussion · Planning — **Le projet** Projet (onglets
-Vue d'ensemble · Journal · Mémoire IA) · Ressources — **Chaque semaine** Idées · Revue de la semaine.
+Navigation (7 entrées, touches 1–7) : Aujourd'hui · Tâches · Features (onglets Features · Journal · Le projet · Mémoire
+IA) · Discussion · Planning · Ressources · Idées (bouton « Lancer la revue de la semaine »). Créer : bouton de la sidebar ou
+une lettre (C tâche, B bug, F feature, I idée, D décision, R bug résolu).
 
 ## 6. Avancement — itération 2
 

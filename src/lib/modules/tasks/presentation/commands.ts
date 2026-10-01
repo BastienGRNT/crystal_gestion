@@ -11,7 +11,8 @@ const fields = z.object({
 	dueDate: dateKey.nullable(),
 	important: z.boolean().nullable(),
 	urgent: z.boolean().nullable(),
-	assigneeIds: z.array(id)
+	assigneeIds: z.array(id),
+	isFix: z.boolean()
 });
 const target = projectScoped.extend({ id });
 const status = z.enum(TASK_STATUSES);

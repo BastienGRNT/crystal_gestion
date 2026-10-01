@@ -1,34 +1,40 @@
 <script lang="ts">
 	import { ArrowUpRight } from '@lucide/svelte';
 	import type { Moscow } from '$lib/modules/features/domain/feature';
-	import PriorityBadge from '../atoms/PriorityBadge.svelte';
+	import DeleteButton from '../atoms/DeleteButton.svelte';
+	import InlineText from '../molecules/InlineText.svelte';
 
 	interface Props {
 		title: string;
 		/** Feature threads link back to their feature. */
 		feature?: { ref: string; priority: Moscow; href: string };
+		/** Channels can be renamed and deleted from their header. */
+		channel?: { onrename: (name: string) => void; ondelete: () => void };
 	}
 
-	let { title, feature }: Props = $props();
+	let { title, feature, channel }: Props = $props();
+	const scope = $derived(
+		feature ? `feature ${feature.ref}` : channel ? 'canal de Général' : 'toute l’équipe'
+	);
 </script>
 
-<header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-	<div class="min-w-0">
-		<p class="mb-1 font-mono text-2xs font-medium tracking-[0.14em] text-ink-3 uppercase">
-			Discussion{#if feature}&nbsp;· feature {feature.ref}{:else}&nbsp;· toute l’équipe{/if}
-		</p>
-		<h1 class="truncate font-display text-3xl leading-[1.05] sm:text-4xl">
-			{title}
-		</h1>
-	</div>
+<header class="flex min-w-0 flex-1 items-center gap-2.5">
+	{#if channel}
+		<InlineText value={title} onsave={channel.onrename} class="truncate font-semibold" />
+	{:else}
+		<h1 class="truncate font-semibold">{title}</h1>
+	{/if}
+	<span class="hidden truncate text-xs text-ink-3 sm:inline">{scope}</span>
+	<span class="flex-1"></span>
 	{#if feature}
-		<div class="flex items-center gap-2 pb-1">
-			<PriorityBadge priority={feature.priority} />
-			<a
-				href={feature.href}
-				class="inline-flex items-center gap-1 text-sm text-ink-2 transition hover:text-accent"
-				>Voir la feature <ArrowUpRight size={13} /></a
-			>
+		<a
+			href={feature.href}
+			class="inline-flex h-6 items-center gap-1.5 rounded-md border border-line px-2 text-xs text-ink-2 hover:bg-hover hover:no-underline"
+			><span class="font-mono">{feature.ref}</span>Voir la feature <ArrowUpRight size={12} /></a
+		>
+	{:else if channel}
+		<div>
+			<DeleteButton label="Supprimer le canal et ses messages" onconfirm={channel.ondelete} />
 		</div>
 	{/if}
 </header>

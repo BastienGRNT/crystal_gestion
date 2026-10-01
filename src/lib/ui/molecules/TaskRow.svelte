@@ -3,6 +3,7 @@
 	import type { TaskCardView } from '$lib/client/views/task-card';
 	import Checkbox from '../atoms/Checkbox.svelte';
 	import DueDate from '../atoms/DueDate.svelte';
+	import BugMark from '../atoms/BugMark.svelte';
 	import PriorityDot from '../atoms/PriorityDot.svelte';
 
 	interface Props {
@@ -26,6 +27,7 @@
 	>
 		<span class="truncate text-base {task.done ? 'text-ink-3 line-through' : ''}">{task.title}</span
 		>
+		{#if task.fix}<BugMark />{/if}
 		{#if task.running}<span
 				class="size-2 shrink-0 animate-pulse rounded-full prism"
 				title="Chrono en cours"

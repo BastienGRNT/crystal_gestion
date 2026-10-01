@@ -5,11 +5,13 @@ import type { DiscussionModule } from '..';
 
 const body = z.string().max(20_000);
 const target = projectScoped.extend({ id });
+const name = z.string().max(80);
 
 export const discussionCommands = (discussion: DiscussionModule) => ({
 	'messages.post': defineCommand(
 		projectScoped.extend({
 			featureId: id.nullable(),
+			channelId: id.nullable().default(null),
 			body,
 			replyToId: id.nullable().default(null),
 			isQuestion: z.boolean().default(false)
@@ -23,6 +25,15 @@ export const discussionCommands = (discussion: DiscussionModule) => ({
 	'messages.markQuestion': defineCommand(
 		target.extend({ isQuestion: z.boolean() }),
 		(actor, input) => discussion.markQuestion(actor, input)
+	),
+	'channels.create': defineCommand(projectScoped.extend({ name }), (actor, input) =>
+		discussion.channels.create(actor, input)
+	),
+	'channels.rename': defineCommand(target.extend({ name }), (actor, input) =>
+		discussion.channels.rename(actor, input)
+	),
+	'channels.delete': defineCommand(target, (actor, input) =>
+		discussion.channels.remove(actor, input)
 	),
 	'questions.resolve': defineCommand(projectScoped.extend({ messageId: id }), (actor, input) =>
 		discussion.resolveQuestion(actor, input)

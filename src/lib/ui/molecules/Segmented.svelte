@@ -1,7 +1,9 @@
 <script lang="ts" generics="T extends string">
+	import type { Component } from 'svelte';
+
 	interface Props {
 		value: T;
-		options: { value: T; label: string; tone?: string }[];
+		options: { value: T; label: string; tone?: string; icon?: Component<{ size?: number }> }[];
 		onchange: (value: T) => void;
 		label: string;
 	}
@@ -20,11 +22,12 @@
 			role="radio"
 			aria-checked={option.value === value}
 			onclick={() => onchange(option.value)}
-			class="h-7 rounded-[5px] px-2.5 text-sm whitespace-nowrap transition {option.value === value
-				? `bg-surface font-medium shadow-sm ${option.tone ?? 'text-ink'}`
-				: 'text-ink-3 hover:text-ink-2'}"
+			class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-ui font-medium whitespace-nowrap transition {option.value ===
+			value
+				? `bg-panel shadow-sm ${option.tone ?? 'text-ink'}`
+				: 'text-ink-3 hover:text-ink'}"
 		>
-			{option.label}
+			{#if option.icon}<option.icon size={14} />{/if}{option.label}
 		</button>
 	{/each}
 </div>

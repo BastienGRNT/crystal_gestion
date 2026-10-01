@@ -12,13 +12,13 @@
 </script>
 
 <button
-	class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left {highlighted
-		? 'bg-sunken text-ink'
-		: 'text-ink-2'}"
+	class="flex min-h-[38px] w-full items-center gap-3 rounded-lg px-3 py-1.5 text-left text-sm {highlighted
+		? 'bg-hover text-ink'
+		: 'text-ink'}"
 	onmousemove={onhover}
 	onclick={onrun}
 >
-	{#if item.icon}<item.icon size={16} />{/if}
+	{#if item.icon}<span class="text-ink-3"><item.icon size={15} /></span>{/if}
 	<span class="min-w-0 flex-1">
 		<span class="block truncate">{item.label}</span>
 		{#if item.detail}<span class="block truncate text-xs text-ink-3">{item.detail}</span>{/if}

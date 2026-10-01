@@ -17,5 +17,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const feature = message?.featureId
 		? await container.features.find(project.id, message.featureId)
 		: null;
-	redirect(303, `${base}/discussion${feature ? `/${feature.ref}` : ''}#${element.ref}`);
+	const thread = feature?.ref ?? message?.channelId;
+	redirect(303, `${base}/discussion${thread ? `/${thread}` : ''}#${element.ref}`);
 };

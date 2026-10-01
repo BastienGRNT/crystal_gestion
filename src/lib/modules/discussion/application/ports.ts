@@ -1,8 +1,10 @@
+import type { Channel, ThreadKey } from '../domain/channel';
 import type { Message, Question } from '../domain/message';
 
 export interface NewMessage {
 	projectId: string;
 	featureId: string | null;
+	channelId: string | null;
 	authorId: string;
 	body: string;
 	title: string;
@@ -18,7 +20,7 @@ export interface MessageRepository {
 	update(projectId: string, id: string, changes: MessageChanges): Promise<Message>;
 	find(projectId: string, id: string): Promise<Message | null>;
 	delete(projectId: string, id: string): Promise<void>;
-	listThread(projectId: string, featureId: string | null, limit: number): Promise<Message[]>;
+	listThread(projectId: string, thread: ThreadKey, limit: number): Promise<Message[]>;
 }
 
 export interface QuestionRepository {
@@ -30,4 +32,13 @@ export interface QuestionRepository {
 
 export interface MemberNames {
 	names(projectId: string): Promise<Map<string, string>>;
+}
+
+export interface ChannelRepository {
+	create(channel: { projectId: string; name: string }): Promise<Channel>;
+	rename(projectId: string, id: string, name: string): Promise<Channel | null>;
+	/** Deletes the channel and its messages. */
+	delete(projectId: string, id: string): Promise<boolean>;
+	find(projectId: string, id: string): Promise<Channel | null>;
+	list(projectId: string): Promise<Channel[]>;
 }

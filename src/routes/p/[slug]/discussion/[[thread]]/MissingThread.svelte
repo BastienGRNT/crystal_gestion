@@ -10,7 +10,7 @@
 	<EmptyState
 		icon={MessageSquareOff}
 		title="Ce fil n’existe plus"
-		text="La feature a peut-être été supprimée. Ses messages ont rejoint Général."
+		text="La feature ou le canal a peut-être été supprimé."
 	>
 		<a {href}><Button size="sm">Aller dans Général</Button></a>
 	</EmptyState>

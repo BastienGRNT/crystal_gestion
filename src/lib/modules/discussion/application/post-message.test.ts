@@ -25,6 +25,13 @@ const setup = () => {
 			delete: vi.fn(),
 			listThread: vi.fn()
 		},
+		channels: {
+			create: vi.fn(),
+			rename: vi.fn(),
+			delete: vi.fn(),
+			find: vi.fn(async () => null),
+			list: vi.fn()
+		},
 		questions: {
 			open: vi.fn(async () => []),
 			close: vi.fn(),
@@ -46,7 +53,7 @@ const setup = () => {
 	};
 	return { deps, post: makePostMessage(deps) };
 };
-const base = { projectId: 'p', featureId: null, replyToId: null };
+const base = { projectId: 'p', featureId: null, channelId: null, replyToId: null };
 
 describe('post message', () => {
 	it('turns a question with mentions into open questions and notifies', async () => {
@@ -71,5 +78,22 @@ describe('post message', () => {
 		const { deps, post } = setup();
 		await post(actor, { ...base, body: 'Stripe.', isQuestion: false, replyToId: 'm0' });
 		expect(deps.questions.resolve).toHaveBeenCalledWith('m0', actor.id, expect.any(Date));
+	});
+
+	it('a reply goes to the thread of the message it answers', async () => {
+		const { deps, post } = setup();
+		deps.messages.find.mockResolvedValue({ featureId: 'f1', channelId: null });
+		await post(actor, { ...base, body: 'Oui.', isQuestion: false, replyToId: 'm0' });
+		expect(deps.messages.create).toHaveBeenCalledWith(
+			expect.objectContaining({ featureId: 'f1', channelId: null, replyToId: 'm0' })
+		);
+	});
+
+	it('refuses a channel that does not exist', async () => {
+		const { deps, post } = setup();
+		await expect(
+			post(actor, { ...base, channelId: 'c1', body: 'Salut', isQuestion: false })
+		).rejects.toThrow('Canal inconnu');
+		expect(deps.messages.create).not.toHaveBeenCalled();
 	});
 });

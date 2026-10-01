@@ -1,4 +1,5 @@
 import type { Framing } from '$lib/modules/projects/domain/project';
+import type { TaskView } from '$lib/modules/identity/domain/user';
 import { send } from '../commands';
 import { attempt, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
@@ -45,7 +46,7 @@ export function projectActions(store: ProjectStore, meId: string) {
 				() => store.aiNotes.remove(id),
 				() => send('aiNotes.delete', { projectId: projectId(), id })
 			),
-		setTaskView: (taskView: 'kanban' | 'matrix') =>
+		setTaskView: (taskView: TaskView) =>
 			attempt(() => send('identity.updatePreferences', { taskView }))
 	};
 }

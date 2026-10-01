@@ -5,6 +5,8 @@ export interface Message extends ElementBase {
 	projectId: string;
 	/** `null` is the project's Général channel; otherwise the feature's thread. */
 	featureId: string | null;
+	/** A channel under Général; `null` with `featureId` also `null` is Général itself. */
+	channelId: string | null;
 	authorId: string;
 	body: string;
 	replyToId: string | null;

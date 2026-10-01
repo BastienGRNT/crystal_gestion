@@ -7,17 +7,11 @@
 	import { theme } from '$lib/client/theme.svelte';
 	import CommandPalette from '$lib/ui/organisms/CommandPalette.svelte';
 
-	const { store, actions, refs, me, peek } = useProject();
+	const { store, refs } = useProject();
 	const slug = $derived(store.project.slug);
 
 	const intents: PaletteIntents = {
-		createTask: async (title) => {
-			const task = await actions.tasks.create({ title, assigneeIds: [me.id] });
-			if (task) peek(task.ref);
-		},
-		createIdea: (title) => actions.ideas.create({ title }),
-		createDecision: (title) =>
-			goto(`${projectPath(slug, '/journal')}?new=decision&title=${encodeURIComponent(title)}`),
+		create: (kind, title) => overlays.openCreate(kind, { title }),
 		open: (element) => goto(refs.href(element)),
 		navigate: (path) => goto(projectPath(slug, path)),
 		toggleTheme: () => theme.cycle()

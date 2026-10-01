@@ -1,9 +1,10 @@
-/** Global overlays any page can open: palette, quick idea capture, notifications. */
+import type { CreateKind, CreateSeed } from './create-kinds';
+
+/** Global overlays any page can open: palette, « Créer » dialog, notifications. */
 class Overlays {
 	palette = $state(false);
 	paletteQuery = $state('');
-	idea = $state(false);
-	ideaSeed = $state('');
+	create = $state<{ kind: CreateKind; seed: CreateSeed } | null>(null);
 	notifications = $state(false);
 	mobileMenu = $state(false);
 
@@ -12,9 +13,9 @@ class Overlays {
 		this.palette = true;
 	}
 
-	openIdea(seed = '') {
-		this.ideaSeed = seed;
-		this.idea = true;
+	openCreate(kind: CreateKind = 'task', seed: CreateSeed = {}) {
+		this.palette = false;
+		this.create = { kind, seed };
 	}
 }
 

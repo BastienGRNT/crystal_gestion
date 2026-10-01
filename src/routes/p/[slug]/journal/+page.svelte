@@ -1,57 +1,29 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import { BookOpen, Wrench } from '@lucide/svelte';
-	import { isDraftKind, type DraftKind } from '$lib/client/views/journal-draft';
+	import { useProject } from '$lib/client/context';
+	import { overlays } from '$lib/client/overlays.svelte';
 	import JournalBrowser from '$lib/connected/journal/JournalBrowser.svelte';
-	import JournalComposer from '$lib/connected/journal/JournalComposer.svelte';
 	import ProjectTabs from '$lib/connected/project/ProjectTabs.svelte';
-	import Button from '$lib/ui/atoms/Button.svelte';
+	import HeaderButton from '$lib/ui/molecules/HeaderButton.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
-	let composing = $state<{ kind: DraftKind; title: string; key: number } | null>(null);
-	const compose = (kind: DraftKind, title = '') => (composing = { kind, title, key: Date.now() });
-
-	// `?new=decision&title=…` (from Cmd+K) opens the composer once, then leaves a clean URL.
-	$effect(() => {
-		const kind = page.url.searchParams.get('new');
-		if (!isDraftKind(kind)) return;
-		const url = new URL(page.url);
-		untrack(() => compose(kind, url.searchParams.get('title') ?? ''));
-		url.searchParams.delete('new');
-		url.searchParams.delete('title');
-		goto(url, { replaceState: true, keepFocus: true, noScroll: true });
-	});
+	const { store } = useProject();
+	const compose = (kind: 'decision' | 'fix') => overlays.openCreate(kind);
 </script>
 
-<svelte:head><title>Journal · Crystal</title></svelte:head>
+<svelte:head><title>Journal · {store.project.name}</title></svelte:head>
 
-<Page width="max-w-6xl">
-	<PageHeader
-		eyebrow="Projet"
-		title="Journal"
-		subtitle="Pourquoi le projet est comme il est : décisions prises, bugs résolus, changements de périmètre."
-	>
-		{#snippet actions()}
-			<Button variant="primary" onclick={() => compose('decision')}
-				><BookOpen size={14} /> Nouvelle décision</Button
-			>
-			<Button onclick={() => compose('fix')}><Wrench size={14} /> Noter un bug résolu</Button>
-		{/snippet}
-	</PageHeader>
-	<ProjectTabs value="journal" />
-	{#if composing}
-		{#key composing.key}
-			<div class="mb-8">
-				<JournalComposer
-					kind={composing.kind}
-					title={composing.title}
-					onclose={() => (composing = null)}
-				/>
-			</div>
-		{/key}
-	{/if}
+<PageHeader title="Features">
+	{#snippet actions()}
+		<ProjectTabs value="journal" />
+		<HeaderButton shortcut="R" onclick={() => compose('fix')}>Bug résolu</HeaderButton>
+		<HeaderButton primary shortcut="D" onclick={() => compose('decision')}>+ Décision</HeaderButton>
+	{/snippet}
+</PageHeader>
+<Page width="max-w-[1000px]">
+	<p class="mb-6 text-sm text-ink-2">
+		Ce qu’on a décidé et pourquoi, les bugs corrigés et comment. Les changements de priorité des
+		features s’y notent tout seuls.
+	</p>
 	<JournalBrowser oncompose={compose} />
 </Page>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { isActive } from '$lib/modules/tasks/domain/task';
 	import { useProject } from '$lib/client/context';
 	import { matchesFilter, type TaskFilter } from '$lib/client/views/kanban';
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
@@ -15,9 +16,7 @@
 	let { filter }: { filter: TaskFilter } = $props();
 	const { store, actions, peek } = useProject();
 	const sources = new TaskSources(store);
-	const open = $derived(
-		store.tasks.items.filter((t) => t.status !== 'done' && matchesFilter(t, filter))
-	);
+	const open = $derived(store.tasks.items.filter((t) => isActive(t) && matchesFilter(t, filter)));
 	const groups = $derived(groupByQuadrant(open, sources.priorityOf, new Date()));
 	const cells = $derived(
 		QUADRANTS.map((q) => ({
@@ -25,9 +24,10 @@
 			cards: groups[q].map(sources.card)
 		}))
 	);
-	const add = (quadrant: string, title: string) =>
+	const add = (quadrant: string, title: string, isFix: boolean) =>
 		actions.tasks.create({
 			title,
+			isFix: isFix || !!filter.bugsOnly,
 			...QUADRANT_AXES[quadrant as Quadrant],
 			assigneeIds: filter.person ? [filter.person] : [],
 			featureId: filter.feature && filter.feature !== 'none' ? filter.feature : null

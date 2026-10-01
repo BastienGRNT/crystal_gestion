@@ -1,125 +1,103 @@
 import {
+	BookOpen,
 	CalendarDays,
 	ClipboardCheck,
 	Gem,
-	Library,
+	House,
+	KeyRound,
+	Layers,
 	Lightbulb,
 	MessagesSquare,
-	SquareCheckBig,
-	Sun
+	Sparkles,
+	SquareCheckBig
 } from '@lucide/svelte';
-import type { NavSection } from '$lib/ui/types';
+import type { NavEntry } from '$lib/ui/types';
 
-/** Every page of a project. `hint` answers "what do I do here?" in the header and Cmd+K. */
+/** The sidebar, in order: its position is the keyboard shortcut (1–7). `hint` describes the page in Cmd+K. */
 export const NAVIGATION = [
 	{
 		key: 'today',
-		group: 'daily',
 		label: 'Aujourd’hui',
 		path: '',
-		icon: Sun,
-		shortcut: 'g a',
+		icon: House,
 		hint: 'Tes tâches du jour, tes dispos et ce qui a bougé'
 	},
 	{
 		key: 'tasks',
-		group: 'daily',
 		label: 'Tâches',
 		path: '/tasks',
 		icon: SquareCheckBig,
-		shortcut: 'g t',
 		hint: 'Qui fait quoi, et dans quel ordre'
 	},
 	{
+		key: 'features',
+		label: 'Features',
+		path: '/features',
+		icon: Layers,
+		hint: 'Les morceaux du produit, le journal et le cadrage du projet'
+	},
+	{
 		key: 'discussion',
-		group: 'daily',
 		label: 'Discussion',
 		path: '/discussion',
 		icon: MessagesSquare,
-		shortcut: 'g d',
 		hint: 'Échanger, poser une question à quelqu’un'
 	},
 	{
 		key: 'planning',
-		group: 'daily',
 		label: 'Planning',
 		path: '/planning',
 		icon: CalendarDays,
-		shortcut: 'g l',
 		hint: 'Quand chacun est dispo, et le temps passé'
 	},
 	{
-		key: 'project',
-		group: 'project',
-		label: 'Projet',
-		path: '/project',
-		icon: Gem,
-		shortcut: 'g p',
-		hint: 'Objectif, features, équipe, journal des décisions'
-	},
-	{
 		key: 'resources',
-		group: 'project',
 		label: 'Ressources',
 		path: '/resources',
-		icon: Library,
-		shortcut: 'g r',
+		icon: KeyRound,
 		hint: 'Comptes partagés, liens, contacts et fichiers'
 	},
 	{
 		key: 'ideas',
-		group: 'weekly',
 		label: 'Idées',
 		path: '/ideas',
 		icon: Lightbulb,
-		shortcut: 'g i',
-		hint: 'Tout ce qui attend : à trier pendant la revue'
-	},
-	{
-		key: 'review',
-		group: 'weekly',
-		label: 'Revue de la semaine',
-		path: '/review',
-		icon: ClipboardCheck,
-		shortcut: 'g v',
-		hint: '10 minutes pour faire le point ensemble'
+		hint: 'Tout ce qui attend d’être trié'
 	}
 ] as const;
 
 export type NavKey = (typeof NAVIGATION)[number]['key'];
 
-const GROUPS = [
-	{ key: 'daily', label: 'Au quotidien' },
-	{ key: 'project', label: 'Le projet' },
-	{ key: 'weekly', label: 'Chaque semaine' }
+/** Pages reached from a tab or a button, found by Cmd+K and lighting up their parent entry. */
+export const SUB_PAGES = [
+	{ key: 'journal', parent: 'features', label: 'Journal', path: '/journal', icon: BookOpen },
+	{ key: 'project', parent: 'features', label: 'Le projet', path: '/project', icon: Gem },
+	{ key: 'ai', parent: 'features', label: 'Mémoire IA', path: '/ai', icon: Sparkles },
+	{
+		key: 'review',
+		parent: 'ideas',
+		label: 'Revue de la semaine',
+		path: '/review',
+		icon: ClipboardCheck
+	}
 ] as const;
-
-/** Pages reached from inside another one (tabs, links) light up their parent entry. */
-const CHILDREN: Record<string, NavKey> = {
-	'/journal': 'project',
-	'/ai': 'project',
-	'/features': 'project'
-};
 
 export const projectPath = (slug: string, path = '') => `/p/${slug}${path}`;
 
-export const navSections = (
+export const navEntries = (
 	slug: string,
 	badges: Partial<Record<NavKey, number>> = {}
-): NavSection[] =>
-	GROUPS.map((group) => ({
-		label: group.label,
-		items: NAVIGATION.filter((item) => item.group === group.key).map((item) => ({
-			...{ key: item.key, label: item.label, icon: item.icon, shortcut: item.shortcut },
-			href: projectPath(slug, item.path),
-			badge: badges[item.key] ?? 0
-		}))
+): NavEntry[] =>
+	NAVIGATION.map((item, index) => ({
+		...{ key: item.key, label: item.label, icon: item.icon, shortcut: String(index + 1) },
+		href: projectPath(slug, item.path),
+		badge: badges[item.key] ?? 0
 	}));
 
 export function activeNav(pathname: string, slug: string): NavKey {
 	const rest = pathname.slice(projectPath(slug).length);
-	const child = Object.entries(CHILDREN).find(([path]) => rest.startsWith(path));
-	if (child) return child[1];
+	const sub = SUB_PAGES.find((page) => rest.startsWith(page.path));
+	if (sub) return sub.parent;
 	return NAVIGATION.find((item) => item.path && rest.startsWith(item.path))?.key ?? 'today';
 }
 

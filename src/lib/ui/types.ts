@@ -34,11 +34,12 @@ export interface PaletteGroup {
 	items: PaletteItem[];
 }
 
-export interface TodoGroup {
+/** A titled bunch of task rows (by urgency, by status…). `color` is a CSS color. */
+export interface TaskGroup {
 	key: string;
 	label: string;
-	hint: string;
-	tone: string;
+	hint?: string;
+	color: string;
 	tasks: TaskCardView[];
 }
 
@@ -71,10 +72,13 @@ export interface FeatureRowView {
 	id: string;
 	ref: string;
 	title: string;
+	description: string;
 	priority: Moscow;
 	owner: Person | null;
 	done: number;
 	total: number;
+	/** Open bugs. */
+	bugs: number;
 	href: string;
 }
 
@@ -87,15 +91,21 @@ export interface NavEntry {
 	badge: number;
 }
 
-export interface NavSection {
-	label: string;
-	items: NavEntry[];
-}
-
 export interface MatrixCell {
 	key: string;
 	label: string;
 	hint: string;
 	tone: string;
 	cards: TaskCardView[];
+}
+
+/** One choice of a click menu (status, feature, assignee, due date…). */
+export interface PickOption<V> {
+	value: V;
+	label: string;
+	active: boolean;
+	dot?: string;
+	person?: Person;
+	icon?: Component<{ size?: number; class?: string }>;
+	hint?: string;
 }

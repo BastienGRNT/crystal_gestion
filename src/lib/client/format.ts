@@ -1,3 +1,5 @@
+import { addDays, daysUntil } from '$lib/modules/kernel/domain/dates';
+
 const relative = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
 	['day', 86_400_000],
@@ -27,4 +29,17 @@ export const formatTime = (iso: string) =>
 export function formatDueDate(dateKey: string): string {
 	const [year, month, day] = dateKey.split('-').map(Number);
 	return formatDay(new Date(year, month - 1, day), { day: 'numeric', month: 'short' });
+}
+
+/** « Hier », « Aujourd’hui », « Demain », a weekday within the week, else « 12 oct. ». */
+export function relativeDueDate(dateKey: string, today = new Date()): string {
+	const days = daysUntil(dateKey, today);
+	if (days === -1) return 'Hier';
+	if (days === 0) return 'Aujourd’hui';
+	if (days === 1) return 'Demain';
+	if (days > 1 && days < 7) {
+		const weekday = formatDay(addDays(today, days), { weekday: 'long' });
+		return weekday[0].toUpperCase() + weekday.slice(1);
+	}
+	return formatDueDate(dateKey);
 }

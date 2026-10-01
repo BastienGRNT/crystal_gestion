@@ -10,7 +10,7 @@
 		ondragend: () => void;
 		ondrop: () => void;
 		onopen: (ref: string) => void;
-		onadd: (title: string) => void;
+		onadd: (title: string, isFix: boolean) => void;
 	}
 
 	let { cell, draggingId, ondragstart, ondragend, ondrop, onopen, onadd }: Props = $props();
@@ -58,5 +58,5 @@
 			</li>
 		{/each}
 	</ul>
-	<div class="mt-2"><QuickAdd placeholder="Ajouter ici" {onadd} /></div>
+	<div class="mt-2"><QuickAdd placeholder="Ajouter…" onadd={(title) => onadd(title, false)} /></div>
 </section>

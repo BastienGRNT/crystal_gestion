@@ -16,3 +16,9 @@ export function daysUntil(dateKey: string, today: Date): number {
 
 export const minutesBetween = (start: string, end: string) =>
 	Math.max(0, Math.round((Date.parse(end) - Date.parse(start)) / 60_000));
+
+export function addDays(date: Date, days: number): Date {
+	const next = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	next.setDate(next.getDate() + days);
+	return next;
+}

@@ -32,9 +32,10 @@ export function drizzleMessageRepository(db: Executor): MessageRepository {
 		},
 		find: store.find,
 		delete: store.delete,
-		listThread: async (projectId, featureId, limit) => {
-			const thread = featureId ? eq(messages.featureId, featureId) : isNull(messages.featureId);
-			const newest = await store.query(and(eq(messages.projectId, projectId), thread), {
+		listThread: async (projectId, { featureId, channelId }, limit) => {
+			const feature = featureId ? eq(messages.featureId, featureId) : isNull(messages.featureId);
+			const channel = channelId ? eq(messages.channelId, channelId) : isNull(messages.channelId);
+			const newest = await store.query(and(eq(messages.projectId, projectId), feature, channel), {
 				newestFirst: true,
 				limit
 			});

@@ -8,11 +8,12 @@
 
 	interface Props {
 		featureId: string | null;
+		channelId: string | null;
 		placeholder: string;
 		replyTo: Message | null;
 	}
 
-	let { featureId, placeholder, replyTo = $bindable() }: Props = $props();
+	let { featureId, channelId, placeholder, replyTo = $bindable() }: Props = $props();
 	const { store, actions, refs, me } = useProject();
 	let text = $state('');
 	let question = $state(false);
@@ -34,6 +35,7 @@
 		if (!body) return;
 		const input = {
 			featureId,
+			channelId,
 			body,
 			replyToId: replyTo?.id ?? null,
 			isQuestion: question && canAsk

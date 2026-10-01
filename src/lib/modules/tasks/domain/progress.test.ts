@@ -16,6 +16,14 @@ describe('progressOf', () => {
 	it('is zero without tasks', () => {
 		expect(progressOf([]).ratio).toBe(0);
 	});
+
+	it('ignores icebox tasks: nobody committed to them yet', () => {
+		expect(progressOf([{ status: 'done' }, { status: 'icebox' }])).toEqual({
+			done: 1,
+			total: 1,
+			ratio: 1
+		});
+	});
 });
 
 describe('positionBetween', () => {

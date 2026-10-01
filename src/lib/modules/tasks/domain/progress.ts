@@ -6,7 +6,9 @@ export interface Progress {
 	ratio: number;
 }
 
+/** Icebox tasks are not committed to, so they do not count. */
 export function progressOf(tasks: Pick<Task, 'status'>[]): Progress {
-	const done = tasks.filter((task) => task.status === 'done').length;
-	return { done, total: tasks.length, ratio: tasks.length ? done / tasks.length : 0 };
+	const counted = tasks.filter((task) => task.status !== 'icebox');
+	const done = counted.filter((task) => task.status === 'done').length;
+	return { done, total: counted.length, ratio: counted.length ? done / counted.length : 0 };
 }

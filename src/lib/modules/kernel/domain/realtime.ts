@@ -13,6 +13,8 @@ export type EntityName =
 	| 'link'
 	| 'contact'
 	| 'file'
+	| 'folder'
+	| 'channel'
 	| 'reference'
 	| 'activity'
 	| 'aiNote';

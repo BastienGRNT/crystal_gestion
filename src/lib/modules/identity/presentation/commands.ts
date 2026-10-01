@@ -4,7 +4,7 @@ import type { IdentityModule } from '..';
 
 export const identityCommands = (identity: IdentityModule) => ({
 	'identity.updatePreferences': defineCommand(
-		z.object({ taskView: z.enum(['kanban', 'matrix']).optional() }),
+		z.object({ taskView: z.enum(['list', 'kanban', 'matrix']).optional() }),
 		(actor, preferences) => identity.updatePreferences(actor.id, preferences)
 	)
 });

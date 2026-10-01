@@ -12,9 +12,9 @@
 </script>
 
 <li class="flex items-center gap-3 py-2">
-	<Avatar {name} {color} size={28} {online} />
+	<Avatar {name} {color} size={24} {online} />
 	<div class="min-w-0 flex-1">
-		<p class="flex items-baseline gap-2 text-base">
+		<p class="flex items-baseline gap-2 text-ui">
 			<span class="truncate font-medium">{name}</span>
 			{#if online}<span class="text-xs text-success">en ligne maintenant</span>{/if}
 		</p>

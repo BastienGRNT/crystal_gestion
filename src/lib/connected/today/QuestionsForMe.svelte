@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { MessageCircleQuestion } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
 	import { timeAgo } from '$lib/client/format';
-	import EmptyState from '$lib/ui/molecules/EmptyState.svelte';
 	import QuestionList from '$lib/ui/organisms/today/QuestionList.svelte';
 	import type { QuestionView } from '$lib/ui/types';
 
@@ -31,12 +29,11 @@
 		{items}
 		resolve={refs.resolve}
 		onresolve={(messageId) => actions.discussion.resolveQuestion(messageId)}
+		onreply={(replyToId, body) =>
+			actions.discussion.post({ featureId: null, channelId: null, body, replyToId })}
 	/>
 {:else}
-	<EmptyState
-		compact
-		icon={MessageCircleQuestion}
-		title="Aucune question en attente"
-		text="Quand quelqu’un te pose une question avec @, elle apparaît ici jusqu’à ta réponse."
-	/>
+	<p class="text-ui text-ink-3">
+		Aucune question en attente. Quand quelqu’un te pose une question avec @, elle arrive ici.
+	</p>
 {/if}

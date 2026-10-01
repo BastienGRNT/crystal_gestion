@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Search } from '@lucide/svelte';
-	import Kbd from '../atoms/Kbd.svelte';
 	import PaletteRow from '../molecules/PaletteRow.svelte';
 	import type { PaletteGroup, PaletteItem } from '../types';
 
@@ -39,33 +38,32 @@
 </script>
 
 <div
-	class="fixed inset-0 z-50 flex items-start justify-center bg-ink/25 px-4 pt-[12vh] backdrop-blur-[2px]"
+	class="fixed inset-0 z-50 flex items-start justify-center bg-overlay px-4 pt-[12vh]"
 	role="presentation"
 	onclick={onclose}
 >
 	<div
-		class="w-full max-w-xl animate-rise overflow-hidden rounded-xl border border-line bg-surface shadow-pop"
+		class="w-full max-w-[620px] animate-rise overflow-hidden rounded-[14px] border border-line bg-panel shadow-pop"
 		role="dialog"
 		aria-label="Palette de commandes"
 		tabindex="-1"
 		onclick={(e) => e.stopPropagation()}
 		onkeydown={() => {}}
 	>
-		<div class="flex items-center gap-3 border-b border-line px-4">
-			<Search size={16} class="text-ink-3" />
+		<div class="flex items-center gap-3 border-b border-line px-[18px]">
+			<Search size={18} class="text-ink-3" />
 			<!-- svelte-ignore a11y_autofocus -->
 			<input
 				bind:value={query}
 				{onkeydown}
 				autofocus
-				placeholder="Chercher une tâche, une info (mot de passe, objectif…), une page…"
-				class="h-13 flex-1 bg-transparent text-lg outline-none placeholder:text-ink-3"
+				placeholder="Chercher une tâche, un mot de passe, une page… ou créer"
+				class="h-[54px] flex-1 bg-transparent text-lg outline-none placeholder:text-ink-3"
 			/>
-			<Kbd>Esc</Kbd>
 		</div>
-		<div class="max-h-[55vh] overflow-y-auto p-1.5">
+		<div class="max-h-[420px] overflow-y-auto p-1.5">
 			{#each groups.filter((group) => group.items.length) as group (group.label)}
-				<p class="px-2.5 pt-2 pb-1 text-2xs font-medium tracking-wide text-ink-3 uppercase">
+				<p class="px-3 pt-2 pb-1 text-2xs font-semibold text-ink-3">
 					{group.label}
 				</p>
 				{#each group.items as item (item.id)}
@@ -82,6 +80,9 @@
 					Rien ne correspond. Essaie un titre, une référence comme T-12, ou un mot comme « dispo ».
 				</p>
 			{/each}
+		</div>
+		<div class="flex gap-3.5 border-t border-line px-4 py-2 text-2xs text-ink-3">
+			<span>↑↓ naviguer</span><span>↵ ouvrir</span><span>Échap fermer</span>
 		</div>
 	</div>
 </div>

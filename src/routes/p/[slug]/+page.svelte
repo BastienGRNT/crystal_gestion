@@ -1,41 +1,44 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
+	import { formatDay } from '$lib/client/format';
 	import AvailabilityPrompt from '$lib/connected/planning/AvailabilityPrompt.svelte';
 	import WhoIsAvailable from '$lib/connected/planning/WhoIsAvailable.svelte';
-	import MyTodo from '$lib/connected/tasks/MyTodo.svelte';
 	import GettingStartedCard from '$lib/connected/today/GettingStartedCard.svelte';
-	import DayStats from '$lib/connected/today/DayStats.svelte';
 	import Greeting from '$lib/connected/today/Greeting.svelte';
+	import MyTasks from '$lib/connected/today/MyTasks.svelte';
 	import QuestionsForMe from '$lib/connected/today/QuestionsForMe.svelte';
 	import Recap from '$lib/connected/today/Recap.svelte';
+	import Card from '$lib/ui/molecules/Card.svelte';
 	import Section from '$lib/ui/molecules/Section.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
+	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
 	let { data } = $props();
 	const { store } = useProject();
+	const today = formatDay(new Date());
 </script>
 
 <svelte:head><title>Aujourd’hui · {store.project.name}</title></svelte:head>
 
+<PageHeader title="Aujourd’hui" meta={today[0].toUpperCase() + today.slice(1)} />
 <Page>
-	<Greeting />
-	<DayStats />
-	<GettingStartedCard />
-	<div class="grid gap-x-10 gap-y-2 lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] xl:gap-x-14">
-		<div class="min-w-0">
-			<Section title="Mes tâches">
-				{#snippet action()}<a
-						href="/p/{store.project.slug}/tasks"
-						class="text-accent-text hover:underline">Toutes les tâches →</a
-					>{/snippet}
-				<MyTodo limitDone={3} />
-			</Section>
-			<Section title="Depuis ta dernière visite"><Recap recapSince={data.recapSince} /></Section>
+	<div class="flex flex-wrap items-start gap-8">
+		<div class="flex min-w-0 flex-[999_1_560px] flex-col gap-5">
+			<Greeting />
+			<GettingStartedCard />
+			<MyTasks />
+			<Section title="Ce qui a bougé depuis ta dernière visite"
+				><Recap recapSince={data.recapSince} /></Section
+			>
 		</div>
-		<aside class="min-w-0">
-			<div class="mb-10"><AvailabilityPrompt /></div>
-			<Section title="Questions pour toi"><QuestionsForMe /></Section>
-			<Section title="Qui est dispo aujourd’hui"><WhoIsAvailable /></Section>
+		<aside class="flex max-w-full min-w-0 flex-[1_1_300px] flex-col gap-4">
+			<AvailabilityPrompt />
+			<Card
+				title="Questions pour toi"
+				link={{ label: 'Discussion', href: `/p/${store.project.slug}/discussion` }}
+				><QuestionsForMe /></Card
+			>
+			<WhoIsAvailable />
 		</aside>
 	</div>
 </Page>

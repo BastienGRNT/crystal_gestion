@@ -13,3 +13,10 @@ export const QUADRANT_TONES: Record<Quadrant, string> = {
 	ifTime: 'bg-should',
 	later: 'bg-wont'
 };
+
+export const QUADRANT_COLORS: Record<Quadrant, string> = {
+	do: 'var(--must)',
+	plan: 'var(--accent)',
+	ifTime: 'var(--should)',
+	later: 'var(--wont)'
+};

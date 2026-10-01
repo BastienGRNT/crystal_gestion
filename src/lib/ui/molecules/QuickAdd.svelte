@@ -18,15 +18,15 @@
 </script>
 
 <label
-	class="flex h-9 items-center gap-2 rounded-lg border border-dashed border-line px-3 text-sm text-ink-3 transition focus-within:border-accent focus-within:bg-surface focus-within:text-ink hover:border-line-strong"
+	class="flex h-[38px] items-center gap-2.5 rounded-lg px-2.5 text-ink-3 transition focus-within:text-ink hover:bg-hover"
 >
-	<Plus size={14} />
+	<Plus size={15} />
 	<!-- svelte-ignore a11y_autofocus -->
 	<input
 		bind:value
 		{placeholder}
 		{autofocus}
 		onkeydown={(event) => event.key === 'Enter' && submit()}
-		class="h-full flex-1 bg-transparent outline-none placeholder:text-ink-3"
+		class="h-full min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-3"
 	/>
 </label>

@@ -19,7 +19,7 @@
 </script>
 
 <li
-	class="group flex animate-rise flex-col gap-1 border-b border-line py-3.5 last:border-b-0 sm:flex-row sm:items-start {idea.draft
+	class="group flex min-h-[52px] animate-rise flex-col gap-1 border-b border-line py-2 pr-2 pl-3.5 last:border-b-0 sm:flex-row sm:items-center {idea.draft
 		? 'opacity-60'
 		: ''}"
 >
@@ -31,13 +31,13 @@
 		class="flex min-w-0 flex-1 gap-3"
 	>
 		<span
-			class="mt-[9px] size-1.5 shrink-0 rounded-full {idea.untriaged
+			class="mt-[7px] size-1.5 shrink-0 rounded-full {idea.untriaged
 				? 'bg-should'
 				: 'bg-line-strong'}"
 			title={idea.untriaged ? 'À trier' : 'Gardée'}
 		></span>
 		<div class="min-w-0 flex-1">
-			<p class="text-lg leading-snug font-medium {idea.archived ? 'text-ink-3' : ''}">
+			<p class="leading-snug font-medium {idea.archived ? 'text-ink-3 line-through' : ''}">
 				{idea.title}
 			</p>
 			{#if idea.note}<RichText
@@ -49,9 +49,7 @@
 			<IdeaMeta {idea} />
 		</div>
 	</div>
-	<div
-		class="pl-2.5 transition sm:pl-0 sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100"
-	>
-		<IdeaActions archived={idea.archived} {...handlers} />
+	<div class="pl-[18px] sm:pl-0">
+		<IdeaActions archived={idea.archived} untriaged={idea.untriaged} {...handlers} />
 	</div>
 </li>

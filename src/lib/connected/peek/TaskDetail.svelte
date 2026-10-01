@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Play, Trash2 } from '@lucide/svelte';
+	import { Play, Square, Trash2 } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
 	import { isRunning } from '$lib/modules/time/domain/time-entry';
 	import type { ElementSummary } from '$lib/modules/kernel/domain/element';
@@ -23,7 +23,7 @@
 
 {#if task}
 	<div class="flex items-start gap-3">
-		<span class="mt-2.5"
+		<span class="mt-1.5"
 			><Checkbox
 				checked={done}
 				label="Terminer"
@@ -34,29 +34,25 @@
 		<InlineText
 			value={task.title}
 			onsave={(title) => actions.tasks.update(task.id, { title })}
-			class="font-display text-3xl leading-tight {done ? 'text-ink-3 line-through' : ''}"
+			class="text-xl leading-snug font-semibold tracking-[-0.01em] {done
+				? 'text-ink-3 line-through'
+				: ''}"
 		/>
 	</div>
-	<div class="mt-4 flex gap-2">
-		{#if !done && !running}<Button
-				variant="primary"
-				size="sm"
-				onclick={() => actions.tasks.start(task.id)}><Play size={13} /> Démarrer le chrono</Button
-			>{/if}
-		{#if running}<Button size="sm" onclick={() => actions.tasks.stopTimer()}
-				>Arrêter le chrono</Button
-			>{/if}
-		<Button
-			variant="ghost"
-			size="sm"
-			class="ml-auto"
-			onclick={() => (actions.tasks.remove(task.id), onclose())}
-			><Trash2 size={13} /> Supprimer</Button
+	<div class="mt-5"><TaskProperties {task} /></div>
+	{#if !done}
+		<button
+			type="button"
+			onclick={() => (running ? actions.tasks.stopTimer() : actions.tasks.start(task.id))}
+			class="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-[10px] border text-sm font-medium transition {running
+				? 'border-accent bg-accent-soft text-accent-text'
+				: 'border-line hover:bg-hover'}"
 		>
-	</div>
-	<div class="mt-6"><TaskProperties {task} /></div>
-	<div class="mt-6 border-t border-line pt-5">
-		<h3 class="mb-2 text-xs font-medium tracking-wide text-ink-3 uppercase">Description</h3>
+			{#if running}<Square size={14} /> Arrêter le chrono{:else}<Play size={15} /> Démarrer le chrono{/if}
+		</button>
+	{/if}
+	<div class="mt-6">
+		<h3 class="mb-1.5 text-xs text-ink-3">Description</h3>
 		<InlineRichText
 			value={task.description}
 			resolve={refs.resolve}
@@ -66,4 +62,9 @@
 		/>
 	</div>
 	<div class="mt-6 border-t border-line pt-5"><Backlinks id={task.id} /></div>
+	<div class="mt-6 flex justify-end">
+		<Button variant="ghost" size="sm" onclick={() => (actions.tasks.remove(task.id), onclose())}
+			><Trash2 size={13} /> Supprimer</Button
+		>
+	</div>
 {/if}

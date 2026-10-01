@@ -2,6 +2,7 @@
 	import { useProject } from '$lib/client/context';
 	import { formatTime } from '$lib/client/format';
 	import { isOnDay } from '$lib/modules/planning/domain/availability';
+	import Card from '$lib/ui/molecules/Card.svelte';
 	import AvailabilityRow from '$lib/ui/molecules/AvailabilityRow.svelte';
 
 	const { store } = useProject();
@@ -25,7 +26,10 @@
 	);
 </script>
 
-<section class="rounded-xl border border-line bg-surface px-4 py-2 shadow-card">
+<Card
+	title="Qui est dispo aujourd’hui"
+	link={{ label: 'Planning', href: `/p/${store.project.slug}/planning` }}
+>
 	{#if people.length}
 		<ul class="divide-y divide-line">
 			{#each people as person (person.id)}
@@ -33,6 +37,6 @@
 			{/each}
 		</ul>
 	{:else}
-		<p class="py-2 text-sm text-ink-2">Personne n’a indiqué de dispo aujourd’hui.</p>
+		<p class="text-ui text-ink-3">Personne n’a indiqué de dispo aujourd’hui.</p>
 	{/if}
-</section>
+</Card>

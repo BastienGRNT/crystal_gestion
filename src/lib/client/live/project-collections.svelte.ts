@@ -21,6 +21,8 @@ const BY_ENTITY = {
 	link: 'links',
 	contact: 'contacts',
 	file: 'files',
+	folder: 'folders',
+	channel: 'channels',
 	activity: 'activity',
 	question: 'questions',
 	aiNote: 'aiNotes'
@@ -41,6 +43,8 @@ export class ProjectCollections {
 	links = live<'links'>();
 	contacts = live<'contacts'>();
 	files = live<'files'>();
+	folders = live<'folders'>();
+	channels = live<'channels'>();
 	activity = live<'activity'>();
 	questions = live<'questions'>();
 	notifications = live<'notifications'>();
@@ -68,6 +72,7 @@ export class ProjectCollections {
 			this.ideas,
 			this.journal,
 			this.files,
+			this.folders,
 			this.accounts,
 			this.links,
 			this.messages

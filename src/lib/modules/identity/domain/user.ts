@@ -1,4 +1,4 @@
-export type TaskView = 'kanban' | 'matrix';
+export type TaskView = 'list' | 'kanban' | 'matrix';
 
 export interface UserPreferences {
 	taskView?: TaskView;

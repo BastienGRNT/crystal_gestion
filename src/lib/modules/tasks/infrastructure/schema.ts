@@ -26,6 +26,7 @@ export const tasks = pgTable('tasks', {
 	important: boolean(),
 	urgent: boolean(),
 	position: doublePrecision().notNull(),
+	isFix: boolean().notNull().default(false),
 	completedAt: timestamptz()
 });
 

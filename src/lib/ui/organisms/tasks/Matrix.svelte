@@ -7,7 +7,7 @@
 		cells: MatrixCell[];
 		onmove: (id: string, quadrant: string) => void;
 		onopen: (ref: string) => void;
-		onadd: (quadrant: string, title: string) => void;
+		onadd: (quadrant: string, title: string, isFix: boolean) => void;
 	}
 
 	let { cells, onmove, onopen, onadd }: Props = $props();
@@ -37,7 +37,7 @@
 			ondragend={() => (draggingId = null)}
 			ondrop={() => draggingId && onmove(draggingId, cell.key)}
 			{onopen}
-			onadd={(title) => onadd(cell.key, title)}
+			onadd={(title, isFix) => onadd(cell.key, title, isFix)}
 		/>
 	{/each}
 </div>

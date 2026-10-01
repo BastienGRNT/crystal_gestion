@@ -1,8 +1,6 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
-@import '@fontsource/instrument-serif/400.css';
-@import '@fontsource/instrument-serif/400-italic.css';
 @import './lib/ui/tokens/theme.css';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
@@ -10,9 +8,13 @@
 @theme inline {
 	--font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
 	--font-mono: 'Geist Mono Variable', ui-monospace, monospace;
-	--font-display: 'Instrument Serif', Georgia, serif;
+	--font-display: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
 	--color-bg: var(--bg);
 	--color-sidebar: var(--bg-sidebar);
+	--color-side-hover: var(--side-hover);
+	--color-panel: var(--panel);
+	--color-hover: var(--hover);
+	--color-overlay: var(--overlay);
 	--color-surface: var(--surface);
 	--color-surface-2: var(--surface-2);
 	--color-sunken: var(--sunken);
@@ -38,16 +40,18 @@
 	--color-feature-0: var(--feature-0);
 	--shadow-pop: var(--shadow-pop);
 	--shadow-card: var(--shadow-card);
-	/* Type scale: 11.5px is the floor, body text is 14.5px. */
+	/* Type scale: 11.5px is the floor, body text is 14px. */
 	--text-2xs: 11.5px;
 	--text-2xs--line-height: 1.35;
 	--text-xs: 12.5px;
 	--text-xs--line-height: 1.4;
+	--text-ui: 13px;
+	--text-ui--line-height: 1.4;
 	--text-sm: 13.5px;
 	--text-sm--line-height: 1.45;
-	--text-base: 14.5px;
+	--text-base: 14px;
 	--text-base--line-height: 1.55;
-	--text-lg: 16px;
+	--text-lg: 15px;
 	--text-lg--line-height: 1.5;
 	--text-xl: 19px;
 	--text-xl--line-height: 1.35;
@@ -67,6 +71,14 @@
 	--radius-xl: 20px;
 	--animate-rise: rise 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 	--animate-spin-slow: spin 2.4s linear infinite;
+	--animate-slide-in: slide-in 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slide-in {
+	from {
+		opacity: 0;
+		transform: translateX(16px);
+	}
 }
 
 @keyframes rise {
@@ -104,9 +116,11 @@
 	}
 }
 
+/* Page titles and big numbers: same family as the body, heavier and tighter. */
 @utility font-display {
 	font-family: var(--font-display);
-	letter-spacing: -0.01em;
+	font-weight: 600;
+	letter-spacing: -0.02em;
 }
 
 @utility prism {
