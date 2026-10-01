@@ -12,7 +12,7 @@ export interface TaskCardView {
 	done: boolean;
 	status: TaskStatus;
 	fix: boolean;
-	feature: { id: string; ref: string; title: string; priority: Moscow } | null;
+	feature: { id: string; ref: string; title: string; priority: Moscow; color: string } | null;
 	assignees: Pick<Member, 'id' | 'name' | 'color'>[];
 	dueDate: string | null;
 	dueTone: 'late' | 'soon' | null;
@@ -24,6 +24,7 @@ export interface TaskCardView {
 
 interface Sources {
 	featuresById: Map<string, Feature>;
+	colorOf: (featureId: string | null) => string;
 	membersById: Map<string, Member>;
 	entries: TimeEntry[];
 	today: Date;
@@ -41,7 +42,7 @@ export function dueTone(
 
 export function toTaskCard(
 	task: Task,
-	{ featuresById, membersById, entries, today }: Sources
+	{ featuresById, colorOf, membersById, entries, today }: Sources
 ): TaskCardView {
 	const feature = task.featureId ? featuresById.get(task.featureId) : undefined;
 	const own = entries.filter((entry) => entry.taskId === task.id);
@@ -53,7 +54,10 @@ export function toTaskCard(
 		status: task.status,
 		fix: task.isFix,
 		feature: feature
-			? { id: feature.id, ref: feature.ref, title: feature.title, priority: feature.priority }
+			? {
+					...{ id: feature.id, ref: feature.ref, title: feature.title },
+					...{ priority: feature.priority, color: colorOf(feature.id) }
+				}
 			: null,
 		assignees: task.assigneeIds
 			.map((id) => membersById.get(id))

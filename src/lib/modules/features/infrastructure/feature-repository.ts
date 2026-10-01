@@ -20,6 +20,7 @@ const columns = {
 	priority: features.priority,
 	ownerId: features.ownerId,
 	doneCriteria: features.doneCriteria,
+	archivedAt: features.archivedAt,
 	createdAt: elements.createdAt
 };
 
@@ -33,7 +34,8 @@ export const drizzleFeatureRepository = (db: Executor): FeatureRepository => {
 	const toFeature = (row: Awaited<ReturnType<typeof select>>[number]): Feature => ({
 		...row,
 		kind: 'feature',
-		createdAt: row.createdAt.toISOString()
+		createdAt: row.createdAt.toISOString(),
+		archivedAt: row.archivedAt?.toISOString() ?? null
 	});
 	const find = async (projectId: string, id: string) => {
 		const [row] = await select(and(eq(features.projectId, projectId), eq(features.id, id))!);
@@ -66,6 +68,10 @@ export const drizzleFeatureRepository = (db: Executor): FeatureRepository => {
 				const status = fields.priority ? MOSCOW_LABELS[fields.priority] : undefined;
 				await updateElement(tx, id, { title, status });
 			});
+			return (await find(projectId, id))!;
+		},
+		setArchived: async (projectId, id, at) => {
+			await db.update(features).set({ archivedAt: at }).where(eq(features.id, id));
 			return (await find(projectId, id))!;
 		},
 		delete: (projectId, id) => deleteElement(db, id)

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Pin } from '@lucide/svelte';
 	import { formatMinutes } from '$lib/modules/time/domain/time-entry';
+	import { relativeDueDate } from '$lib/client/format';
 	import type { TaskCardView } from '$lib/client/views/task-card';
-	import DueDate from '../atoms/DueDate.svelte';
 	import BugMark from '../atoms/BugMark.svelte';
-	import PriorityDot from '../atoms/PriorityDot.svelte';
+	import FeatureMark from '../atoms/FeatureMark.svelte';
+	import StatusIcon from '../atoms/StatusIcon.svelte';
 	import AvatarStack from './AvatarStack.svelte';
 
 	interface Props {
@@ -14,8 +14,8 @@
 		ondragstart?: (event: DragEvent) => void;
 		ondragend?: () => void;
 		dragging?: boolean;
-		/** Shows that the task was placed by hand in the matrix. */
-		showPin?: boolean;
+		/** In the kanban the column already says the status. */
+		withStatus?: boolean;
 	}
 
 	let {
@@ -25,10 +25,14 @@
 		ondragstart,
 		ondragend,
 		dragging = false,
-		showPin = false
+		withStatus = true
 	}: Props = $props();
+	const dueColor = $derived(
+		task.dueTone === 'late' ? 'text-must font-medium' : task.dueTone === 'soon' ? 'text-should' : ''
+	);
 </script>
 
+<!-- Title first, one quiet line of metadata under it. -->
 <button
 	type="button"
 	{draggable}
@@ -41,29 +45,20 @@
 >
 	{#if task.running}<span class="absolute inset-x-0 top-0 h-[2px] prism" title="Chrono en cours"
 		></span>{/if}
-	<span class="flex items-center gap-2 text-xs text-ink-3">
-		<span class="font-mono">{task.ref}</span>
-		{#if task.fix}<BugMark />{/if}
-		{#if showPin && task.pinned}<span
-				title="Placée à la main : change-la depuis la tâche pour revenir à l’automatique"
-				><Pin size={12} /></span
-			>{/if}
-		{#if task.feature}
-			<span class="ml-auto flex min-w-0 items-center gap-1.5 truncate"
-				><PriorityDot priority={task.feature.priority} />{task.feature.title}</span
-			>
-		{/if}
+	<span class="flex items-start gap-2">
+		{#if withStatus}<span class="mt-0.5"><StatusIcon status={task.status} size={14} /></span>{/if}
+		{#if task.fix}<span class="mt-0.5"><BugMark size={13} /></span>{/if}
+		<span class="text-sm leading-snug {task.done ? 'text-ink-3' : ''}">{task.title}</span>
 	</span>
-	<span class="text-sm leading-snug font-medium {task.done ? 'text-ink-3 line-through' : ''}"
-		>{task.title}</span
-	>
-	{#if task.dueDate || task.minutes || task.assignees.length}
-		<span class="flex items-center gap-2">
-			{#if task.dueDate}<DueDate date={task.dueDate} tone={task.dueTone} />{/if}
-			{#if task.minutes}<span class="font-mono text-2xs text-ink-3"
-					>{formatMinutes(task.minutes)}</span
-				>{/if}
-			<span class="ml-auto"><AvatarStack people={task.assignees} size={20} /></span>
-		</span>
-	{/if}
+	<span class="flex min-w-0 items-center gap-3 text-xs text-ink-3">
+		{#if task.feature}<span class="flex min-w-0 flex-1 overflow-hidden"
+				><FeatureMark title={task.feature.title} color={task.feature.color} /></span
+			>{/if}
+		{#if task.dueDate}<span class="shrink-0 whitespace-nowrap {dueColor}"
+				>{relativeDueDate(task.dueDate)}</span
+			>{/if}
+		{#if task.minutes}<span class="shrink-0 whitespace-nowrap">{formatMinutes(task.minutes)}</span
+			>{/if}
+		<span class="ml-auto shrink-0"><AvatarStack people={task.assignees} size={18} /></span>
+	</span>
 </button>

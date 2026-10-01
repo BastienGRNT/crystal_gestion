@@ -16,7 +16,7 @@
 
 <svelte:head><title>Projet · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Features">
+<PageHeader title="Le projet">
 	{#snippet actions()}<ProjectTabs value="overview" />{/snippet}
 </PageHeader>
 <Page width="max-w-[1100px]">

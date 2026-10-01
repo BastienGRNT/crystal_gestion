@@ -16,7 +16,7 @@ export interface PaletteIntents {
 
 function createItems(query: string, intents: PaletteIntents): PaletteItem[] {
 	if (!query) return [];
-	return CREATE_KINDS.filter((kind) => kind.value !== 'fix').map((kind) => ({
+	return CREATE_KINDS.map((kind) => ({
 		id: `new-${kind.value}`,
 		label: `${kind.label} « ${query} »`,
 		hint: kind.key,

@@ -8,6 +8,7 @@ export const VERB_LABELS: Record<ActivityVerb, string> = {
 	updated: 'a modifié',
 	moved: 'a déplacé',
 	completed: 'a terminé',
+	archived: 'a archivé',
 	deleted: 'a supprimé',
 	posted: 'a écrit'
 };

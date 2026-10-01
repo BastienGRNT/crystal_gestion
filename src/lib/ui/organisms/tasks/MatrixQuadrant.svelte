@@ -39,7 +39,6 @@
 			<li class="animate-rise">
 				<TaskCard
 					task={card}
-					showPin
 					draggable
 					dragging={draggingId === card.id}
 					onopen={() => onopen(card.ref)}

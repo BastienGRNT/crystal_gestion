@@ -8,16 +8,15 @@
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
 	const { store } = useProject();
-	const compose = (kind: 'decision' | 'fix') => overlays.openCreate(kind);
+	const compose = () => overlays.openCreate('decision');
 </script>
 
 <svelte:head><title>Journal · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Features">
+<PageHeader title="Le projet">
 	{#snippet actions()}
 		<ProjectTabs value="journal" />
-		<HeaderButton shortcut="R" onclick={() => compose('fix')}>Bug résolu</HeaderButton>
-		<HeaderButton primary shortcut="D" onclick={() => compose('decision')}>+ Décision</HeaderButton>
+		<HeaderButton primary shortcut="D" onclick={compose}>+ Décision</HeaderButton>
 	{/snippet}
 </PageHeader>
 <Page width="max-w-[1000px]">

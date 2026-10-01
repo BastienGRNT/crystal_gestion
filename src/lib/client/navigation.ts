@@ -2,84 +2,77 @@ import {
 	BookOpen,
 	CalendarDays,
 	ClipboardCheck,
+	FolderOpen,
 	Gem,
 	House,
 	KeyRound,
-	Layers,
-	Lightbulb,
+	LayoutList,
 	MessagesSquare,
-	Sparkles,
-	SquareCheckBig
+	Sparkles
 } from '@lucide/svelte';
 import type { NavEntry } from '$lib/ui/types';
 
-/** The sidebar, in order: its position is the keyboard shortcut (1–7). `hint` describes the page in Cmd+K. */
+/** The sidebar, in order: its position is the keyboard shortcut (1–6). `hint` describes the page in Cmd+K. */
 export const NAVIGATION = [
 	{
 		key: 'today',
-		label: 'Aujourd’hui',
+		label: 'Accueil',
 		path: '',
 		icon: House,
-		hint: 'Tes tâches du jour, tes dispos et ce qui a bougé'
+		hint: 'Reprendre le fil : qui t’a parlé, où tu en étais, quoi faire'
 	},
 	{
 		key: 'tasks',
-		label: 'Tâches',
+		label: 'Gestion',
 		path: '/tasks',
-		icon: SquareCheckBig,
-		hint: 'Qui fait quoi, et dans quel ordre'
-	},
-	{
-		key: 'features',
-		label: 'Features',
-		path: '/features',
-		icon: Layers,
-		hint: 'Les morceaux du produit, le journal et le cadrage du projet'
+		icon: LayoutList,
+		hint: 'Features, tâches, bugs, icebox et idées : en liste, tableau ou matrice'
 	},
 	{
 		key: 'discussion',
 		label: 'Discussion',
 		path: '/discussion',
 		icon: MessagesSquare,
-		hint: 'Échanger, poser une question à quelqu’un'
+		hint: 'Général, ses canaux, et un fil par feature'
 	},
 	{
 		key: 'planning',
 		label: 'Planning',
 		path: '/planning',
 		icon: CalendarDays,
-		hint: 'Quand chacun est dispo, et le temps passé'
+		hint: 'Dispos, temps passé, échéances et ce qui a été fini'
+	},
+	{
+		key: 'drive',
+		label: 'Drive',
+		path: '/drive',
+		icon: FolderOpen,
+		hint: 'Les fichiers du projet et de chaque feature, en dossiers'
 	},
 	{
 		key: 'resources',
 		label: 'Ressources',
 		path: '/resources',
 		icon: KeyRound,
-		hint: 'Comptes partagés, liens, contacts et fichiers'
-	},
-	{
-		key: 'ideas',
-		label: 'Idées',
-		path: '/ideas',
-		icon: Lightbulb,
-		hint: 'Tout ce qui attend d’être trié'
+		hint: 'Comptes partagés, liens et contacts'
 	}
 ] as const;
 
 export type NavKey = (typeof NAVIGATION)[number]['key'];
 
-/** Pages reached from a tab or a button, found by Cmd+K and lighting up their parent entry. */
+/** Pages reached from a menu or a button, found by Cmd+K and lighting up their parent entry. */
 export const SUB_PAGES = [
-	{ key: 'journal', parent: 'features', label: 'Journal', path: '/journal', icon: BookOpen },
-	{ key: 'project', parent: 'features', label: 'Le projet', path: '/project', icon: Gem },
-	{ key: 'ai', parent: 'features', label: 'Mémoire IA', path: '/ai', icon: Sparkles },
+	{ key: 'features', parent: 'tasks', label: 'Features', path: '/features', icon: Gem },
+	{ key: 'project', parent: 'today', label: 'Le projet', path: '/project', icon: Gem },
 	{
-		key: 'review',
-		parent: 'ideas',
-		label: 'Revue de la semaine',
-		path: '/review',
-		icon: ClipboardCheck
-	}
+		key: 'journal',
+		parent: 'today',
+		label: 'Journal des décisions',
+		path: '/journal',
+		icon: BookOpen
+	},
+	{ key: 'ai', parent: 'today', label: 'Mémoire IA', path: '/ai', icon: Sparkles },
+	{ key: 'review', parent: 'today', label: 'Faire le point', path: '/review', icon: ClipboardCheck }
 ] as const;
 
 export const projectPath = (slug: string, path = '') => `/p/${slug}${path}`;
@@ -94,10 +87,10 @@ export const navEntries = (
 		badge: badges[item.key] ?? 0
 	}));
 
-export function activeNav(pathname: string, slug: string): NavKey {
+export function activeNav(pathname: string, slug: string): string {
 	const rest = pathname.slice(projectPath(slug).length);
 	const sub = SUB_PAGES.find((page) => rest.startsWith(page.path));
-	if (sub) return sub.parent;
+	if (sub) return sub.key;
 	return NAVIGATION.find((item) => item.path && rest.startsWith(item.path))?.key ?? 'today';
 }
 

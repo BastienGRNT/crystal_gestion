@@ -12,6 +12,7 @@ const feature: Feature = {
 	priority: 'should',
 	ownerId: null,
 	doneCriteria: '',
+	archivedAt: null,
 	createdAt: '2026-01-01T00:00:00.000Z'
 };
 
@@ -22,6 +23,7 @@ const setup = (after: Partial<Feature>) => {
 			update: vi.fn(async () => ({ ...feature, ...after })),
 			create: vi.fn(),
 			delete: vi.fn(),
+			setArchived: vi.fn(),
 			list: vi.fn()
 		},
 		scopeLog: { record: vi.fn() },

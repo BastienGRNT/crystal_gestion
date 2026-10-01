@@ -21,6 +21,8 @@ export interface MessageRepository {
 	find(projectId: string, id: string): Promise<Message | null>;
 	delete(projectId: string, id: string): Promise<void>;
 	listThread(projectId: string, thread: ThreadKey, limit: number): Promise<Message[]>;
+	/** Messages citing an element (`#T-12`), whatever their thread: the talk about it. */
+	listAbout(projectId: string, elementId: string, limit: number): Promise<Message[]>;
 }
 
 export interface QuestionRepository {

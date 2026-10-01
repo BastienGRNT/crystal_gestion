@@ -4,6 +4,7 @@
 		byPosition,
 		dropPosition,
 		matchesFilter,
+		outsideArchive,
 		type TaskFilter
 	} from '$lib/client/views/kanban';
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
@@ -13,13 +14,16 @@
 	let { filter }: { filter: TaskFilter } = $props();
 	const { store, actions, peek } = useProject();
 	const sources = new TaskSources(store);
+	const visible = $derived(
+		outsideArchive(new Set(store.features.items.filter((f) => f.archivedAt).map((f) => f.id)))
+	);
 
 	const tasksByStatus = $derived(
 		Object.fromEntries(
 			TASK_STATUSES.map((status) => [
 				status,
 				store.tasks.items
-					.filter((t) => t.status === status && matchesFilter(t, filter))
+					.filter((t) => t.status === status && matchesFilter(t, filter) && visible(t))
 					.sort(byPosition)
 			])
 		) as Record<TaskStatus, typeof store.tasks.items>

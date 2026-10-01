@@ -5,6 +5,7 @@ import type {
 	ReferenceSync
 } from '$lib/modules/kernel/application/ports';
 import { makeCreateFeature } from './application/create-feature';
+import { makeArchiveFeature } from './application/archive-feature';
 import { makeDeleteFeature } from './application/delete-feature';
 import type { FeatureRepository, ProjectClock, ScopeLog } from './application/ports';
 import { makeUpdateFeature } from './application/update-feature';
@@ -23,6 +24,7 @@ export function createFeaturesModule(deps: FeaturesDeps) {
 	return {
 		create: makeCreateFeature(deps),
 		update: makeUpdateFeature(deps),
+		archive: makeArchiveFeature(deps),
 		remove: makeDeleteFeature(deps),
 		list: (projectId: string) => deps.features.list(projectId),
 		find: (projectId: string, id: string) => deps.features.find(projectId, id)

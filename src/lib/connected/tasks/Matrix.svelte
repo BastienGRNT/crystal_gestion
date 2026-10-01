@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { isActive } from '$lib/modules/tasks/domain/task';
 	import { useProject } from '$lib/client/context';
-	import { matchesFilter, type TaskFilter } from '$lib/client/views/kanban';
+	import { matchesFilter, outsideArchive, type TaskFilter } from '$lib/client/views/kanban';
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
 	import {
 		groupByQuadrant,
@@ -16,7 +16,12 @@
 	let { filter }: { filter: TaskFilter } = $props();
 	const { store, actions, peek } = useProject();
 	const sources = new TaskSources(store);
-	const open = $derived(store.tasks.items.filter((t) => isActive(t) && matchesFilter(t, filter)));
+	const visible = $derived(
+		outsideArchive(new Set(store.features.items.filter((f) => f.archivedAt).map((f) => f.id)))
+	);
+	const open = $derived(
+		store.tasks.items.filter((t) => isActive(t) && matchesFilter(t, filter) && visible(t))
+	);
 	const groups = $derived(groupByQuadrant(open, sources.priorityOf, new Date()));
 	const cells = $derived(
 		QUADRANTS.map((q) => ({

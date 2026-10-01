@@ -11,14 +11,10 @@
 	const sources = new ElementSources(context.store);
 </script>
 
-<ul>
-	{#each newestFirst(ideas) as idea (idea.id)}
-		<IdeaRow
-			idea={sources.idea(idea)}
-			resolve={context.refs.resolve}
-			personName={context.refs.personName}
-			onopen={() => context.peek(idea.ref)}
-			handlers={ideaHandlers(context, idea.id)}
-		/>
-	{/each}
-</ul>
+{#each newestFirst(ideas) as idea (idea.id)}
+	<IdeaRow
+		idea={sources.idea(idea)}
+		onopen={() => context.peek(idea.ref)}
+		handlers={ideaHandlers(context, idea.id)}
+	/>
+{/each}

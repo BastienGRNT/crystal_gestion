@@ -1,7 +1,7 @@
 import type { Component } from 'svelte';
 import type { TaskCardView } from '$lib/client/views/task-card';
-import type { Moscow } from '$lib/modules/features/domain/feature';
 import type { ElementKind } from '$lib/modules/kernel/domain/element';
+import type { TaskStatus } from '$lib/modules/tasks/domain/task';
 
 /** A resolved reference, ready to render as a chip with its hover preview. */
 export interface RefView {
@@ -68,20 +68,6 @@ export interface Person {
 	color: string;
 }
 
-export interface FeatureRowView {
-	id: string;
-	ref: string;
-	title: string;
-	description: string;
-	priority: Moscow;
-	owner: Person | null;
-	done: number;
-	total: number;
-	/** Open bugs. */
-	bugs: number;
-	href: string;
-}
-
 export interface NavEntry {
 	key: string;
 	label: string;
@@ -89,6 +75,49 @@ export interface NavEntry {
 	icon: Component<{ size?: number; strokeWidth?: number }>;
 	shortcut?: string;
 	badge: number;
+}
+
+export interface TokenSuggestion {
+	label: string;
+	/** Text written after the sigil, without spaces: « Ana », « boutique ». */
+	insert: string;
+	square?: string;
+	person?: Person;
+}
+
+export interface TalkMessage {
+	id: string;
+	author: { name: string; color: string };
+	body: string;
+	when: string;
+	/** Name of the thread it was posted in, and a link to it there. */
+	thread: string;
+	href: string;
+	pending: boolean;
+}
+
+export interface MiniCell {
+	key: string;
+	label: string;
+	hint: string;
+	color: string;
+	tasks: TaskCardView[];
+}
+
+export interface SidebarFeature {
+	id: string;
+	title: string;
+	color: string;
+	href: string;
+	/** Done tasks / all tasks, 0 when there is no task. */
+	ratio: number;
+	active: boolean;
+}
+
+export interface MenuLink {
+	label: string;
+	href: string;
+	icon: Component<{ size?: number }>;
 }
 
 export interface MatrixCell {
@@ -105,6 +134,9 @@ export interface PickOption<V> {
 	label: string;
 	active: boolean;
 	dot?: string;
+	/** Feature color: drawn as a small square. */
+	square?: string;
+	status?: TaskStatus;
 	person?: Person;
 	icon?: Component<{ size?: number; class?: string }>;
 	hint?: string;

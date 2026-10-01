@@ -1,34 +1,41 @@
 import type { Actions } from '$lib/client/actions';
 import type { CreateKind, CreateSeed } from '$lib/client/create-kinds';
+import type { QuickEntry } from '$lib/client/views/quick-entry';
 import { toCreateInput } from '$lib/client/views/journal-draft';
 import { toDateKey } from '$lib/modules/kernel/domain/dates';
 import type { Moscow } from '$lib/modules/features/domain/feature';
+import type { TaskStatus } from '$lib/modules/tasks/domain/task';
 
-/** Everything the « Créer » dialog edits; each kind reads only the fields it shows. */
+/** What « Nouveau » edits besides the typed line; each kind reads only the fields it shows. */
 export interface CreateDraft {
-	title: string;
+	text: string;
+	/** Second field: details, the reason of a decision, or a feature's tasks (one per line). */
+	body: string;
 	featureId: string | null;
 	assigneeIds: string[];
 	dueDate: string | null;
+	status: TaskStatus;
 	priority: Moscow;
 	ownerId: string;
-	rationale: string;
-	problem: string;
-	cause: string;
-	solution: string;
 }
 
 export const emptyDraft = (seed: CreateSeed, meId: string): CreateDraft => ({
-	title: seed.title ?? '',
+	text: seed.title ?? '',
+	body: '',
 	featureId: seed.featureId ?? null,
 	assigneeIds: [meId],
-	dueDate: null,
+	dueDate: seed.dueDate ?? null,
+	status: seed.status ?? 'todo',
 	priority: 'should',
-	ownerId: meId,
-	rationale: '',
-	problem: '',
-	cause: '',
-	solution: ''
+	ownerId: meId
+});
+
+/** The typed line wins over the buttons: « @ana » replaces the default assignee. */
+export const resolveDraft = (d: CreateDraft, parsed: QuickEntry) => ({
+	title: parsed.title,
+	featureId: parsed.featureId ?? d.featureId,
+	assigneeIds: parsed.assigneeIds.length ? parsed.assigneeIds : d.assigneeIds,
+	dueDate: parsed.dueDate ?? d.dueDate
 });
 
 export const CREATED_LABEL: Record<CreateKind, string> = {
@@ -36,32 +43,44 @@ export const CREATED_LABEL: Record<CreateKind, string> = {
 	bug: 'Bug ajouté',
 	feature: 'Feature créée',
 	idea: 'Idée notée',
-	decision: 'Ajouté au journal',
-	fix: 'Ajouté au journal'
+	decision: 'Décision gardée dans le journal'
 };
 
-/** Creates the element and returns its ref, or nothing when the server refused. */
+const lines = (text: string) =>
+	text
+		.split('\n')
+		.map((line) => line.replace(/^\s*[-*•]\s*/, '').trim())
+		.filter(Boolean);
+
+/** Creates the element (and a feature's first tasks); returns its ref, or nothing if refused. */
 export async function submitDraft(
 	kind: CreateKind,
 	d: CreateDraft,
+	parsed: QuickEntry,
 	actions: Actions,
 	meId: string
 ) {
-	const title = d.title.trim();
+	const { title, featureId, assigneeIds, dueDate } = resolveDraft(d, parsed);
 	if (kind === 'task' || kind === 'bug') {
-		const { featureId, assigneeIds, dueDate } = d;
-		return (
-			await actions.tasks.create({ title, featureId, assigneeIds, dueDate, isFix: kind === 'bug' })
-		)?.ref;
+		const isFix = kind === 'bug';
+		const input = { title, featureId, assigneeIds, dueDate, isFix, status: d.status };
+		return (await actions.tasks.create({ ...input, description: d.body.trim() }))?.ref;
 	}
-	if (kind === 'feature')
-		return (await actions.features.create({ title, priority: d.priority, ownerId: d.ownerId }))
-			?.ref;
-	if (kind === 'idea') return (await actions.ideas.create({ title, featureId: d.featureId }))?.ref;
+	if (kind === 'feature') {
+		const feature = await actions.features.create({
+			...{ title, priority: d.priority, ownerId: d.ownerId }
+		});
+		if (feature)
+			for (const task of lines(d.body))
+				await actions.tasks.create({ title: task, featureId: feature.id, assigneeIds: [] });
+		return feature?.ref;
+	}
+	if (kind === 'idea')
+		return (await actions.ideas.create({ title, featureId, note: d.body.trim() }))?.ref;
 	const entry = toCreateInput({
-		...{ kind, title, featureId: d.featureId ?? '', rationale: d.rationale },
+		...{ kind, title, featureId: featureId ?? '', rationale: d.body },
 		...{ decidedBy: [meId], decidedOn: toDateKey(new Date()) },
-		...{ problem: d.problem, cause: d.cause, solution: d.solution }
+		...{ problem: '', cause: '', solution: '' }
 	});
 	return (await actions.journal.create(entry))?.ref;
 }

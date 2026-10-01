@@ -70,6 +70,7 @@
 			<div data-card role="listitem" class="animate-rise">
 				<TaskCard
 					task={card}
+					withStatus={false}
 					draggable
 					dragging={draggingId === card.id}
 					onopen={() => onopen(card.ref)}

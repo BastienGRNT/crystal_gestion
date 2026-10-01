@@ -23,3 +23,7 @@ export function dropPosition(column: Task[], movedId: string, index: number): nu
 	const target = from !== -1 && from < index ? index - 1 : index;
 	return positionBetween(others[target - 1]?.position, others[target]?.position);
 }
+
+/** Work of an archived feature is history: it leaves the board and the matrix. */
+export const outsideArchive = (archivedIds: Set<string>) => (task: Task) =>
+	!task.featureId || !archivedIds.has(task.featureId);

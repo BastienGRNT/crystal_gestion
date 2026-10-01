@@ -1,6 +1,7 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { isoOrNull, type Executor } from '$lib/server/db/types';
 import { drizzleElementStore } from '../../elements/infrastructure/element-store';
+import { elementReferences } from '../../elements/infrastructure/schema';
 import type { MessageRepository } from '../application/ports';
 import type { Message } from '../domain/message';
 import { messages } from './schema';
@@ -39,6 +40,17 @@ export function drizzleMessageRepository(db: Executor): MessageRepository {
 				newestFirst: true,
 				limit
 			});
+			return newest.reverse();
+		},
+		listAbout: async (projectId, elementId, limit) => {
+			const citing = db
+				.select({ id: elementReferences.sourceId })
+				.from(elementReferences)
+				.where(eq(elementReferences.targetId, elementId));
+			const newest = await store.query(
+				and(eq(messages.projectId, projectId), inArray(messages.id, citing)),
+				{ newestFirst: true, limit }
+			);
 			return newest.reverse();
 		}
 	};

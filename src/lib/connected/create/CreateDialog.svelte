@@ -5,11 +5,15 @@
 	import { CREATE_KINDS, createKind, type CreateKind } from '$lib/client/create-kinds';
 	import { overlays } from '$lib/client/overlays.svelte';
 	import { toasts } from '$lib/client/toasts.svelte';
+	import { parseQuickEntry } from '$lib/client/views/quick-entry';
 	import Dialog from '$lib/ui/organisms/Dialog.svelte';
 	import CreateFooter from '$lib/ui/organisms/create/CreateFooter.svelte';
+	import EntryField from '$lib/ui/organisms/create/EntryField.svelte';
 	import KindTabs from '$lib/ui/organisms/create/KindTabs.svelte';
-	import CreateFields from './CreateFields.svelte';
-	import { CREATED_LABEL, emptyDraft, submitDraft } from './create-draft';
+	import CreateBody from './CreateBody.svelte';
+	import CreateProps from './CreateProps.svelte';
+	import { CREATED_LABEL, emptyDraft, resolveDraft, submitDraft } from './create-draft';
+	import { tokenSuggestions } from './token-suggestions';
 
 	const { store, actions, me, peek } = useProject();
 	const opened = untrack(() => overlays.create!);
@@ -17,13 +21,21 @@
 	let draft = $state(emptyDraft(opened.seed, me.id));
 	let again = $state(false);
 	const meta = $derived(createKind(kind));
+	const parsed = $derived(
+		parseQuickEntry(draft.text, {
+			features: store.features.items,
+			members: store.members.items,
+			today: new Date()
+		})
+	);
+	const shown = $derived(resolveDraft(draft, parsed));
 	const close = () => (overlays.create = null);
 
 	async function submit() {
-		if (!draft.title.trim()) return;
+		if (!parsed.title) return;
 		const submitted = kind;
-		const pending = submitDraft(kind, draft, actions, me.id);
-		if (again) draft = { ...draft, title: '', rationale: '', problem: '', cause: '', solution: '' };
+		const pending = submitDraft(kind, draft, parsed, actions, me.id);
+		if (again) draft = { ...draft, text: '', body: '' };
 		else close();
 		const ref = await pending;
 		if (!ref) return;
@@ -35,35 +47,34 @@
 	}
 
 	function onkeydown(event: KeyboardEvent) {
-		if (event.key !== 'Enter') return;
-		const inTitle = event.target instanceof HTMLInputElement && event.target.name === 'title';
-		if ((inTitle && !event.shiftKey) || event.metaKey || event.ctrlKey) {
+		if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
 			event.preventDefault();
 			submit();
 		}
 	}
 </script>
 
-<Dialog label="Créer" onclose={close}>
+<Dialog label="Nouveau" width="max-w-[640px]" onclose={close}>
 	<div {onkeydown} role="presentation">
-		<div class="px-3 pt-3">
-			<KindTabs kinds={CREATE_KINDS} value={kind} onchange={(k) => (kind = k)} />
-		</div>
-		<div class="px-[18px] pt-4 pb-1.5">
-			<!-- svelte-ignore a11y_autofocus -->
-			<input
-				name="title"
-				bind:value={draft.title}
-				autofocus
+		<KindTabs kinds={CREATE_KINDS} value={kind} onchange={(k) => (kind = k)} />
+		<div class="px-5 pt-5 pb-1">
+			<p class="mb-1 text-xs text-ink-3">{meta.hint}</p>
+			<EntryField
+				bind:value={draft.text}
 				placeholder={meta.placeholder}
-				class="w-full bg-transparent py-1 text-xl font-medium tracking-[-0.01em] outline-none placeholder:text-ink-3"
+				suggest={(sigil, word) => tokenSuggestions(store, sigil, word)}
+				onsubmit={submit}
 			/>
 		</div>
-		<CreateFields {kind} bind:draft />
+		<CreateBody {kind} bind:value={draft.body} />
+		<CreateProps {kind} bind:draft {shown} />
 		<CreateFooter
+			hint={kind === 'feature'
+				? 'Une ligne = une tâche. Tu pourras en ajouter depuis la page de la feature.'
+				: 'Astuce : écris @Ana, #boutique, demain ou lundi directement dans le titre.'}
 			{again}
 			label={meta.label.toLowerCase()}
-			disabled={!draft.title.trim()}
+			disabled={!parsed.title}
 			onagain={() => (again = !again)}
 			onsubmit={submit}
 		/>

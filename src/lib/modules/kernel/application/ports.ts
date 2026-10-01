@@ -12,7 +12,8 @@ export interface ChangeFeed {
 	deleted(entity: EntityName, projectId: string, id: string): void;
 }
 
-export type ActivityVerb = 'created' | 'updated' | 'moved' | 'completed' | 'deleted' | 'posted';
+export type ActivityVerb =
+	'created' | 'updated' | 'moved' | 'completed' | 'archived' | 'deleted' | 'posted';
 
 export interface ActivityInput {
 	projectId: string;

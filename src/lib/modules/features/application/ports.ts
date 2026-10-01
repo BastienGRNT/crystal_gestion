@@ -5,6 +5,7 @@ import type { ScopeChange } from '../domain/scope';
 export interface FeatureRepository {
 	create(input: FeatureFields & { projectId: string; createdBy: string }): Promise<Feature>;
 	update(projectId: string, id: string, changes: Partial<FeatureFields>): Promise<Feature>;
+	setArchived(projectId: string, id: string, at: Date | null): Promise<Feature>;
 	delete(projectId: string, id: string): Promise<void>;
 	find(projectId: string, id: string): Promise<Feature | null>;
 	list(projectId: string): Promise<Feature[]>;

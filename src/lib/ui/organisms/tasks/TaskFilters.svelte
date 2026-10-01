@@ -26,7 +26,7 @@
 		label="Tâches de"
 		value={mine ? 'me' : 'all'}
 		options={[
-			{ value: 'all', label: 'Équipe' },
+			{ value: 'all', label: 'Tout le monde' },
 			{ value: 'me', label: 'Moi' }
 		]}
 		onchange={(v) => onmine(v === 'me')}
@@ -52,10 +52,6 @@
 			? 'border-must bg-must/10 text-must'
 			: 'border-line text-ink-2 hover:bg-hover'}"
 	>
-		<Bug size={14} />Bugs seulement
+		<Bug size={14} />Bugs
 	</button>
-	<span class="flex-1"></span>
-	<span class="hidden text-xs text-ink-3 lg:inline"
-		>Clique sur un statut, une date ou un avatar pour le changer</span
-	>
 </div>

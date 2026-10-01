@@ -23,7 +23,8 @@ const setup = () => {
 			update: vi.fn(),
 			find: vi.fn(),
 			delete: vi.fn(),
-			listThread: vi.fn()
+			listThread: vi.fn(),
+			listAbout: vi.fn()
 		},
 		channels: {
 			create: vi.fn(),

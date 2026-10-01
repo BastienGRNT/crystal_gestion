@@ -10,7 +10,7 @@ describe('scopeTitle', () => {
 			'Retrait de « Export »'
 		);
 		expect(scopeTitle('Export', { change: 'reprioritized', from: 'must', to: 'wont' })).toBe(
-			'« Export » : Indispensable → Pas maintenant'
+			'« Export » : Indispensable → Icebox'
 		);
 	});
 });

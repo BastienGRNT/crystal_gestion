@@ -1,4 +1,4 @@
-import { pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { elementPrimaryKey } from '../../elements/infrastructure/schema';
 import { users } from '../../identity/infrastructure/schema';
 import { projects } from '../../projects/infrastructure/schema';
@@ -12,5 +12,6 @@ export const features = pgTable('features', {
 	description: text().notNull().default(''),
 	priority: text().$type<Moscow>().notNull(),
 	ownerId: uuid().references(() => users.id, { onDelete: 'set null' }),
-	doneCriteria: text().notNull().default('')
+	doneCriteria: text().notNull().default(''),
+	archivedAt: timestamp({ withTimezone: true })
 });

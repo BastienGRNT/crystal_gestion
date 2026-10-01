@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Check } from '@lucide/svelte';
-
 	interface Props {
+		hint: string;
 		again: boolean;
 		label: string;
 		disabled: boolean;
@@ -9,26 +8,21 @@
 		onsubmit: () => void;
 	}
 
-	let { again, label, disabled, onagain, onsubmit }: Props = $props();
+	let { hint, again, label, disabled, onagain, onsubmit }: Props = $props();
 </script>
 
-<div class="flex items-center gap-2.5 border-t border-line bg-sunken py-3 pr-3.5 pl-[18px]">
-	<button type="button" onclick={onagain} class="flex items-center gap-2 text-xs text-ink-2">
-		<span
-			class="flex size-4 items-center justify-center rounded border-[1.5px] text-white {again
-				? 'border-accent bg-accent'
-				: 'border-line-strong'}"><Check size={11} strokeWidth={3} /></span
-		>
-		Enchaîner (en créer un autre)
-	</button>
-	<span class="flex-1"></span>
-	<span class="hidden text-xs text-ink-3 sm:inline">Échap pour fermer</span>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-3 pr-3 pl-5">
+	<p class="min-w-0 flex-1 text-xs text-ink-3">{hint}</p>
+	<label class="flex items-center gap-2 text-xs text-ink-2">
+		<input type="checkbox" checked={again} onchange={onagain} class="accent-[var(--accent)]" />
+		En créer plusieurs
+	</label>
 	<button
 		type="button"
 		onclick={onsubmit}
 		{disabled}
-		class="inline-flex h-[34px] items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-ink transition disabled:opacity-50"
+		class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-accent-ink transition hover:brightness-110 disabled:opacity-40"
 	>
-		Créer {label}<span class="font-mono text-2xs opacity-80">↵</span>
+		Créer {label}<span class="font-mono text-2xs opacity-75">↵</span>
 	</button>
 </div>

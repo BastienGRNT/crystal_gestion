@@ -28,7 +28,7 @@
 
 <svelte:head><title>Mémoire IA · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Features">
+<PageHeader title="Le projet">
 	{#snippet actions()}<ProjectTabs value="ai" />{/snippet}
 </PageHeader>
 <Page width="max-w-[1000px]">

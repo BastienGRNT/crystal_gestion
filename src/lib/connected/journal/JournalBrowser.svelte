@@ -8,7 +8,7 @@
 	import JournalToolbar from '$lib/ui/organisms/journal/JournalToolbar.svelte';
 	import JournalDays from './JournalDays.svelte';
 
-	let { oncompose }: { oncompose: (kind: 'decision' | 'fix') => void } = $props();
+	let { oncompose }: { oncompose: () => void } = $props();
 	const { store } = useProject();
 	const sources = new ElementSources(store);
 	let filter = $state({ ...NO_FILTER });
@@ -33,9 +33,7 @@
 		title="Le journal est encore vierge"
 		text="Note la prochaine décision qui compte : dans trois mois, tu sauras exactement pourquoi le projet est comme il est."
 	>
-		<Button variant="primary" size="sm" onclick={() => oncompose('decision')}
-			>Noter une décision</Button
-		>
+		<Button variant="primary" size="sm" onclick={oncompose}>Noter une décision</Button>
 	</EmptyState>
 {:else}
 	<JournalToolbar

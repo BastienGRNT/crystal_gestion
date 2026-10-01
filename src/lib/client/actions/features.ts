@@ -16,6 +16,7 @@ export function featureActions(store: ProjectStore) {
 		priority: 'should',
 		ownerId: null,
 		doneCriteria: '',
+		archivedAt: null,
 		createdAt: new Date().toISOString(),
 		...input
 	});
@@ -28,6 +29,11 @@ export function featureActions(store: ProjectStore) {
 			optimistic(
 				() => store.features.patch(id, changes),
 				() => send('features.update', { projectId: projectId(), id, changes })
+			),
+		archive: (id: string, archived: boolean) =>
+			optimistic(
+				() => store.features.patch(id, { archivedAt: archived ? new Date().toISOString() : null }),
+				() => send('features.archive', { projectId: projectId(), id, archived })
 			),
 		remove: (id: string) =>
 			deleteWithUndo(

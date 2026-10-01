@@ -1,33 +1,34 @@
 <script lang="ts">
 	import type { TaskCardView } from '$lib/client/views/task-card';
-	import Dot from '../../../atoms/Dot.svelte';
+	import FeatureMark from '../../../atoms/FeatureMark.svelte';
 	import PickMenu from '../../../molecules/PickMenu.svelte';
-	import { PRIORITY_COLORS } from '../../../tones';
 	import type { PickOption } from '../../../types';
 
 	interface Props {
 		feature: TaskCardView['feature'];
 		options: PickOption<string | null>[];
 		onpick: (featureId: string | null) => void;
-		width?: string;
 	}
 
-	let { feature, options, onpick, width = 'w-[150px]' }: Props = $props();
+	let { feature, options, onpick }: Props = $props();
 </script>
 
-<div class="relative hidden min-w-0 shrink {width} sm:block">
+<div class="relative hidden w-[150px] min-w-0 shrink sm:block">
 	<PickMenu title="Feature" {options} {onpick}>
 		{#snippet trigger(toggle)}
 			<button
 				type="button"
 				onclick={toggle}
 				title="Changer de feature"
-				class="flex h-7 w-full items-center gap-1.5 rounded-md px-2 text-xs transition hover:bg-sunken {feature
-					? 'text-ink-2'
-					: 'text-ink-3'}"
+				class="flex h-7 w-full items-center rounded-md px-2 transition hover:bg-sunken {feature
+					? ''
+					: 'opacity-0 group-hover:opacity-100'}"
 			>
-				<Dot color={feature ? PRIORITY_COLORS[feature.priority] : 'var(--line-strong)'} />
-				<span class="truncate">{feature?.title ?? 'Sans feature'}</span>
+				<FeatureMark
+					title={feature?.title ?? 'Sans feature'}
+					color={feature?.color ?? 'var(--line-strong)'}
+					muted={!feature}
+				/>
 			</button>
 		{/snippet}
 	</PickMenu>

@@ -1,17 +1,21 @@
 <script lang="ts">
-	import { ChevronDown } from '@lucide/svelte';
+	import { Bug, CalendarDays, Layers, UserRound } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
-	import { dueChoices } from '$lib/client/views/due-choices';
-	import { taskMenus } from '$lib/client/views/task-menus';
+	import { relativeDueDate } from '$lib/client/format';
+	import {
+		dueOptions,
+		featureOptions,
+		peopleOptions,
+		statusOptions
+	} from '$lib/client/views/task-menus';
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
-	import { STATUS_LABELS, TASK_STATUSES, type Task } from '$lib/modules/tasks/domain/task';
-	import DateInput from '$lib/ui/atoms/DateInput.svelte';
-	import Dot from '$lib/ui/atoms/Dot.svelte';
-	import DotPills from '$lib/ui/molecules/DotPills.svelte';
-	import PersonPills from '$lib/ui/molecules/PersonPills.svelte';
-	import PickMenu from '$lib/ui/molecules/PickMenu.svelte';
+	import { STATUS_LABELS, type Task } from '$lib/modules/tasks/domain/task';
+	import DatePickButton from '$lib/ui/atoms/DatePickButton.svelte';
+	import FeatureMark from '$lib/ui/atoms/FeatureMark.svelte';
+	import StatusIcon from '$lib/ui/atoms/StatusIcon.svelte';
+	import AvatarStack from '$lib/ui/molecules/AvatarStack.svelte';
+	import PropButton from '$lib/ui/molecules/PropButton.svelte';
 	import PropertyRow from '$lib/ui/molecules/PropertyRow.svelte';
-	import { PRIORITY_COLORS, STATUS_COLORS } from '$lib/ui/tones';
 	import TaskUrgency from './TaskUrgency.svelte';
 	import TimeSpent from './TimeSpent.svelte';
 
@@ -19,79 +23,90 @@
 	const { store, actions, me } = useProject();
 	const sources = new TaskSources(store);
 	const card = $derived(sources.card(task));
-	const menus = $derived(taskMenus(card, store.features.items, store.members.items, me.id));
+	const update = (changes: Partial<Task>) => actions.tasks.update(task.id, changes);
 	const toggle = (id: string) =>
-		actions.tasks.update(task.id, {
+		update({
 			assigneeIds: task.assigneeIds.includes(id)
 				? task.assigneeIds.filter((x) => x !== id)
 				: [...task.assigneeIds, id]
 		});
+	const dueTone = $derived(
+		card.dueTone === 'late' ? 'text-must font-medium' : card.dueTone === 'soon' ? 'text-should' : ''
+	);
 </script>
 
-<div class="flex flex-col gap-1 text-ui">
+<div class="flex flex-col">
 	<PropertyRow label="Statut">
-		<DotPills
-			options={TASK_STATUSES.map((s) => ({
-				value: s,
-				label: STATUS_LABELS[s],
-				dot: STATUS_COLORS[s]
-			}))}
-			value={task.status}
-			onchange={(status) => actions.tasks.move(task.id, status)}
-		/>
+		<PropButton
+			ghost
+			label="Statut"
+			icon={Bug}
+			options={statusOptions(task.status)}
+			onpick={(status) => actions.tasks.move(task.id, status)}
+		>
+			{#snippet value()}<StatusIcon status={task.status} size={15} />{STATUS_LABELS[
+					task.status
+				]}{/snippet}
+		</PropButton>
 	</PropertyRow>
-	<PropertyRow label="Pour">
-		<PersonPills
-			people={store.members.items}
-			selected={task.assigneeIds}
-			meId={me.id}
-			ontoggle={toggle}
+	<PropertyRow label="Pour qui">
+		<PropButton
+			ghost
+			multiple
+			label="Personne"
+			icon={UserRound}
+			options={peopleOptions(store.members.items, me.id, task.assigneeIds)}
+			onpick={toggle}
+			value={card.assignees.length ? people : undefined}
 		/>
 	</PropertyRow>
 	<PropertyRow label="Échéance">
-		<div class="flex flex-wrap items-center gap-1">
-			<DotPills
-				options={dueChoices(new Date()).filter((d) => d.value)}
-				value={task.dueDate}
-				onchange={(dueDate) => actions.tasks.update(task.id, { dueDate })}
+		<div class="flex items-center gap-1">
+			<PropButton
+				ghost
+				label="Aucune"
+				icon={CalendarDays}
+				options={dueOptions(task.dueDate)}
+				onpick={(dueDate) => update({ dueDate })}
+				value={task.dueDate ? due : undefined}
 			/>
-			<DateInput
-				label="Autre date"
+			<DatePickButton
+				label="Choisir une date"
 				value={task.dueDate}
-				onchange={(dueDate) => actions.tasks.update(task.id, { dueDate })}
+				onchange={(dueDate) => update({ dueDate })}
 			/>
 		</div>
 	</PropertyRow>
 	<PropertyRow label="Feature">
-		<PickMenu
-			title="Feature"
-			options={menus.feature}
-			onpick={(featureId) => actions.tasks.update(task.id, { featureId })}
-		>
-			{#snippet trigger(toggleMenu)}
-				<button
-					type="button"
-					onclick={toggleMenu}
-					class="inline-flex h-7 items-center gap-1.5 rounded-[7px] border border-line px-2.5 text-xs font-medium hover:bg-hover"
-				>
-					<Dot
-						color={card.feature ? PRIORITY_COLORS[card.feature.priority] : 'var(--line-strong)'}
-					/>
-					{card.feature?.title ?? 'Sans feature'}<ChevronDown size={13} class="text-ink-3" />
-				</button>
-			{/snippet}
-		</PickMenu>
-	</PropertyRow>
-	<PropertyRow label="Type">
-		<DotPills
-			options={[
-				{ value: 'task', label: 'Tâche' },
-				{ value: 'bug', label: 'Bug', dot: 'var(--must)' }
-			]}
-			value={task.isFix ? 'bug' : 'task'}
-			onchange={(type) => actions.tasks.update(task.id, { isFix: type === 'bug' })}
+		<PropButton
+			ghost
+			label="Sans feature"
+			icon={Layers}
+			options={featureOptions(store.features.items, task.featureId)}
+			onpick={(featureId) => update({ featureId })}
+			value={card.feature ? feature : undefined}
 		/>
 	</PropertyRow>
 	<PropertyRow label="Urgence"><TaskUrgency {task} /></PropertyRow>
-	<PropertyRow label="Temps passé"><TimeSpent taskId={task.id} /></PropertyRow>
+	<PropertyRow label="Temps passé"><TimeSpent {task} /></PropertyRow>
+	<PropertyRow label="Bug">
+		<label class="flex h-8 items-center gap-2 px-2.5 text-ui text-ink-2">
+			<input
+				type="checkbox"
+				checked={task.isFix}
+				onchange={(e) => update({ isFix: e.currentTarget.checked })}
+				class="accent-[var(--must)]"
+			/>
+			C’est quelque chose à corriger
+		</label>
+	</PropertyRow>
 </div>
+
+{#snippet people()}<AvatarStack people={card.assignees} size={18} /><span class="truncate"
+		>{card.assignees.map((p) => (p.id === me.id ? 'Moi' : p.name)).join(', ')}</span
+	>{/snippet}
+{#snippet due()}<span class={dueTone}>{relativeDueDate(task.dueDate!)}</span>{/snippet}
+{#snippet feature()}<FeatureMark
+		title={card.feature!.title}
+		color={card.feature!.color}
+	/>{/snippet}

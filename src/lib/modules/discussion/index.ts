@@ -16,6 +16,8 @@ export function createDiscussionModule(deps: DiscussionDeps) {
 		resolveQuestion: makeResolveQuestion(deps),
 		thread: (projectId: string, thread: ThreadKey) =>
 			deps.messages.listThread(projectId, thread, THREAD_LIMIT),
+		about: (projectId: string, elementId: string) =>
+			deps.messages.listAbout(projectId, elementId, THREAD_LIMIT),
 		channels: makeChannelUseCases(deps),
 		openQuestions: (projectId: string) => deps.questions.listOpen(projectId),
 		findMessage: (projectId: string, id: string) => deps.messages.find(projectId, id)

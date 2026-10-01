@@ -21,6 +21,10 @@ export const featureCommands = (features: FeaturesModule) => ({
 		projectScoped.extend({ id, changes: fields.partial() }),
 		(actor, input) => features.update(actor, input)
 	),
+	'features.archive': defineCommand(
+		projectScoped.extend({ id, archived: z.boolean() }),
+		(actor, input) => features.archive(actor, input)
+	),
 	'features.delete': defineCommand(projectScoped.extend({ id }), (actor, input) =>
 		features.remove(actor, input)
 	)

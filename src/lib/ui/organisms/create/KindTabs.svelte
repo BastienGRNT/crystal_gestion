@@ -10,7 +10,7 @@
 	let { kinds, value, onchange }: Props = $props();
 </script>
 
-<div class="flex gap-0.5 overflow-x-auto rounded-[9px] bg-sunken p-[3px]" role="tablist">
+<div class="flex gap-1 overflow-x-auto border-b border-line px-3" role="tablist">
 	{#each kinds as kind (kind.value)}
 		<button
 			type="button"
@@ -18,12 +18,12 @@
 			aria-selected={kind.value === value}
 			title="Raccourci : {kind.key}"
 			onclick={() => onchange(kind.value)}
-			class="inline-flex h-[30px] flex-1 items-center justify-center gap-1.5 rounded-[7px] px-2 text-xs font-medium whitespace-nowrap transition {kind.value ===
+			class="-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-2.5 text-ui font-medium whitespace-nowrap transition {kind.value ===
 			value
-				? 'bg-panel text-ink shadow-sm'
-				: 'text-ink-3 hover:text-ink'}"
+				? 'border-accent text-ink'
+				: 'border-transparent text-ink-3 hover:text-ink'}"
 		>
-			<kind.icon size={14} />{kind.label}
+			<kind.icon size={15} />{kind.label}
 		</button>
 	{/each}
 </div>
