@@ -11,7 +11,7 @@
 		type Quadrant
 	} from '$lib/modules/tasks/domain/eisenhower';
 	import MatrixGrid from '$lib/ui/organisms/tasks/Matrix.svelte';
-	import { QUADRANT_HINTS, QUADRANT_TONES } from './quadrants';
+	import { QUADRANT_ACTIONS, QUADRANT_COLORS } from './quadrants';
 
 	let { filter }: { filter: TaskFilter } = $props();
 	const { store, actions, peek } = useProject();
@@ -25,7 +25,12 @@
 	const groups = $derived(groupByQuadrant(open, sources.priorityOf, new Date()));
 	const cells = $derived(
 		QUADRANTS.map((q) => ({
-			...{ key: q, label: QUADRANT_LABELS[q], hint: QUADRANT_HINTS[q], tone: QUADRANT_TONES[q] },
+			...{
+				key: q,
+				label: QUADRANT_LABELS[q],
+				hint: QUADRANT_ACTIONS[q],
+				color: QUADRANT_COLORS[q]
+			},
 			cards: groups[q].map(sources.card)
 		}))
 	);

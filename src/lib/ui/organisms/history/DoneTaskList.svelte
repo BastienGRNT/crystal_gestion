@@ -24,6 +24,6 @@
 			<span class="shrink-0 font-mono text-2xs text-ink-3">{task.when}</span>
 		</button>
 	{:else}
-		<p class="text-sm text-ink-3">Aucune tâche terminée sur cette période.</p>
+		<p class="text-sm text-ink-3">Aucune Task terminée sur cette période.</p>
 	{/each}
 </section>

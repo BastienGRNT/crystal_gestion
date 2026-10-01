@@ -23,8 +23,8 @@
 
 <p class="mb-3 text-ui text-ink-3">
 	{planned
-		? `${planned} tâche${planned > 1 ? 's' : ''} prévue${planned > 1 ? 's' : ''} pour demain.`
-		: 'Choisis une à trois tâches pour demain.'}
+		? `${planned} Task${planned > 1 ? 's' : ''} prévue${planned > 1 ? 's' : ''} pour demain.`
+		: 'Choisis une à trois Tasks pour demain.'}
 </p>
 <div class="-mx-2">
 	{#each mine as task (task.id)}
@@ -43,7 +43,7 @@
 		</TaskItem>
 	{/each}
 	<AddLine
-		label="Ajouter une tâche pour demain"
+		label="Ajouter une Task pour demain"
 		onadd={(text) =>
 			actions.tasks.create(quickTask(store, text, { assigneeIds: [me.id], dueDate: tomorrow }))}
 	/>

@@ -1,57 +1,46 @@
 <script lang="ts">
-	import { Bug, ChevronDown, Layers } from '@lucide/svelte';
+	import { ChevronDown, Layers, Users, Wrench } from '@lucide/svelte';
 	import PickMenu from '../../molecules/PickMenu.svelte';
-	import Segmented from '../../molecules/Segmented.svelte';
 	import type { PickOption } from '../../types';
 
 	interface Props {
-		mine: boolean;
-		featureLabel: string | null;
+		person: PickOption<string>[];
+		personLabel: string;
 		features: PickOption<string>[];
-		bugsOnly: boolean;
-		onmine: (mine: boolean) => void;
-		onfeature: (feature: string) => void;
-		onbugs: () => void;
+		featureLabel: string;
+		fixOnly: boolean;
+		onperson: (id: string) => void;
+		onfeature: (id: string) => void;
+		onfix: () => void;
 	}
 
-	let { mine, featureLabel, features, bugsOnly, onmine, onfeature, onbugs }: Props = $props();
-	const chip =
-		'inline-flex h-[30px] items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium whitespace-nowrap transition';
+	let { person, personLabel, features, featureLabel, fixOnly, onperson, onfeature, onfix }: Props =
+		$props();
+	const filter =
+		'inline-flex h-9 items-center gap-2 rounded-[10px] border-[1.5px] px-3 text-ui font-semibold whitespace-nowrap transition';
+	const tone = (on: boolean) =>
+		on
+			? 'border-ink bg-surface text-ink'
+			: 'border-line-strong bg-surface text-ink-2 hover:border-ink-3';
 </script>
 
-<div
-	class="sticky top-14 z-[5] flex flex-wrap items-center gap-2 border-b border-line bg-panel px-5 py-2.5 max-md:px-4"
->
-	<Segmented
-		label="Tâches de"
-		value={mine ? 'me' : 'all'}
-		options={[
-			{ value: 'all', label: 'Tout le monde' },
-			{ value: 'me', label: 'Moi' }
-		]}
-		onchange={(v) => onmine(v === 'me')}
-	/>
-	<PickMenu title="Filtrer par feature" options={features} onpick={onfeature}>
-		{#snippet trigger(toggle)}
-			<button
-				type="button"
-				onclick={toggle}
-				class="{chip} {featureLabel
-					? 'border-accent text-accent-text'
-					: 'border-line text-ink-2 hover:bg-hover'}"
-			>
-				<Layers size={14} />{featureLabel ?? 'Toutes les features'}<ChevronDown size={13} />
-			</button>
-		{/snippet}
-	</PickMenu>
-	<button
-		type="button"
-		aria-pressed={bugsOnly}
-		onclick={onbugs}
-		class="{chip} {bugsOnly
-			? 'border-must bg-must/10 text-must'
-			: 'border-line text-ink-2 hover:bg-hover'}"
-	>
-		<Bug size={14} />Bugs
-	</button>
-</div>
+<PickMenu title="Les Tasks de" options={person} onpick={onperson} align="end">
+	{#snippet trigger(toggle)}
+		<button type="button" onclick={toggle} class="{filter} {tone(personLabel !== 'Tout le monde')}"
+			><Users size={15} />{personLabel}<ChevronDown size={14} /></button
+		>
+	{/snippet}
+</PickMenu>
+<PickMenu title="Feat" options={features} onpick={onfeature} align="end">
+	{#snippet trigger(toggle)}
+		<button
+			type="button"
+			onclick={toggle}
+			class="{filter} {tone(featureLabel !== 'Toutes les Feats')}"
+			><Layers size={15} />{featureLabel}<ChevronDown size={14} /></button
+		>
+	{/snippet}
+</PickMenu>
+<button type="button" aria-pressed={fixOnly} onclick={onfix} class="{filter} {tone(fixOnly)}">
+	<Wrench size={15} class={fixOnly ? 'text-must' : ''} />Fix seulement
+</button>

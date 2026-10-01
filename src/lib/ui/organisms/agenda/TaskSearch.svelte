@@ -17,7 +17,7 @@
 	<input
 		bind:value={query}
 		autofocus={matchMedia('(pointer: fine)').matches}
-		placeholder="Lier une tâche…"
+		placeholder="Lier une Task…"
 		class="h-8 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-3"
 	/>
 </label>
@@ -31,5 +31,5 @@
 		<span class="truncate">{task.title}</span>
 	</button>
 {:else}
-	<p class="px-2.5 py-1.5 text-sm text-ink-3">Aucune tâche trouvée</p>
+	<p class="px-2.5 py-1.5 text-sm text-ink-3">Aucune Task trouvée</p>
 {/each}

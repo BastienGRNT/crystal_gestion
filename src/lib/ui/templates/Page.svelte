@@ -4,6 +4,6 @@
 	let { width = 'max-w-[1240px]', children }: { width?: string; children: Snippet } = $props();
 </script>
 
-<div class="mx-auto w-full {width} px-4 pt-6 pb-32 sm:px-8 sm:pt-7 md:pb-12">
+<div class="w-full {width} px-12 pt-7 pb-32 max-lg:px-8 max-md:px-5 max-md:pt-5 md:pb-14">
 	{@render children()}
 </div>

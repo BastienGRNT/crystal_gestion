@@ -26,7 +26,7 @@
 <p class="text-base text-ink-2">
 	{#if minutes}Tu as travaillé <strong class="text-ink">{formatMinutes(minutes)}</strong> aujourd’hui{:else}Pas
 		de temps chronométré aujourd’hui{/if}{done.length
-		? ` et fini ${done.length} tâche${done.length > 1 ? 's' : ''}.`
+		? ` et fini ${done.length} Task${done.length > 1 ? 's' : ''}.`
 		: '.'}
 </p>
 {#if done.length}

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Task } from '../domain/task';
 import { makeMoveTask } from './move-task';
-import { makeStartTask } from './timer-actions';
+import { makeFinishTask, makeStartTask } from './timer-actions';
 
 const task: Task = {
 	id: 't1',
@@ -16,6 +16,7 @@ const task: Task = {
 	urgent: null,
 	assigneeIds: [],
 	isFix: false,
+	reviewerId: null,
 	status: 'todo',
 	position: 1,
 	completedAt: null,
@@ -75,5 +76,25 @@ describe('move task', () => {
 			expect.objectContaining({ status: 'in_progress' })
 		);
 		expect(deps.timer.start).toHaveBeenCalledWith('p', 'u', 't1');
+	});
+
+	it('ticking a task with a reviewer sends it to review and notifies them', async () => {
+		const { deps, move } = setup();
+		deps.tasks.find.mockResolvedValue({ ...task, reviewerId: 'ana' });
+		const finish = makeFinishTask(deps, move);
+		const result = await finish(actor, { projectId: 'p', id: 't1' });
+		expect(result.status).toBe('review');
+		expect(result.completedAt).toBeNull();
+		expect(deps.notifier.notify).toHaveBeenCalledWith(
+			expect.objectContaining({ type: 'review', recipientIds: ['ana'] })
+		);
+	});
+
+	it('the reviewer ticking it validates it: done', async () => {
+		const { deps, move } = setup();
+		deps.tasks.find.mockResolvedValue({ ...task, status: 'review', reviewerId: 'u' });
+		const result = await makeFinishTask(deps, move)(actor, { projectId: 'p', id: 't1' });
+		expect(result.status).toBe('done');
+		expect(deps.notifier.notify).not.toHaveBeenCalled();
 	});
 });

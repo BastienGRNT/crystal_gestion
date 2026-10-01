@@ -16,8 +16,11 @@
 
 <svelte:head><title>Projet · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Le projet">
-	{#snippet actions()}<ProjectTabs value="overview" />{/snippet}
+<PageHeader
+	title="Le projet"
+	meta="Pourquoi on le fait, et avec qui. Tout se modifie en cliquant dessus."
+>
+	{#snippet tabs()}<ProjectTabs value="overview" />{/snippet}
 </PageHeader>
 <Page width="max-w-[1100px]">
 	<InlineText
@@ -25,15 +28,13 @@
 		onsave={(name) => actions.project.updateFraming({ name })}
 		class="font-display text-2xl"
 	/>
-	<p class="mt-1 mb-6 text-sm text-ink-2">
-		Pourquoi on le fait, et avec qui. Tout se modifie en cliquant dessus.
-	</p>
+	<div class="mb-6"></div>
 	{#if welcome}
 		<p
 			class="mb-8 animate-rise rounded-lg border border-accent/30 bg-accent-soft/60 px-4 py-3 text-base"
 		>
-			Projet créé : la discussion <strong>Général</strong>, le tableau des tâches et les dossiers
-			sont prêts. Écris l’objectif, ajoute tes features (onglet Features) puis invite ton équipe.
+			Projet créé : la discussion <strong>Général</strong>, le tableau des Tasks et les dossiers
+			sont prêts. Écris l’objectif, ajoute tes Feats (dans Gestion) puis invite ton équipe.
 		</p>
 	{/if}
 	<div class="grid gap-x-12 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)]">
@@ -46,4 +47,9 @@
 			>
 		</aside>
 	</div>
+	<a
+		href="/p/{store.project.slug}/ai"
+		class="mt-10 inline-block text-xs text-ink-3 hover:text-ink hover:underline"
+		>Mémoire IA : ce que l’IA saura du projet →</a
+	>
 </Page>

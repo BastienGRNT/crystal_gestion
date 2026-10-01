@@ -26,7 +26,7 @@ export class ElementSources {
 	constructor(private store: ProjectStore) {}
 
 	/** Options of a feature select; the empty value comes first with its own meaning. */
-	featureOptions = (emptyLabel = 'Aucune feature') => [
+	featureOptions = (emptyLabel = 'Aucune Feat') => [
 		{ value: '', label: emptyLabel },
 		...this.features
 	];

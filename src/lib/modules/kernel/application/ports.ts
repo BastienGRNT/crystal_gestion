@@ -27,7 +27,7 @@ export interface ActivityLog {
 	record(input: ActivityInput): Promise<void>;
 }
 
-export type NotificationType = 'mention' | 'question' | 'assigned';
+export type NotificationType = 'mention' | 'question' | 'assigned' | 'review';
 
 export interface NotificationInput {
 	type: NotificationType;

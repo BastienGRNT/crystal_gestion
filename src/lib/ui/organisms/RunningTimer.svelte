@@ -23,7 +23,7 @@
 	role="status"
 	aria-label="Chrono en cours"
 >
-	<div class="flex items-center gap-1 rounded-[9px] bg-panel py-2 pr-1.5 pl-3">
+	<div class="flex items-center gap-1 rounded-[9px] bg-panel py-2 pr-1.5 pl-3 text-ink">
 		<button class="min-w-0 flex-1 text-left" onclick={onopen} title="Ouvrir {taskRef}">
 			<p class="flex items-center gap-1.5 text-xs text-ink-3">
 				<span class="size-[7px] animate-pulse rounded-full bg-must"></span>
@@ -38,7 +38,7 @@
 			><Square size={13} /></IconButton
 		>
 		{#if onfinish}
-			<IconButton label="Terminer la tâche" size="sm" onclick={onfinish} class="hover:text-success"
+			<IconButton label="Cocher la Task" size="sm" onclick={onfinish} class="hover:text-success"
 				><Check size={15} /></IconButton
 			>
 		{/if}

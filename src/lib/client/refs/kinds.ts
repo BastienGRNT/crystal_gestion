@@ -14,10 +14,10 @@ import {
 import type { ElementKind } from '$lib/modules/kernel/domain/element';
 
 export const KIND_META: Record<ElementKind, { label: string; icon: typeof Gem }> = {
-	feature: { label: 'Feature', icon: Gem },
-	task: { label: 'Tâche', icon: SquareCheckBig },
+	feature: { label: 'Feat', icon: Gem },
+	task: { label: 'Task', icon: SquareCheckBig },
 	decision: { label: 'Décision', icon: BookOpen },
-	fix: { label: 'Bug résolu', icon: Wrench },
+	fix: { label: 'Fix résolu', icon: Wrench },
 	scope: { label: 'Changement de périmètre', icon: Waypoints },
 	idea: { label: 'Idée', icon: Lightbulb },
 	message: { label: 'Message', icon: MessageSquare },

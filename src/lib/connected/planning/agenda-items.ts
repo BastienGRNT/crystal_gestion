@@ -63,7 +63,7 @@ function rawItems(s: AgendaSource): (Raw & { from: string; to: string })[] {
 				from: e.startedAt,
 				to
 			},
-			...{ ref: task?.ref ?? null, label: task?.title ?? 'Sans tâche' },
+			...{ ref: task?.ref ?? null, label: task?.title ?? 'Sans Task' },
 			color: feature?.color ?? 'var(--feature-none)',
 			info: blockInfo(e, to, context)
 		};

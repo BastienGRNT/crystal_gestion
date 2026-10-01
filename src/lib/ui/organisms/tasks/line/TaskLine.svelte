@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { Wrench } from '@lucide/svelte';
 	import type { TaskCardView } from '$lib/client/views/task-card';
 	import type { TaskMenus } from '$lib/client/views/task-menus';
 	import type { TaskFields } from '$lib/modules/tasks/domain/task';
-	import BugMark from '../../../atoms/BugMark.svelte';
 	import StatusIcon from '../../../atoms/StatusIcon.svelte';
 	import AssigneeCell from './AssigneeCell.svelte';
 	import DueCell from './DueCell.svelte';
@@ -13,7 +13,7 @@
 	interface Props {
 		task: TaskCardView;
 		menus: TaskMenus;
-		/** Off inside a feature: every row is that feature. */
+		/** Off inside a feat: every row is that feat. */
 		withFeature?: boolean;
 		/** Off on the home page: they are all yours. */
 		withPeople?: boolean;
@@ -39,27 +39,31 @@
 		const ids = task.assignees.map((a) => a.id);
 		onchange({ assigneeIds: ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id] });
 	};
+	const waiting = $derived(task.status === 'review');
 </script>
 
 <!-- Title, then quiet metadata. The title button covers the row; cells sit above it. -->
-<div class="group relative flex min-h-10 items-center gap-2.5 rounded-lg pr-1 pl-2 hover:bg-hover">
+<div class="group relative flex min-h-[52px] items-center gap-3.5 px-5 transition hover:bg-hover">
 	<button
 		type="button"
 		onclick={() => ontoggle(!task.done)}
-		title={task.done ? 'Rouvrir' : 'Marquer comme fait'}
-		aria-label={task.done ? 'Rouvrir' : 'Marquer comme fait'}
+		title={task.done ? 'Rouvrir' : waiting ? 'Valider' : 'Cocher'}
+		aria-label={task.done ? 'Rouvrir' : waiting ? 'Valider' : 'Cocher'}
 		class="relative z-[1] -m-1 rounded-full p-1 transition hover:scale-110"
 	>
-		<StatusIcon status={task.status} />
+		<StatusIcon status={task.status} size={21} />
 	</button>
-	{#if task.fix}<BugMark size={13} />{/if}
+	{#if task.fix}<span class="flex shrink-0 items-center gap-1 text-xs font-bold text-must"
+			><Wrench size={14} />Fix</span
+		>{/if}
 	<button
 		type="button"
 		onclick={onopen}
-		class="min-w-0 flex-1 truncate text-left text-sm after:absolute after:inset-0 after:content-[''] {task.done
-			? 'text-ink-3 line-through'
+		class="min-w-0 flex-1 truncate text-left text-[15px] after:absolute after:inset-0 after:content-[''] {task.done
+			? 'text-ink-3 line-through decoration-ink-3/40'
 			: ''}">{task.title}</button
 	>
+	{#if waiting}<span class="shrink-0 text-xs font-bold text-accent-text">À valider</span>{/if}
 	{@render extra?.()}
 	<TimerCell running={task.running} {ontimer} />
 	{#if withFeature}

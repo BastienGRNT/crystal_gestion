@@ -37,7 +37,7 @@
 	</section>
 	{#if item.kind !== 'contact'}
 		<div class="mt-3 border-t border-line pt-3">
-			<PropertyRow label="Feature">
+			<PropertyRow label="Feat">
 				<FeatureChip value={item.featureId} onchange={(featureId) => ops.move(featureId)} />
 			</PropertyRow>
 		</div>

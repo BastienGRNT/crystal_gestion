@@ -6,29 +6,29 @@
 	let { features, oncreate }: { features: SidebarFeature[]; oncreate: () => void } = $props();
 </script>
 
-<!-- Features are where work lives: always one click away, like channels in a chat app. -->
-<section class="mt-5 flex min-h-0 flex-col" aria-label="Features">
-	<div class="flex h-7 items-center justify-between pr-1 pl-2.5">
-		<span class="text-xs font-medium text-ink-3">Features</span>
+<!-- Feats are where work lives: always one click away, like channels in a chat app. -->
+<section class="mt-7 flex min-h-0 flex-col" aria-label="Feats">
+	<div class="mb-1 flex h-7 items-center justify-between pr-1 pl-3">
+		<span class="text-xs font-bold tracking-[0.08em] text-side-ink-3 uppercase">Feats</span>
 		<button
 			type="button"
 			onclick={oncreate}
-			title="Nouvelle feature (F)"
-			aria-label="Nouvelle feature"
-			class="flex size-6 items-center justify-center rounded-md text-ink-3 transition hover:bg-side-hover hover:text-ink"
-			><Plus size={14} /></button
+			title="Nouvelle Feat (F)"
+			aria-label="Nouvelle Feat"
+			class="flex size-7 items-center justify-center rounded-lg text-side-ink-3 transition hover:bg-side-hover hover:text-side-ink"
+			><Plus size={16} /></button
 		>
 	</div>
-	<div class="flex min-h-0 flex-col gap-px overflow-y-auto">
+	<div class="flex min-h-0 flex-col gap-0.5 overflow-y-auto">
 		{#each features as feature (feature.id)}
 			<a
 				href={feature.href}
 				aria-current={feature.active ? 'page' : undefined}
-				class="flex h-8 shrink-0 items-center gap-2.5 rounded-lg px-2.5 text-ui transition {feature.active
-					? 'bg-panel font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]'
-					: 'text-ink-2 hover:bg-side-hover hover:text-ink'}"
+				class="flex h-9 shrink-0 items-center gap-3 rounded-[9px] px-3 text-sm font-medium transition hover:no-underline {feature.active
+					? 'bg-side-active text-white'
+					: 'text-side-ink hover:bg-side-hover'}"
 			>
-				<span class="size-2.5 shrink-0 rounded-[3px]" style="background:{feature.color}"></span>
+				<span class="size-3 shrink-0 rounded-[4px]" style="background:{feature.color}"></span>
 				<span class="min-w-0 flex-1 truncate">{feature.title}</span>
 				<ProgressRing ratio={feature.ratio} color={feature.color} />
 			</a>
@@ -36,8 +36,8 @@
 			<button
 				type="button"
 				onclick={oncreate}
-				class="rounded-lg px-2.5 py-1.5 text-left text-xs text-ink-3 hover:text-ink"
-				>Une feature = un morceau du produit. Crée la première.</button
+				class="rounded-lg px-3 py-1.5 text-left text-xs text-side-ink-2 hover:text-side-ink"
+				>Une Feat = un morceau du produit. Crée la première.</button
 			>
 		{/each}
 	</div>

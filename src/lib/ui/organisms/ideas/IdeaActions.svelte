@@ -11,11 +11,9 @@
 
 <div class="flex shrink-0 items-center gap-0.5">
 	{#if !archived}
-		<button type="button" class={convert} onclick={ontask} title="En faire une tâche"
-			>→ Tâche</button
-		>
-		<button type="button" class={convert} onclick={onfeature} title="En faire une feature"
-			>→ Feature</button
+		<button type="button" class={convert} onclick={ontask} title="En faire une Task">→ Task</button>
+		<button type="button" class={convert} onclick={onfeature} title="En faire une Feat"
+			>→ Feat</button
 		>
 		<IconButton label="Archiver" size="sm" onclick={() => onarchive(true)}
 			><Archive size={14} /></IconButton

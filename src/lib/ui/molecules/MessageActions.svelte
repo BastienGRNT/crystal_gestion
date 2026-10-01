@@ -19,10 +19,9 @@
 	let { view, ...on }: { view: MessageView } & MessageHandlers = $props();
 
 	const convert: MenuAction[] = [
-		{ label: 'Décision', icon: BookOpen, run: () => on.onconvert('decision') },
-		{ label: 'Bug résolu', icon: Wrench, run: () => on.onconvert('fix') },
-		{ label: 'Tâche', icon: SquareCheckBig, run: () => on.onconvert('task') },
-		{ label: 'Idée', icon: Lightbulb, run: () => on.onconvert('idea') }
+		{ label: 'Une Task', icon: SquareCheckBig, run: () => on.onconvert('task') },
+		{ label: 'Un Fix', icon: Wrench, run: () => on.onconvert('fix') },
+		{ label: 'Une idée', icon: Lightbulb, run: () => on.onconvert('idea') }
 	];
 	const own = $derived<MenuAction[]>([
 		{ label: 'Modifier', icon: Pencil, run: on.onedit },
@@ -44,6 +43,9 @@
 		: 'absolute top-1 right-2'}"
 >
 	<IconButton label="Répondre" size="sm" onclick={on.onreply}><Reply size={14} /></IconButton>
-	<IconMenu label="Transformer en…" icon={Shuffle} heading="Transformer en" items={convert} />
+	<IconButton label="Garder comme décision" size="sm" onclick={() => on.onconvert('decision')}
+		><BookOpen size={14} /></IconButton
+	>
+	<IconMenu label="En faire…" icon={Shuffle} heading="En faire" items={convert} />
 	{#if view.mine}<IconMenu label="Plus d’actions" icon={Ellipsis} items={own} />{/if}
 </div>

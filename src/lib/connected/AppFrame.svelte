@@ -39,12 +39,9 @@
 			onclick={closeMenu}
 		></div>
 	{/if}
-	<!-- Pages live in a card next to the sidebar; `#page` is the scroll container. -->
-	<main class="flex min-w-0 flex-1 md:py-2 md:pr-2">
-		<div
-			id="page"
-			class="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-panel md:rounded-xl md:border md:border-line"
-		>
+	<!-- Pages sit on paper next to the dark sidebar; `#page` is the scroll container. -->
+	<main class="flex min-w-0 flex-1">
+		<div id="page" class="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-panel">
 			{@render children()}
 		</div>
 	</main>

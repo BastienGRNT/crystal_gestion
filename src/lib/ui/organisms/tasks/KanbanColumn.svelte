@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TaskCardView } from '$lib/client/views/task-card';
-	import QuickAdd from '../../molecules/QuickAdd.svelte';
+	import AddLine from '../../molecules/AddLine.svelte';
 	import TaskCard from '../../molecules/TaskCard.svelte';
 	import { dropIndex } from './drop-index';
 
@@ -46,20 +46,20 @@
 </script>
 
 <section
-	class="flex w-[82vw] shrink-0 snap-start flex-col rounded-xl bg-sunken p-2 sm:w-auto sm:min-w-[220px] sm:flex-1"
+	class="flex w-[82vw] shrink-0 snap-start flex-col rounded-[18px] bg-sunken p-2.5 sm:w-auto sm:min-w-[196px] sm:flex-1"
 	aria-label={label}
 >
-	<header class="px-1.5 pt-1.5 pb-1.5">
-		<div class="flex items-center gap-2">
-			<span class="size-2 rounded-full {tone}"></span>
-			<h2 class="text-ui font-semibold">{label}</h2>
-			<span class="text-xs text-ink-3">{cards.length}</span>
+	<header class="px-2 pt-1.5 pb-3">
+		<div class="flex items-center gap-2.5">
+			<span class="size-2.5 rounded-full {tone}"></span>
+			<h2 class="text-base font-extrabold">{label}</h2>
+			<span class="ml-auto text-ui font-bold text-ink-3">{cards.length}</span>
 		</div>
-		{#if hint}<p class="mt-0.5 text-xs text-ink-3">{hint}</p>{/if}
+		{#if hint}<p class="mt-1 text-xs text-ink-3">{hint}</p>{/if}
 	</header>
 	<div
 		bind:this={list}
-		class="flex min-h-24 flex-1 flex-col gap-1.5"
+		class="flex min-h-24 flex-1 flex-col gap-2"
 		role="list"
 		ondragover={over}
 		ondragleave={() => (hoverIndex = null)}
@@ -84,7 +84,7 @@
 		{/each}
 		{#if hoverIndex === cards.length}<div class="h-0.5 rounded-full bg-accent"></div>{/if}
 		<div class="mt-auto pt-1">
-			<QuickAdd placeholder="Ajouter…" onadd={(title) => onadd(title, false)} />
+			<AddLine label="Ajouter une Task" onadd={(title) => onadd(title, false)} />
 		</div>
 	</div>
 </section>

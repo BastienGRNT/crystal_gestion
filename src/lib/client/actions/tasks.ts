@@ -1,4 +1,9 @@
-import type { Task, TaskFields, TaskStatus } from '$lib/modules/tasks/domain/task';
+import {
+	finishedStatus,
+	type Task,
+	type TaskFields,
+	type TaskStatus
+} from '$lib/modules/tasks/domain/task';
 import { send } from '../commands';
 import { combine, draftId, optimistic } from '../live/optimistic';
 import type { ProjectStore } from '../project-store.svelte';
@@ -24,6 +29,7 @@ export function taskActions(store: ProjectStore, meId: string) {
 		urgent: null,
 		assigneeIds: [],
 		isFix: false,
+		reviewerId: null,
 		status: 'todo',
 		position: Number.MAX_SAFE_INTEGER,
 		completedAt: null,
@@ -41,7 +47,7 @@ export function taskActions(store: ProjectStore, meId: string) {
 						...(position === undefined ? {} : { position }),
 						completedAt: status === 'done' ? now() : null
 					}),
-					status === 'done' ? timer.stopLocally(id) : () => {}
+					status === 'done' || status === 'review' ? timer.stopLocally(id) : () => {}
 				),
 			() => send('tasks.move', { projectId: projectId(), id, status, position })
 		);
@@ -58,7 +64,7 @@ export function taskActions(store: ProjectStore, meId: string) {
 		move,
 		remove: (id: string) =>
 			deleteWithUndo(
-				'Tâche supprimée',
+				'Task supprimée',
 				() => combine(store.tasks.remove(id), timer.stopLocally(id)),
 				() => send('tasks.delete', { projectId: projectId(), id })
 			),
@@ -75,6 +81,18 @@ export function taskActions(store: ProjectStore, meId: string) {
 				() => timer.stopLocally(),
 				() => send('tasks.pause', {})
 			),
-		finish: (id: string) => move(id, 'done')
+		/** Ticked: done, or « À valider » when someone else reviews it. */
+		finish: (id: string) => {
+			const task = store.tasks.get(id);
+			const status = task ? finishedStatus(task, meId) : 'done';
+			return optimistic(
+				() =>
+					combine(
+						store.tasks.patch(id, { status, completedAt: status === 'done' ? now() : null }),
+						timer.stopLocally(id)
+					),
+				() => send('tasks.finish', { projectId: projectId(), id })
+			);
+		}
 	};
 }

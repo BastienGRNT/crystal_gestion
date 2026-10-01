@@ -7,7 +7,6 @@
 	import NoteCard from '$lib/ui/organisms/NoteCard.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
 	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
-	import ProjectTabs from '$lib/connected/project/ProjectTabs.svelte';
 
 	const { store, actions } = useProject();
 	const author = (id: string | null) => (id ? (store.members.get(id)?.name ?? 'Quelqu’un') : 'IA');
@@ -15,7 +14,7 @@
 		{ icon: Target, label: 'Projet', value: 'objectif, public, périmètre, « c’est fini quand »' },
 		{
 			icon: Gem,
-			label: 'Features',
+			label: 'Feats',
 			value: `${store.features.items.length} avec priorités et critères`
 		},
 		{
@@ -28,9 +27,7 @@
 
 <svelte:head><title>Mémoire IA · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Le projet">
-	{#snippet actions()}<ProjectTabs value="ai" />{/snippet}
-</PageHeader>
+<PageHeader title="Mémoire IA" meta="Ce que l’IA saura du projet, quand elle sera branchée." />
 <Page width="max-w-[1000px]">
 	<p class="mb-6 text-sm text-ink-2">
 		Les notes que l’IA ajoutera au fil du temps (conventions, qui fait quoi, erreurs à ne pas

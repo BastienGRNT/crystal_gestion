@@ -20,8 +20,8 @@ export interface PersonDigest {
 }
 
 const NOUNS = {
-	task: ['tâche', 'tâches'],
-	feature: ['feature', 'features'],
+	task: ['Task', 'Tasks'],
+	feature: ['Feat', 'Feats'],
 	idea: ['idée', 'idées'],
 	decision: ['décision', 'décisions'],
 	file: ['fichier', 'fichiers'],

@@ -1,18 +1,24 @@
 <script lang="ts">
+	import { BookOpen, Target } from '@lucide/svelte';
 	import { useProject } from '$lib/client/context';
-	import LinkSegments from '$lib/ui/molecules/LinkSegments.svelte';
+	import PageTabs from '$lib/ui/molecules/PageTabs.svelte';
 
 	let { value }: { value: 'journal' | 'overview' | 'ai' } = $props();
 	const { store } = useProject();
 	const base = $derived(`/p/${store.project.slug}`);
 </script>
 
-<LinkSegments
+<PageTabs
 	label="Sections du projet"
 	{value}
 	tabs={[
-		{ value: 'overview', label: 'Objectif et équipe', href: `${base}/project` },
-		{ value: 'journal', label: 'Journal', href: `${base}/journal` },
-		{ value: 'ai', label: 'Mémoire IA', href: `${base}/ai` }
+		{ value: 'overview', label: 'Objectif et équipe', icon: Target, href: `${base}/project` },
+		{
+			value: 'journal',
+			label: 'Décisions',
+			icon: BookOpen,
+			href: `${base}/journal`,
+			count: store.journal.items.length
+		}
 	]}
 />

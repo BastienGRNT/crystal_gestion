@@ -30,7 +30,7 @@ export function blockInfo(
 ) {
 	const { task, feature, person, slots } = context;
 	return {
-		title: task ? `${task.ref} · ${task.title}` : 'Temps sans tâche',
+		title: task ? `${task.ref} · ${task.title}` : 'Temps sans Task',
 		lines: [
 			`Feature : ${feature ?? 'aucune'}`,
 			`Par ${person}`,

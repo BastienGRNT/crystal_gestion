@@ -16,7 +16,7 @@
 			[
 				['all', 'Tout'],
 				['decision', 'Décisions'],
-				['fix', 'Bugs résolus'],
+				['fix', 'Fix résolus'],
 				['scope', 'Périmètre']
 			] as const
 		).map(([value, label]) => ({ value, label: `${label} ${counts[value]}` }))
@@ -31,7 +31,7 @@
 		onchange={(kind) => (filter.kind = kind)}
 	/>
 	<Select
-		label="Feature"
+		label="Feat"
 		value={filter.featureId}
 		options={featureOptions}
 		onchange={(id) => (filter.featureId = id)}

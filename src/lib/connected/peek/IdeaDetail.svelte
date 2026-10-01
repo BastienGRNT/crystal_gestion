@@ -31,10 +31,8 @@
 				><ArchiveRestore size={14} class="mr-1.5" />Restaurer</button
 			>
 		{:else}
-			<button type="button" class={convert} onclick={handlers.ontask}>En faire une tâche</button>
-			<button type="button" class={convert} onclick={handlers.onfeature}
-				>En faire une feature</button
-			>
+			<button type="button" class={convert} onclick={handlers.ontask}>En faire une Task</button>
+			<button type="button" class={convert} onclick={handlers.onfeature}>En faire une Feat</button>
 			<button
 				type="button"
 				class="{convert} border-transparent text-ink-3"

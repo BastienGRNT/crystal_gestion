@@ -19,7 +19,7 @@
 		<button
 			type="button"
 			onclick={() => (open = !open)}
-			aria-label="Changer la priorité de la feature"
+			aria-label="Changer la priorité de la Feat"
 			class="inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium whitespace-nowrap transition hover:brightness-95"
 			style="background:{soft(PRIORITY_COLORS[priority])}"
 		>

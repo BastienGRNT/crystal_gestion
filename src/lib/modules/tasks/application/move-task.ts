@@ -6,7 +6,7 @@ import type { TaskDeps, TaskTarget } from './deps';
 
 export type TaskMove = TaskTarget & { status: TaskStatus; position?: number };
 
-/** Moving to "done" stamps completion and stops every timer running on the task. */
+/** Moving to "done" stamps completion; leaving the work (review, done) stops its timers. */
 export const makeMoveTask =
 	(deps: TaskDeps) =>
 	async (actor: Actor, { projectId, id, status, position }: TaskMove) => {
@@ -24,7 +24,8 @@ export const makeMoveTask =
 		});
 		deps.feed.upserted('task', projectId, task);
 		if (!statusChanged) return task;
-		if (status === 'done') await deps.timer.stopForTask(id);
+		// Handing the work over (to review or done) ends the time spent on it.
+		if (status === 'done' || status === 'review') await deps.timer.stopForTask(id);
 		await deps.activity.record({
 			projectId,
 			actor,

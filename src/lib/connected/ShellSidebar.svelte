@@ -4,7 +4,6 @@
 	import { activeNav, navEntries, projectPath, SUB_PAGES } from '$lib/client/navigation';
 	import { overlays } from '$lib/client/overlays.svelte';
 	import { theme } from '$lib/client/theme.svelte';
-	import { defaultCreateKind } from '$lib/client/create-context';
 	import { sidebarFeatures } from '$lib/client/views/sidebar-features';
 	import Sidebar from '$lib/ui/organisms/Sidebar.svelte';
 	import SidebarFooter from '$lib/ui/organisms/SidebarFooter.svelte';
@@ -38,7 +37,6 @@
 	active={activeNav(page.url.pathname, slug)}
 	{entries}
 	{features}
-	oncreate={() => overlays.openCreate(...defaultCreateKind(page.url, store))}
 	onfeature={() => overlays.openCreate('feature')}
 	onsearch={() => overlays.openPalette()}
 >

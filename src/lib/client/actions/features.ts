@@ -37,7 +37,7 @@ export function featureActions(store: ProjectStore) {
 			),
 		remove: (id: string) =>
 			deleteWithUndo(
-				'Feature supprimée',
+				'Feat supprimée',
 				() => store.features.remove(id),
 				() => send('features.delete', { projectId: projectId(), id })
 			)

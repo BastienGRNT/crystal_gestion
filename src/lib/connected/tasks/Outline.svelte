@@ -3,12 +3,10 @@
 	import { matchesFilter, type TaskFilter } from '$lib/client/views/kanban';
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
 	import { byPriority, isArchived } from '$lib/modules/features/domain/feature';
-	import ArchivedFeatures from './ArchivedFeatures.svelte';
 	import FeatureGroup from './FeatureGroup.svelte';
 	import IceboxGroup from './IceboxGroup.svelte';
-	import IdeasGroup from './IdeasGroup.svelte';
 
-	/** The list view: every feature with its tasks under it, then loose work, icebox, ideas. */
+	/** The list view: every feat as a card with its tasks, then loose work, then the icebox. */
 	let { filter }: { filter: TaskFilter } = $props();
 	const { store } = useProject();
 	const sources = new TaskSources(store);
@@ -25,7 +23,6 @@
 	const iceboxFeatures = $derived(
 		store.features.items.filter((f) => !isArchived(f) && f.priority === 'wont')
 	);
-	const archived = $derived(store.features.items.filter(isArchived));
 	const defaults = $derived({
 		assigneeIds: filter.person ? [filter.person] : [],
 		isFix: !!filter.bugsOnly
@@ -41,6 +38,4 @@
 {/if}
 {#if unfiltered}
 	<IceboxGroup features={iceboxFeatures} tasks={icebox} {sources} {defaults} />
-	{#if !filter.person && !filter.bugsOnly}<IdeasGroup />{/if}
-	{#if archived.length}<ArchivedFeatures features={archived} />{/if}
 {/if}

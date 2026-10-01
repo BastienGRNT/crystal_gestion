@@ -21,9 +21,9 @@
 </script>
 
 <div class="flex flex-col gap-1">
-	<PropertyRow label="Feature">
+	<PropertyRow label="Feat">
 		<Select
-			label="Feature"
+			label="Feat"
 			value={entry.featureId ?? ''}
 			options={sources.featureOptions()}
 			class="w-full"

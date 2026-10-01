@@ -15,6 +15,7 @@ const base: Task = {
 	urgent: null,
 	assigneeIds: [],
 	isFix: false,
+	reviewerId: null,
 	status: 'in_progress',
 	position: 1,
 	completedAt: null,

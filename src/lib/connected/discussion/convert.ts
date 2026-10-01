@@ -23,7 +23,7 @@ export function convertMessage(
 				kind: 'decision',
 				details: { rationale: text, decidedBy: [], decidedOn: null }
 			}),
-		fix: () => actions.journal.create({ ...common, kind: 'fix', details: { problem: text } }),
+		fix: () => actions.tasks.create({ ...common, description: text, isFix: true }),
 		task: () => actions.tasks.create({ ...common, description: text }),
 		idea: () => actions.ideas.create({ ...common, note: text })
 	};

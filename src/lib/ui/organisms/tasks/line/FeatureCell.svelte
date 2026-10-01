@@ -13,19 +13,19 @@
 	let { feature, options, onpick }: Props = $props();
 </script>
 
-<div class="relative hidden w-[150px] min-w-0 shrink sm:block">
-	<PickMenu title="Feature" {options} {onpick}>
+<div class="relative hidden w-[170px] min-w-0 shrink sm:block">
+	<PickMenu title="Feat" {options} {onpick}>
 		{#snippet trigger(toggle)}
 			<button
 				type="button"
 				onclick={toggle}
-				title="Changer de feature"
+				title="Changer de Feat"
 				class="flex h-7 w-full items-center rounded-md px-2 transition hover:bg-sunken {feature
 					? ''
 					: 'opacity-0 group-hover:opacity-100'}"
 			>
 				<FeatureMark
-					title={feature?.title ?? 'Sans feature'}
+					title={feature?.title ?? 'Sans Feat'}
 					color={feature?.color ?? 'var(--line-strong)'}
 					muted={!feature}
 				/>

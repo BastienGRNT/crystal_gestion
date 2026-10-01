@@ -13,7 +13,7 @@
 
 	let { title, feature, channel }: Props = $props();
 	const scope = $derived(
-		feature ? 'fil de la feature' : channel ? 'canal de Général' : 'toute l’équipe'
+		feature ? 'fil de la Feat' : channel ? 'canal de Général' : 'toute l’équipe'
 	);
 </script>
 
@@ -29,7 +29,7 @@
 		<a
 			href={feature.href}
 			class="inline-flex h-6 items-center gap-1.5 rounded-md border border-line px-2 text-xs text-ink-2 hover:bg-hover hover:no-underline"
-			>Voir la feature <ArrowUpRight size={12} /></a
+			>Voir la Feat <ArrowUpRight size={12} /></a
 		>
 	{:else if channel}
 		<div>

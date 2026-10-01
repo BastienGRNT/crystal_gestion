@@ -15,18 +15,18 @@
 
 <a
 	{href}
-	title={shortcut ? `${label} (${shortcut})` : label}
+	title={shortcut ? `${label} (touche ${shortcut})` : label}
 	aria-current={active ? 'page' : undefined}
-	class="flex h-[34px] items-center gap-2.5 rounded-lg px-2.5 text-sm transition {active
-		? 'bg-panel font-medium text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)]'
-		: 'text-ink-2 hover:bg-side-hover hover:text-ink'}"
+	class="flex h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] font-semibold transition hover:no-underline {active
+		? 'bg-side-active text-white'
+		: 'text-side-ink-2 hover:bg-side-hover hover:text-side-ink'}"
 >
-	<Icon size={16} />
+	<Icon size={19} strokeWidth={active ? 2.2 : 1.9} />
 	<span class="flex-1">{label}</span>
 	{#if badge > 0}
 		<span
-			class="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-soft px-1.5 text-2xs font-semibold text-accent-text"
+			class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-2xs font-bold text-white"
 			>{badge}</span
 		>
-	{/if}
+	{:else if shortcut}<span class="text-xs text-side-ink-3">{shortcut}</span>{/if}
 </a>

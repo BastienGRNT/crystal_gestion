@@ -22,13 +22,17 @@
 </script>
 
 <div
-	class="-mx-4 flex snap-x snap-mandatory items-start gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+	class="-mx-4 flex snap-x snap-mandatory items-start gap-3.5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
 >
 	{#each TASK_STATUSES as status (status)}
 		<KanbanColumn
 			label={STATUS_LABELS[status]}
 			tone={tones[status]}
-			hint={status === 'icebox' ? 'Noté pour plus tard, on n’y pense pas encore.' : undefined}
+			hint={status === 'icebox'
+				? 'Pour plus tard : on n’y pense pas encore.'
+				: status === 'review'
+					? 'Cochées, en attente de leur valideur.'
+					: undefined}
 			cards={columns[status]}
 			{draggingId}
 			ondragstart={(id) => (draggingId = id)}

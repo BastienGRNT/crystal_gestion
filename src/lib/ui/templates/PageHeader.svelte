@@ -3,20 +3,32 @@
 
 	interface Props {
 		title: string;
-		/** Short context next to the title: a date, a count. */
+		/** One sentence under the title: what this page is for, or a date. */
 		meta?: string;
+		/** Named buttons on the right: « + Task », « + Feat »… */
 		actions?: Snippet;
+		/** Big tabs under the title (`PageTabs`). */
+		tabs?: Snippet;
+		/** Left of the title: a feat color, an icon. */
+		lead?: Snippet;
+		/** Replaces the title text (an editable title). */
+		heading?: Snippet;
 	}
 
-	let { title, meta, actions }: Props = $props();
+	let { title, meta, actions, tabs, lead, heading }: Props = $props();
 </script>
 
-<!-- The top bar of the page card: what this is on the left, what you can do on the right. -->
-<header
-	class="sticky top-0 z-10 flex min-h-14 shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-panel py-2.5 pr-5 pl-6 max-md:px-4"
->
-	<h1 class="text-lg font-semibold tracking-[-0.01em]">{title}</h1>
-	{#if meta}<span class="text-sm whitespace-nowrap text-ink-3">{meta}</span>{/if}
-	<div class="flex-1"></div>
-	{#if actions}<div class="flex flex-wrap items-center gap-2">{@render actions()}</div>{/if}
+<header class="shrink-0 px-12 pt-9 max-lg:px-8 max-md:px-5 max-md:pt-6">
+	<div class="flex flex-wrap items-end gap-x-6 gap-y-4">
+		<div class="min-w-0 flex-1">
+			<h1
+				class="flex items-center gap-3 text-3xl font-extrabold tracking-[-0.02em] max-md:text-2xl"
+			>
+				{@render lead?.()}{#if heading}{@render heading()}{:else}{title}{/if}
+			</h1>
+			{#if meta}<p class="mt-1.5 text-base text-ink-2">{meta}</p>{/if}
+		</div>
+		{#if actions}<div class="flex flex-wrap items-center gap-2.5">{@render actions()}</div>{/if}
+	</div>
+	{#if tabs}<div class="mt-6">{@render tabs()}</div>{/if}
 </header>

@@ -14,7 +14,7 @@
 </script>
 
 <ChipSelect
-	label="Feature"
+	label="Feat"
 	value={value ?? ''}
 	options={featureOptions(store.features.items)}
 	onchange={(id) => onchange(id || null)}

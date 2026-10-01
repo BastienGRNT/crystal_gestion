@@ -47,7 +47,7 @@
 		<EmptyState
 			icon={BellOff}
 			title="Rien de neuf"
-			text="Tu seras prévenu·e seulement pour les mentions, les questions et les tâches qu’on t’assigne."
+			text="Tu seras prévenu·e seulement pour les mentions, les questions et les Tasks qu’on t’assigne."
 		/>
 	{/each}
 </Drawer>

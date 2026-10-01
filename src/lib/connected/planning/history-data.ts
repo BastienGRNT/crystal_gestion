@@ -39,7 +39,7 @@ export function historyData(s: Source) {
 	});
 	const byFeature = minutesBy(entries, (e) => featureOf(e.taskId)?.id ?? '', s.now);
 	const features = ranked(byFeature).map(({ key, minutes }) =>
-		row(key || 'none', s.features.find((f) => f.id === key)?.title ?? 'Sans feature', minutes)
+		row(key || 'none', s.features.find((f) => f.id === key)?.title ?? 'Sans Feat', minutes)
 	);
 	const weeks: WeekBar[] = weeklyTotals(s.entries, s.now, s.offset, 8).map((week, index) => ({
 		...{ key: week.from.toISOString(), label: formatDay(week.from, short), minutes: week.minutes },

@@ -14,7 +14,7 @@ export function createTasksModule(deps: TaskDeps) {
 		remove: makeDeleteTask(deps),
 		start: makeStartTask(deps, move),
 		pause: makePauseTask(deps),
-		finish: makeFinishTask(move),
+		finish: makeFinishTask(deps, move),
 		list: (projectId: string) => deps.tasks.list(projectId)
 	};
 }

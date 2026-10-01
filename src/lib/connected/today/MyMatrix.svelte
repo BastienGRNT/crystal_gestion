@@ -11,7 +11,7 @@
 	} from '$lib/modules/tasks/domain/eisenhower';
 	import { isActive } from '$lib/modules/tasks/domain/task';
 	import MiniMatrix from '$lib/ui/organisms/tasks/MiniMatrix.svelte';
-	import { QUADRANT_COLORS, QUADRANT_HINTS } from '../tasks/quadrants';
+	import { QUADRANT_ACTIONS, QUADRANT_COLORS } from '../tasks/quadrants';
 
 	const { store, actions, me, peek } = useProject();
 	const sources = new TaskSources(store);
@@ -21,7 +21,12 @@
 	const groups = $derived(groupByQuadrant(mine, sources.priorityOf, new Date()));
 	const cells = $derived(
 		QUADRANTS.map((q) => ({
-			...{ key: q, label: QUADRANT_LABELS[q], hint: QUADRANT_HINTS[q], color: QUADRANT_COLORS[q] },
+			...{
+				key: q,
+				label: QUADRANT_LABELS[q],
+				hint: QUADRANT_ACTIONS[q],
+				color: QUADRANT_COLORS[q]
+			},
 			tasks: groups[q].map(sources.card)
 		}))
 	);

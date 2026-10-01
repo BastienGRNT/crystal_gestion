@@ -27,15 +27,15 @@ export function startSteps(s: ProjectState): StartStep[] {
 		},
 		{
 			key: 'features',
-			label: 'Liste les features',
-			hint: 'Les gros morceaux du produit : bouton + à côté de « Features » à gauche.',
+			label: 'Crée les Feats',
+			hint: 'Les gros morceaux du produit : bouton + à côté de « Feats », à gauche.',
 			path: '/tasks',
 			done: s.featureCount > 0
 		},
 		{
 			key: 'tasks',
-			label: 'Crée les premières tâches',
-			hint: 'Dans Gestion, tape-les sous chaque feature, une par ligne.',
+			label: 'Découpe-les en Tasks',
+			hint: 'Dans Gestion, sous chaque Feat : « Ajouter une Task ».',
 			path: '/tasks',
 			done: s.taskCount > 0
 		},
@@ -55,8 +55,8 @@ export function startSteps(s: ProjectState): StartStep[] {
 		},
 		{
 			key: 'mine',
-			label: 'Prends une tâche',
-			hint: 'Assigne-toi une tâche et démarre le chrono.',
+			label: 'Prends une Task',
+			hint: 'Assigne-toi une Task et démarre le chrono.',
 			path: '/tasks',
 			done: s.myTaskCount > 0
 		}

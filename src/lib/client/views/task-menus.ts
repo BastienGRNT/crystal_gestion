@@ -26,7 +26,7 @@ export function featureOptions(features: Feature[], activeId: string | null) {
 				...{ value: f.id as string | null, label: f.title, square: colorOf(f.id) },
 				active: f.id === activeId
 			})),
-		{ value: null, label: 'Sans feature', icon: X, active: activeId === null }
+		{ value: null, label: 'Aucune, c’est à part', icon: X, active: activeId === null }
 	];
 }
 

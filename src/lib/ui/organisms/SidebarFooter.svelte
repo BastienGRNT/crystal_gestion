@@ -18,14 +18,14 @@
 	let menuOpen = $state(false);
 	const ThemeIcon = $derived(themeMode === 'light' ? Sun : themeMode === 'dark' ? Moon : Monitor);
 	const icon =
-		'relative flex size-[30px] items-center justify-center rounded-lg text-ink-2 transition hover:bg-side-hover hover:text-ink';
+		'relative flex size-9 items-center justify-center rounded-lg text-side-ink-2 transition hover:bg-side-hover hover:text-side-ink';
 </script>
 
 <div class="flex items-center gap-2 pt-1.5 pr-1 pb-0.5 pl-1.5">
 	<Popover open={menuOpen} onclose={() => (menuOpen = false)} side="top">
 		{#snippet trigger()}
 			<button
-				class="flex items-center gap-2 rounded-lg text-sm font-medium"
+				class="flex items-center gap-2.5 rounded-lg text-sm font-semibold text-side-ink"
 				onclick={() => (menuOpen = !menuOpen)}
 				aria-label="Mon compte"
 			>
@@ -46,7 +46,7 @@
 	<button class={icon} title="Notifications" aria-label="Notifications" onclick={onnotifications}>
 		<Bell size={16} />
 		{#if unread > 0}
-			<span class="absolute top-1 right-1 size-2 rounded-full bg-must ring-2 ring-bg"></span>
+			<span class="absolute top-1 right-1 size-2 rounded-full bg-must ring-2 ring-sidebar"></span>
 		{/if}
 	</button>
 	<button class={icon} title="Changer de thème" aria-label="Changer de thème" onclick={ontheme}>

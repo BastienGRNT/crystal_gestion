@@ -5,7 +5,7 @@ import { dayMarks } from './day-marks';
 const task = (id: string, changes: Partial<Task>): Task => ({
 	...{ id, ref: id.toUpperCase(), kind: 'task', projectId: 'p', title: id, description: '' },
 	...{ featureId: null, dueDate: null, important: null, urgent: null, assigneeIds: ['ana'] },
-	...{ isFix: false, status: 'todo', position: 0, completedAt: null },
+	...{ isFix: false, reviewerId: null, status: 'todo', position: 0, completedAt: null },
 	...{ createdAt: '2026-09-01T00:00:00Z', updatedAt: '2026-09-01T00:00:00Z' },
 	...changes
 });

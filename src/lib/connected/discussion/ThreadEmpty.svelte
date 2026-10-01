@@ -15,7 +15,7 @@
 			title="Lance la discussion"
 			text={general
 				? 'Une avancée, un doute, une question pour l’équipe ? Mentionne quelqu’un avec @ et lie un élément avec #.'
-				: 'Tout ce qui concerne cette feature se discute ici. Un message peut ensuite devenir une tâche, une décision ou un fix.'}
+				: 'Tout ce qui concerne cette Feat se discute ici. Un message peut ensuite devenir une Task, un Fix ou une décision.'}
 		/>
 	{/if}
 </div>

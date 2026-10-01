@@ -5,12 +5,15 @@
 		label: string;
 		placeholder?: string;
 		onadd: (text: string) => void;
+		/** Inside a card: a full-width row like the task rows. */
+		row?: boolean;
 	}
 
-	/** « + Ajouter » that turns into a field and stays open: type, Enter, type the next one. */
-	let { label, placeholder = label, onadd }: Props = $props();
+	/** « + Ajouter… » that turns into a field and stays open: type, Enter, type the next one. */
+	let { label, placeholder = label, onadd, row = false }: Props = $props();
 	let editing = $state(false);
 	let text = $state('');
+	const box = $derived(row ? 'h-[52px] px-5' : 'h-10 rounded-[10px] px-3');
 
 	function keydown(event: KeyboardEvent) {
 		if (event.key === 'Enter' && text.trim()) {
@@ -22,8 +25,8 @@
 </script>
 
 {#if editing}
-	<div class="flex h-10 items-center gap-2.5 rounded-lg bg-hover pr-2 pl-2">
-		<Plus size={16} class="shrink-0 text-accent" />
+	<div class="flex items-center gap-3 bg-surface-2 {box}">
+		<Plus size={18} class="shrink-0 text-accent" />
 		<!-- svelte-ignore a11y_autofocus -->
 		<input
 			bind:value={text}
@@ -32,16 +35,16 @@
 			onblur={() => !text.trim() && (editing = false)}
 			{placeholder}
 			aria-label={label}
-			class="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-3"
+			class="h-full min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3"
 		/>
-		<span class="hidden text-2xs text-ink-3 sm:inline">Entrée · Échap pour finir</span>
+		<span class="hidden text-xs text-ink-3 sm:inline">Entrée pour ajouter · Échap pour finir</span>
 	</div>
 {:else}
 	<button
 		type="button"
 		onclick={() => (editing = true)}
-		class="flex h-9 w-full items-center gap-2.5 rounded-lg px-2 text-ui text-ink-3 transition hover:bg-hover hover:text-ink"
+		class="flex w-full items-center gap-3 text-[15px] font-semibold text-ink-3 transition hover:bg-hover hover:text-ink {box}"
 	>
-		<Plus size={16} />{label}
+		<Plus size={18} />{label}
 	</button>
 {/if}

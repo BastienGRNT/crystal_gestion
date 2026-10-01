@@ -60,7 +60,7 @@
 		onclick={track}
 		{onkeydown}
 		onblur={() => setTimeout(() => (token = null), 120)}
-		class="w-full bg-transparent py-1 text-xl font-medium tracking-[-0.01em] outline-none placeholder:text-ink-3"
+		class="h-[52px] w-full rounded-[12px] border-[1.5px] border-line-strong bg-surface px-4 text-[17px] font-semibold transition outline-none placeholder:font-medium placeholder:text-ink-3 focus:border-ink focus:shadow-[0_0_0_4px_var(--accent-soft)]"
 	/>
 	{#if options.length}
 		<div

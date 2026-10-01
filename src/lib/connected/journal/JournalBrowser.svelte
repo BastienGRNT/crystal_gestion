@@ -8,7 +8,6 @@
 	import JournalToolbar from '$lib/ui/organisms/journal/JournalToolbar.svelte';
 	import JournalDays from './JournalDays.svelte';
 
-	let { oncompose }: { oncompose: () => void } = $props();
 	const { store } = useProject();
 	const sources = new ElementSources(store);
 	let filter = $state({ ...NO_FILTER });
@@ -30,16 +29,18 @@
 {#if store.journal.items.length === 0}
 	<EmptyState
 		icon={BookOpen}
-		title="Le journal est encore vierge"
-		text="Note la prochaine décision qui compte : dans trois mois, tu sauras exactement pourquoi le projet est comme il est."
+		title="Aucune décision pour l’instant"
+		text="Dans la discussion, survole un message et clique sur « Garder comme décision » : elle arrive ici et sur la page de sa Feat."
 	>
-		<Button variant="primary" size="sm" onclick={oncompose}>Noter une décision</Button>
+		<a href="/p/{store.project.slug}/discussion" class="font-bold text-accent-text hover:underline"
+			>Aller à la discussion</a
+		>
 	</EmptyState>
 {:else}
 	<JournalToolbar
 		bind:filter
 		{counts}
-		featureOptions={sources.featureOptions('Toutes les features')}
+		featureOptions={sources.featureOptions('Toutes les Feats')}
 	/>
 	<div class="mt-8">
 		{#if shown.length}

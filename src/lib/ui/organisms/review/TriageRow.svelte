@@ -19,8 +19,8 @@
 	<span class="font-mono text-2xs text-ink-3">{ref}</span>
 	<span class="min-w-40 flex-1 font-medium">{title}</span>
 	<span class="flex gap-0.5">
-		<button class={action} onclick={ontask}><SquareCheckBig size={13} /> Tâche</button>
-		<button class={action} onclick={onfeature}><Gem size={13} /> Feature</button>
+		<button class={action} onclick={ontask}><SquareCheckBig size={13} /> Task</button>
+		<button class={action} onclick={onfeature}><Gem size={13} /> Feat</button>
 		<button class={action} onclick={onkeep}><Check size={13} /> Garder</button>
 		<button class="{action} hover:text-danger" onclick={ondelete} aria-label="Supprimer {title}"
 			><Trash2 size={13} /></button

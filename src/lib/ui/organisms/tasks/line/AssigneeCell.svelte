@@ -13,7 +13,7 @@
 	let { assignees, options, ontoggle }: Props = $props();
 </script>
 
-<div class="relative flex w-14 shrink-0 justify-end">
+<div class="relative flex w-16 shrink-0 justify-end">
 	<PickMenu title="Assigner à" multiple {options} onpick={ontoggle} align="end">
 		{#snippet trigger(toggle)}
 			<button
@@ -22,7 +22,7 @@
 				title="Assigner"
 				class="flex h-7 items-center rounded-md px-1.5 text-ink-3 transition hover:bg-sunken"
 			>
-				{#if assignees.length}<AvatarStack people={assignees} size={20} />
+				{#if assignees.length}<AvatarStack people={assignees} size={26} />
 				{:else}<UserPlus size={14} class="opacity-0 group-hover:opacity-100" />{/if}
 			</button>
 		{/snippet}

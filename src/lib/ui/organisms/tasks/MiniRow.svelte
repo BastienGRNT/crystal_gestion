@@ -24,7 +24,7 @@
 	role="listitem"
 	ondragstart={(event) => (event.dataTransfer?.setData('text/plain', task.id), ondragstart())}
 	{ondragend}
-	class="group relative flex h-9 cursor-grab items-center gap-2 rounded-lg bg-surface px-2 shadow-card transition hover:shadow-pop active:cursor-grabbing {dragging
+	class="group relative flex min-h-9 cursor-grab items-center gap-2 rounded-lg bg-surface px-2 py-1.5 shadow-card transition hover:shadow-pop active:cursor-grabbing {dragging
 		? 'opacity-40'
 		: ''}"
 >
@@ -39,11 +39,11 @@
 	<button
 		type="button"
 		onclick={onopen}
-		class="min-w-0 flex-1 truncate text-left text-ui after:absolute after:inset-0"
+		class="line-clamp-2 min-w-0 flex-1 text-left text-ui leading-snug after:absolute after:inset-0 sm:truncate"
 		>{task.title}</button
 	>
 	{#if task.feature}<span
-			class="size-2 shrink-0 rounded-[3px]"
+			class="size-2 shrink-0 rounded-[3px] max-sm:hidden"
 			style="background:{task.feature.color}"
 			title={task.feature.title}
 		></span>{/if}

@@ -124,7 +124,7 @@ export interface MatrixCell {
 	key: string;
 	label: string;
 	hint: string;
-	tone: string;
+	color: string;
 	cards: TaskCardView[];
 }
 

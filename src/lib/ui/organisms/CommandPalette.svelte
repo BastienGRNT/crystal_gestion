@@ -57,7 +57,7 @@
 				bind:value={query}
 				{onkeydown}
 				autofocus
-				placeholder="Chercher une tâche, un mot de passe, une page… ou créer"
+				placeholder="Chercher une Task, un mot de passe, une page… ou créer"
 				class="h-[54px] flex-1 bg-transparent text-lg outline-none placeholder:text-ink-3"
 			/>
 		</div>

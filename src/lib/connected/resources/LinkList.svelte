@@ -36,7 +36,7 @@
 		<EmptyState
 			icon={SearchX}
 			title="Aucun lien pour ce filtre"
-			text="Change de tag ou de feature pour élargir la recherche."
+			text="Change de tag ou de Feat pour élargir la recherche."
 		/>
 	</div>
 {/if}

@@ -33,13 +33,13 @@
 			title: 'Qu’est-ce qui coince ?',
 			clear: myStuck === 0
 		},
-		{ label: 'Demain', hint: 'Choisir 1 à 3 tâches', title: 'Demain, tu fais quoi ?', clear: false }
+		{ label: 'Demain', hint: 'Choisir 1 à 3 Tasks', title: 'Demain, tu fais quoi ?', clear: false }
 	]);
 	const weeklySteps = $derived([
 		{
 			label: 'Avancement',
-			hint: 'Où en sont les features',
-			title: 'Où en sont les features ?',
+			hint: 'Où en sont les Feats',
+			title: 'Où en sont les Feats ?',
 			clear: false
 		},
 		{

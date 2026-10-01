@@ -18,7 +18,8 @@ export interface Notification {
 export const NOTIFICATION_VERBS: Record<NotificationType, string> = {
 	mention: 't’a mentionné dans',
 	question: 't’a posé une question dans',
-	assigned: 't’a assigné'
+	assigned: 't’a assigné',
+	review: 'te demande de valider'
 };
 
 export const recipientsExcept = (recipientIds: string[], actorId: string) =>

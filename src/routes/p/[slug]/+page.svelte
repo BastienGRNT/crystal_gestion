@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { useProject } from '$lib/client/context';
-	import { formatDay } from '$lib/client/format';
 	import AvailabilityPrompt from '$lib/connected/planning/AvailabilityPrompt.svelte';
 	import WhoIsAvailable from '$lib/connected/planning/WhoIsAvailable.svelte';
 	import GettingStartedCard from '$lib/connected/today/GettingStartedCard.svelte';
@@ -11,30 +10,27 @@
 	import WhileAway from '$lib/connected/today/WhileAway.svelte';
 	import Section from '$lib/ui/molecules/Section.svelte';
 	import Page from '$lib/ui/templates/Page.svelte';
-	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 
 	let { data } = $props();
 	const { store } = useProject();
-	const today = formatDay(new Date());
 </script>
 
 <svelte:head><title>Accueil · {store.project.name}</title></svelte:head>
 
-<PageHeader title="Accueil" meta={today[0].toUpperCase() + today.slice(1)} />
-<Page width="max-w-[1320px]">
-	<Greeting recapSince={data.recapSince} />
-	<div class="mt-7 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+<Greeting recapSince={data.recapSince} />
+<Page width="max-w-[1400px]">
+	<div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
 		<div class="flex min-w-0 flex-col gap-6">
 			<GettingStartedCard />
 			<WhereYouWere />
 			<Section title="Ta matrice">
 				{#snippet action()}<span class="max-sm:hidden"
-						>Glisse une tâche d’une case à l’autre pour la reclasser</span
+						>Glisse une Task d’une case à l’autre pour la reclasser</span
 					>{/snippet}
 				<MyMatrix />
 			</Section>
 		</div>
-		<aside class="flex min-w-0 flex-col gap-4">
+		<aside class="flex min-w-0 flex-col gap-5">
 			<TalkedToYou />
 			<WhileAway recapSince={data.recapSince} />
 			<AvailabilityPrompt />

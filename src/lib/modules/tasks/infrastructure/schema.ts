@@ -27,6 +27,7 @@ export const tasks = pgTable('tasks', {
 	urgent: boolean(),
 	position: doublePrecision().notNull(),
 	isFix: boolean().notNull().default(false),
+	reviewerId: uuid().references(() => users.id, { onDelete: 'set null' }),
 	completedAt: timestamptz()
 });
 

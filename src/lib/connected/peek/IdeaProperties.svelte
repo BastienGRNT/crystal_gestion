@@ -22,7 +22,7 @@
 
 <div class="flex flex-col">
 	<PropertyRow label="État"><span class="px-2.5 text-ui text-ink-2">{state}</span></PropertyRow>
-	<PropertyRow label="Feature">
+	<PropertyRow label="Feat">
 		<PropButton
 			ghost
 			label="Aucune"

@@ -46,7 +46,7 @@
 	</p>
 	<p class="flex items-baseline gap-2 text-ink-3">
 		<span class="font-display text-4xl leading-none text-ink">{data.done.length}</span>
-		{data.done.length > 1 ? 'tâches terminées' : 'tâche terminée'}
+		{data.done.length > 1 ? 'Tasks terminées' : 'Task terminée'}
 	</p>
 </div>
 <div class="grid gap-4 md:grid-cols-2">

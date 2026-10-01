@@ -12,9 +12,12 @@
 </script>
 
 <section class="mb-8 last:mb-0">
-	<header class="mb-2 flex min-h-7 items-center gap-2">
-		<h2 class="text-sm font-semibold">{title}</h2>
-		{#if count !== undefined}<span class="text-xs text-ink-3 tabular-nums">{count}</span>{/if}
+	<header class="mb-3 flex min-h-8 items-center gap-2.5">
+		<h2 class="text-lg font-extrabold tracking-[-0.01em]">{title}</h2>
+		{#if count !== undefined}<span
+				class="rounded-full bg-sunken px-2 py-px text-xs font-bold text-ink-2 tabular-nums"
+				>{count}</span
+			>{/if}
 		{#if action}<div class="ml-auto text-ui text-ink-3">{@render action()}</div>{/if}
 	</header>
 	{@render children()}

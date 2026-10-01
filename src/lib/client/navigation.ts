@@ -26,14 +26,14 @@ export const NAVIGATION = [
 		label: 'Gestion',
 		path: '/tasks',
 		icon: LayoutList,
-		hint: 'Features, tâches, bugs, icebox et idées : en liste, tableau ou matrice'
+		hint: 'Feats, Tasks, Fix, Icebox et idées : en liste, tableau ou matrice'
 	},
 	{
 		key: 'discussion',
 		label: 'Discussion',
 		path: '/discussion',
 		icon: MessagesSquare,
-		hint: 'Général, ses canaux, et un fil par feature'
+		hint: 'Général, ses canaux, et un fil par Feat'
 	},
 	{
 		key: 'planning',
@@ -47,7 +47,7 @@ export const NAVIGATION = [
 		label: 'Drive',
 		path: '/drive',
 		icon: FolderOpen,
-		hint: 'Les fichiers du projet et de chaque feature, en dossiers'
+		hint: 'Les fichiers du projet et de chaque Feat, en dossiers'
 	},
 	{
 		key: 'resources',
@@ -62,7 +62,7 @@ export type NavKey = (typeof NAVIGATION)[number]['key'];
 
 /** Pages reached from a menu or a button, found by Cmd+K and lighting up their parent entry. */
 export const SUB_PAGES = [
-	{ key: 'features', parent: 'tasks', label: 'Features', path: '/features', icon: Gem },
+	{ key: 'features', parent: 'tasks', label: 'Feats', path: '/features', icon: Gem },
 	{ key: 'project', parent: 'today', label: 'Le projet', path: '/project', icon: Gem },
 	{
 		key: 'journal',

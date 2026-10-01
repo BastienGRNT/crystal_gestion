@@ -14,8 +14,8 @@
 		<button
 			type="button"
 			onclick={() => (open = !open)}
-			class="inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3.5 text-ui font-medium transition hover:border-line-strong"
-			><ClipboardCheck size={15} />Faire le point</button
+			class="inline-flex h-10 items-center gap-2 rounded-[11px] bg-primary px-4 text-sm font-bold text-primary-ink transition hover:opacity-90"
+			><ClipboardCheck size={16} />Faire le point</button
 		>
 	{/snippet}
 	<MenuItem href="{base}?mode=day" onclick={() => (open = false)}>

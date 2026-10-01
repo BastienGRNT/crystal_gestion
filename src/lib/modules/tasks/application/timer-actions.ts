@@ -1,4 +1,6 @@
 import type { Actor } from '$lib/modules/kernel/domain/actor';
+import { notFound } from '$lib/modules/kernel/domain/errors';
+import { finishedStatus } from '../domain/task';
 import type { TaskDeps, TaskTarget } from './deps';
 import type { makeMoveTask } from './move-task';
 
@@ -15,6 +17,20 @@ export const makeStartTask =
 export const makePauseTask = (deps: TaskDeps) => async (actor: Actor) =>
 	deps.timer.stopForUser(actor.id);
 
-/** "Terminer": moving to done stops the timer and records the time spent. */
-export const makeFinishTask = (moveTask: MoveTask) => (actor: Actor, target: TaskTarget) =>
-	moveTask(actor, { ...target, status: 'done' });
+/** Ticking a task: done, or « À valider » for its reviewer, who is then notified. */
+export const makeFinishTask =
+	(deps: TaskDeps, moveTask: MoveTask) => async (actor: Actor, target: TaskTarget) => {
+		const before = await deps.tasks.find(target.projectId, target.id);
+		if (!before) throw notFound('Tâche');
+		const status = finishedStatus(before, actor.id);
+		const task = await moveTask(actor, { ...target, status });
+		if (status === 'review' && before.status !== 'review')
+			await deps.notifier.notify({
+				type: 'review',
+				projectId: task.projectId,
+				actor,
+				element: task,
+				recipientIds: [before.reviewerId!]
+			});
+		return task;
+	};

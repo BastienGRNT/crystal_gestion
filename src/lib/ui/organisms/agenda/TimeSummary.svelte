@@ -22,7 +22,7 @@
 	</p>
 	<p class="mt-1 font-display text-4xl">{total ? formatMinutes(total) : '0 min'}</p>
 	{#if byFeature.length}
-		<h3 class="mt-4 mb-2 text-sm font-semibold">Par feature</h3>
+		<h3 class="mt-4 mb-2 text-sm font-semibold">Par Feat</h3>
 		<ul class="flex flex-col gap-2.5">
 			{#each byFeature as row (row.key)}
 				<li>

@@ -4,6 +4,7 @@
 	import { TaskSources } from '$lib/client/views/task-sources.svelte';
 	import { quadrantOf } from '$lib/modules/tasks/domain/eisenhower';
 	import { isActive } from '$lib/modules/tasks/domain/task';
+	import PageHeader from '$lib/ui/templates/PageHeader.svelte';
 	import ReviewMenu from './ReviewMenu.svelte';
 
 	/** One sentence that says what matters before reading anything else. */
@@ -31,18 +32,14 @@
 			away >= 2 ? `Ta dernière visite remonte à ${away} jours.` : null,
 			questions ? plural(questions, '1 question t’attend.', '{n} questions t’attendent.') : null,
 			urgent
-				? plural(urgent, '1 tâche est à faire maintenant.', '{n} tâches sont à faire maintenant.')
-				: 'Rien d’urgent pour toi.'
+				? plural(urgent, '1 Task est à faire maintenant.', '{n} Tasks sont à faire maintenant.')
+				: 'Rien d’urgent pour toi aujourd’hui.'
 		]
 			.filter(Boolean)
 			.join(' ')
 	);
 </script>
 
-<div class="flex flex-wrap items-end gap-x-6 gap-y-3">
-	<div class="min-w-0 flex-1">
-		<h2 class="text-2xl font-semibold tracking-[-0.02em]">{hello} {me.name}</h2>
-		<p class="mt-1 text-base text-ink-2">{sentence}</p>
-	</div>
-	<ReviewMenu />
-</div>
+<PageHeader title="{hello} {me.name}" meta={sentence}>
+	{#snippet actions()}<ReviewMenu />{/snippet}
+</PageHeader>
