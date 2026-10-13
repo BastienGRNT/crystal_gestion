@@ -1,18 +1,27 @@
-import { index, pgTable, text, uuid } from 'drizzle-orm/pg-core';
-import { timestamptz } from '../../../server/db/columns';
+import { date, integer, jsonb, pgTable, primaryKey, uuid } from 'drizzle-orm/pg-core';
 import { users } from '../../identity/infrastructure/schema';
-import type { AvailabilityStatus } from '../domain/availability';
+import type { Slot } from '../domain/availability';
 
-export const availabilities = pgTable(
-	'availabilities',
+export const availabilityWeek = pgTable(
+	'availability_week',
 	{
-		id: uuid().primaryKey().defaultRandom(),
 		userId: uuid()
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		startsAt: timestamptz().notNull(),
-		endsAt: timestamptz().notNull(),
-		status: text().$type<AvailabilityStatus>().notNull()
+		weekday: integer().notNull(),
+		slots: jsonb().$type<Slot[]>().notNull()
 	},
-	(table) => [index().on(table.userId, table.startsAt)]
+	(t) => [primaryKey({ columns: [t.userId, t.weekday] })]
+);
+
+export const availabilityDays = pgTable(
+	'availability_days',
+	{
+		userId: uuid()
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		date: date().notNull(),
+		slots: jsonb().$type<Slot[]>().notNull()
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.date] })]
 );

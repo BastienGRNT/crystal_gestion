@@ -1,15 +1,21 @@
 const DAY_MS = 86_400_000;
-export const SESSION_DURATION_MS = 30 * DAY_MS;
-const RENEW_THRESHOLD_MS = 15 * DAY_MS;
 
-export interface Session {
-	userId: string;
+export const SESSION_DAYS = 30;
+export const INVITATION_DAYS = 7;
+
+export const sessionExpiry = (now: Date) => new Date(now.getTime() + SESSION_DAYS * DAY_MS);
+
+/** Sliding sessions: renewed once half of their life is gone, so active people never get logged out. */
+export const shouldRenew = (expiresAt: Date, now: Date) =>
+	expiresAt.getTime() - now.getTime() < (SESSION_DAYS / 2) * DAY_MS;
+
+export const invitationExpiry = (now: Date) => new Date(now.getTime() + INVITATION_DAYS * DAY_MS);
+
+export interface Invitation {
+	createdBy: string;
 	expiresAt: Date;
+	usedAt: Date | null;
 }
 
-export const isExpired = (session: Session, now: Date) => session.expiresAt <= now;
-
-export const needsRenewal = (session: Session, now: Date) =>
-	session.expiresAt.getTime() - now.getTime() < RENEW_THRESHOLD_MS;
-
-export const expiryFrom = (now: Date) => new Date(now.getTime() + SESSION_DURATION_MS);
+export const isUsable = (invitation: Invitation, now: Date) =>
+	invitation.usedAt === null && invitation.expiresAt > now;

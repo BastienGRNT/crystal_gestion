@@ -1,15 +1,15 @@
 import type { Cookies } from '@sveltejs/kit';
-import { dev } from '$app/environment';
+import { SESSION_DAYS } from '$lib/modules/identity/domain/session';
 
 export const SESSION_COOKIE = 'crystal_session';
 
-export function setSessionCookie(cookies: Cookies, token: string, expiresAt: Date) {
+export function setSessionCookie(cookies: Cookies, token: string, url: URL) {
 	cookies.set(SESSION_COOKIE, token, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'lax',
-		secure: !dev,
-		expires: expiresAt
+		secure: url.protocol === 'https:',
+		maxAge: SESSION_DAYS * 86_400
 	});
 }
 

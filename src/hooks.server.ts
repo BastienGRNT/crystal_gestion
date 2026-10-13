@@ -1,11 +1,12 @@
 import { redirect, type Handle, type ServerInit } from '@sveltejs/kit';
 import { container } from '$lib/server/container';
-import { createConnectionHandler } from '$lib/server/realtime/connection-handler';
 import { clearSessionCookie, SESSION_COOKIE } from '$lib/server/http/session-cookie';
+import { createConnectionHandler } from '$lib/server/realtime/connection';
 
-const PUBLIC_PATHS = ['/login', '/register', '/setup', '/invite/'];
+const PUBLIC_PATHS = ['/login', '/setup', '/invite/'];
 
 export const init: ServerInit = () => {
+	// realtime-attach.js (dev plugin and production server) picks the handler up from here.
 	(globalThis as { __crystalRealtime?: unknown }).__crystalRealtime =
 		createConnectionHandler(container);
 };
@@ -15,10 +16,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = token ? await container.identity.authenticate(token) : null;
 	if (token && !event.locals.user) clearSessionCookie(event.cookies);
 
-	const isPublic = PUBLIC_PATHS.some((path) => event.url.pathname.startsWith(path));
-	if (!event.locals.user && !isPublic && !event.url.pathname.startsWith('/api')) {
+	const path = event.url.pathname;
+	const isPublic = PUBLIC_PATHS.some((p) => path.startsWith(p));
+	if (!event.locals.user && !isPublic && !path.startsWith('/api')) {
 		if (!(await container.identity.hasUsers())) redirect(303, '/setup');
-		const back = event.url.pathname === '/' ? '' : event.url.pathname + event.url.search;
+		const back = path === '/' ? '' : path + event.url.search;
 		redirect(303, back ? `/login?redirect=${encodeURIComponent(back)}` : '/login');
 	}
 	return resolve(event);

@@ -1,23 +1,17 @@
 import { z } from 'zod';
-import { defineCommand } from '$lib/server/commands/define';
-import { id, isoDateTime } from '$lib/server/commands/schemas';
-import type { PlanningModule } from '../application/availabilities';
+import { command, dateKey, slots } from '$lib/server/commands/define';
+import type { Planning } from '../index';
 
-const status = z.enum(['available', 'maybe']);
-
-export const planningCommands = (planning: PlanningModule) => ({
-	'availability.create': defineCommand(
-		z.object({ startsAt: isoDateTime, endsAt: isoDateTime, status }),
-		(actor, input) => planning.create(actor, input)
+// Everyone edits their own availability only: the user comes from the session, never the input.
+export const planningCommands = (planning: Planning) => ({
+	'availability.setWeekday': command(
+		z.object({ weekday: z.number().int(), slots }),
+		({ userId }, input) => planning.setWeekday(userId, input.weekday, input.slots)
 	),
-	'availability.update': defineCommand(
-		z.object({
-			id,
-			changes: z.object({ startsAt: isoDateTime, endsAt: isoDateTime, status }).partial()
-		}),
-		(actor, input) => planning.update(actor, input)
+	'availability.setDay': command(z.object({ date: dateKey, slots }), ({ userId }, input) =>
+		planning.setDay(userId, input.date, input.slots)
 	),
-	'availability.delete': defineCommand(z.object({ id }), (actor, input) =>
-		planning.remove(actor, input)
+	'availability.resetDay': command(z.object({ date: dateKey }), ({ userId }, input) =>
+		planning.resetDay(userId, input.date)
 	)
 });

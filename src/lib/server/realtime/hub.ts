@@ -1,70 +1,58 @@
-import type { ServerEvent } from '$lib/modules/kernel/domain/realtime';
+import type { ServerEvent } from '$lib/shared/realtime';
 
 export interface Socket {
 	send(data: string): void;
 }
 
-interface Connection {
-	socket: Socket;
-	userId: string;
-	projectId: string | null;
-}
-
-/** Keeps live sockets per project; survives dev hot reloads through globalThis. */
+/** Live sockets of the team. One workspace: every change goes to everyone connected. */
 export class RealtimeHub {
-	private connections = new Set<Connection>();
+	private connections = new Map<Socket, string>();
 
-	add(socket: Socket, userId: string): Connection {
-		const connection = { socket, userId, projectId: null };
-		this.connections.add(connection);
-		return connection;
+	add(socket: Socket, userId: string) {
+		const wasOnline = this.isOnline(userId);
+		this.connections.set(socket, userId);
+		if (!wasOnline) this.announcePresence();
 	}
 
-	remove(connection: Connection) {
-		this.connections.delete(connection);
-		if (connection.projectId) this.announcePresence(connection.projectId);
+	/** Returns the user who just went offline, if that was their last open screen. */
+	remove(socket: Socket): string | null {
+		const userId = this.connections.get(socket);
+		this.connections.delete(socket);
+		if (!userId || this.isOnline(userId)) return null;
+		this.announcePresence();
+		return userId;
 	}
 
-	join(connection: Connection, projectId: string) {
-		const previous = connection.projectId;
-		connection.projectId = projectId;
-		if (previous && previous !== projectId) this.announcePresence(previous);
-		this.announcePresence(projectId);
+	online(): string[] {
+		return [...new Set(this.connections.values())];
 	}
 
-	toProject(projectId: string, event: ServerEvent) {
-		this.sendWhere((c) => c.projectId === projectId, event);
+	broadcast(event: ServerEvent, except?: string) {
+		this.sendWhere((userId) => userId !== except, event);
 	}
 
 	toUser(userId: string, event: ServerEvent) {
-		this.sendWhere((c) => c.userId === userId, event);
+		this.sendWhere((id) => id === userId, event);
 	}
 
-	onlineUserIds(projectId: string): string[] {
-		const ids = [...this.connections].filter((c) => c.projectId === projectId).map((c) => c.userId);
-		return [...new Set(ids)];
+	private isOnline(userId: string) {
+		return [...this.connections.values()].includes(userId);
 	}
 
-	private announcePresence(projectId: string) {
-		this.toProject(projectId, {
-			type: 'presence',
-			projectId,
-			userIds: this.onlineUserIds(projectId)
-		});
+	private announcePresence() {
+		this.broadcast({ type: 'presence', online: this.online() });
 	}
 
-	private sendWhere(matches: (connection: Connection) => boolean, event: ServerEvent) {
+	private sendWhere(matches: (userId: string) => boolean, event: ServerEvent) {
 		const payload = JSON.stringify(event);
-		for (const connection of this.connections)
-			if (matches(connection)) this.safeSend(connection, payload);
-	}
-
-	/** A socket closing mid-broadcast must not stop the others from receiving the event. */
-	private safeSend(connection: Connection, payload: string) {
-		try {
-			connection.socket.send(payload);
-		} catch {
-			this.connections.delete(connection);
+		for (const [socket, userId] of this.connections) {
+			if (!matches(userId)) continue;
+			// A socket closing mid-broadcast must not stop the others from receiving the event.
+			try {
+				socket.send(payload);
+			} catch {
+				this.connections.delete(socket);
+			}
 		}
 	}
 }

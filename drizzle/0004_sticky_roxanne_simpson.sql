@@ -1,1 +1,0 @@
-ALTER TABLE "features" ADD COLUMN "archived_at" timestamp with time zone;

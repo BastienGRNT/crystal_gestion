@@ -1,22 +1,13 @@
-import { makeCreateTask } from './application/create-task';
-import { makeDeleteTask } from './application/delete-task';
-import type { TaskDeps } from './application/deps';
-import { makeMoveTask } from './application/move-task';
-import { makeFinishTask, makePauseTask, makeStartTask } from './application/timer-actions';
-import { makeUpdateTask } from './application/update-task';
+import { createTask, deleteTask, updateTask } from './application/manage-tasks';
+import type { TaskDeps } from './application/ports';
 
-export function createTasksModule(deps: TaskDeps) {
-	const move = makeMoveTask(deps);
+export function createTasks(deps: TaskDeps) {
 	return {
-		create: makeCreateTask(deps),
-		update: makeUpdateTask(deps),
-		move,
-		remove: makeDeleteTask(deps),
-		start: makeStartTask(deps, move),
-		pause: makePauseTask(deps),
-		finish: makeFinishTask(deps, move),
-		list: (projectId: string) => deps.tasks.list(projectId)
+		list: () => deps.tasks.list(),
+		create: createTask(deps),
+		update: updateTask(deps),
+		delete: deleteTask(deps)
 	};
 }
 
-export type TasksModule = ReturnType<typeof createTasksModule>;
+export type Tasks = ReturnType<typeof createTasks>;

@@ -1,27 +1,28 @@
-import type { RunningTimer } from '$lib/modules/time/domain/running-timer';
-import type { Task, TaskFields, TaskStatus } from '../domain/task';
-
-export interface NewTask extends TaskFields {
-	projectId: string;
-	status: TaskStatus;
-	position: number;
-	createdBy: string;
-}
-
-export type TaskChanges = Partial<TaskFields & Pick<Task, 'status' | 'position' | 'completedAt'>>;
+import type { ActivityLog, ChangeFeed, Clock, Notifier } from '../../kernel/application/ports';
+import type { Task } from '../domain/task';
 
 export interface TaskRepository {
-	create(task: NewTask): Promise<Task>;
-	update(projectId: string, id: string, changes: TaskChanges): Promise<Task>;
-	find(projectId: string, id: string): Promise<Task | null>;
-	list(projectId: string): Promise<Task[]>;
-	delete(projectId: string, id: string): Promise<void>;
-	positions(projectId: string, status: TaskStatus): Promise<number[]>;
+	list(): Promise<Task[]>;
+	get(id: string): Promise<Task | null>;
+	insert(task: Task): Promise<void>;
+	save(task: Task): Promise<void>;
+	delete(id: string): Promise<void>;
+	/** Atomic per project, so two people creating at once never get the same `#12`. */
+	nextNumber(projectId: string): Promise<number>;
+	lastPosition(projectId: string): Promise<number | null>;
 }
 
-/** Implemented by the time module: a started task runs a timer for its owner. */
-export interface TaskTimer {
-	start(projectId: string, userId: string, taskId: string): Promise<RunningTimer | null>;
-	stopForUser(userId: string): Promise<void>;
-	stopForTask(taskId: string): Promise<void>;
+/** What tasks need to know about projects and people, without depending on their modules. */
+export interface Directory {
+	projectExists(id: string): Promise<boolean>;
+	userExists(id: string): Promise<boolean>;
+}
+
+export interface TaskDeps {
+	tasks: TaskRepository;
+	directory: Directory;
+	clock: Clock;
+	feed: ChangeFeed<Task>;
+	activity: ActivityLog;
+	notifier: Notifier;
 }

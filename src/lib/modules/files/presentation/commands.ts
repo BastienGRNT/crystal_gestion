@@ -1,26 +1,11 @@
 import { z } from 'zod';
-import { defineCommand } from '$lib/server/commands/define';
-import { id, projectScoped, title } from '$lib/server/commands/schemas';
-import type { FilesModule } from '..';
+import { command, id } from '$lib/server/commands/define';
+import type { Files } from '../index';
 
-const target = projectScoped.extend({ id });
-const name = z.string().max(120);
-
-/** Uploads go through a multipart endpoint; everything else is a regular command. */
-export const fileCommands = (files: FilesModule) => ({
-	'files.update': defineCommand(
-		target.extend({
-			changes: z.object({ title, featureId: id.nullable(), folderId: id.nullable() }).partial()
-		}),
-		(actor, input) => files.update(actor, input)
+// Uploads and downloads stream through /api/files; only metadata goes through commands.
+export const fileCommands = (files: Files) => ({
+	'files.rename': command(z.object({ id, name: z.string() }), (_, input) =>
+		files.rename(input.id, input.name)
 	),
-	'files.delete': defineCommand(target, (actor, input) => files.remove(actor, input)),
-	'folders.create': defineCommand(
-		projectScoped.extend({ featureId: id.nullable(), parentId: id.nullable(), name }),
-		(actor, input) => files.folders.create(actor, input)
-	),
-	'folders.rename': defineCommand(target.extend({ name }), (actor, input) =>
-		files.folders.rename(actor, input)
-	),
-	'folders.delete': defineCommand(target, (actor, input) => files.folders.remove(actor, input))
+	'files.delete': command(z.object({ id }), (_, input) => files.delete(input.id))
 });

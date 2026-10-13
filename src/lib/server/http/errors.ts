@@ -1,18 +1,27 @@
-import { error, type NumericRange } from '@sveltejs/kit';
-import { z } from 'zod';
+import { json } from '@sveltejs/kit';
 import { DomainError, type ErrorCode } from '$lib/modules/kernel/domain/errors';
 
-const STATUS: Record<ErrorCode, NumericRange<400, 599>> = {
+const STATUS: Record<ErrorCode, number> = {
 	invalid: 400,
-	unauthenticated: 401,
 	forbidden: 403,
 	not_found: 404,
 	conflict: 409
 };
 
-/** Translates domain and validation failures into HTTP errors; anything else stays a 500. */
-export function toHttpError(cause: unknown): never {
-	if (cause instanceof DomainError) error(STATUS[cause.code], cause.message);
-	if (cause instanceof z.ZodError) error(400, z.prettifyError(cause));
-	throw cause;
+/** Turns a business refusal into a JSON answer the client shows as is; anything else is a bug. */
+export function errorResponse(error: unknown): Response {
+	if (error instanceof DomainError)
+		return json({ message: error.message }, { status: STATUS[error.code] });
+	if (isUniqueViolation(error))
+		return json({ message: 'Cet élément existe déjà.' }, { status: 409 });
+	throw error;
+}
+
+const isUniqueViolation = (error: unknown) =>
+	typeof error === 'object' && error !== null && 'code' in error && error.code === '23505';
+
+/** Same mapping for form actions: the message to display, or rethrow. */
+export function formError(error: unknown): string {
+	if (error instanceof DomainError) return error.message;
+	throw error;
 }

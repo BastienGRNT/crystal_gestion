@@ -1,36 +1,33 @@
 import { asc, eq } from 'drizzle-orm';
-import type { Executor } from '$lib/server/db/types';
-import type { ProjectRepository } from '../application/ports';
+import { iso, isoOrNull } from '$lib/server/db/columns';
+import type { Db } from '$lib/server/db/types';
 import type { Project } from '../domain/project';
-import { projectMembers, projects } from './schema';
+import type { ProjectRepository } from '../application/ports';
+import { projects } from './schema';
 
-type Row = typeof projects.$inferSelect;
-
-const toProject = ({ createdBy: _createdBy, createdAt, ...rest }: Row): Project => ({
-	...rest,
-	createdAt: createdAt.toISOString()
+const toProject = (row: typeof projects.$inferSelect): Project => ({
+	...row,
+	archivedAt: isoOrNull(row.archivedAt),
+	createdAt: iso(row.createdAt)
 });
 
-export const drizzleProjectRepository = (db: Executor): ProjectRepository => {
-	const findOne = async (condition: ReturnType<typeof eq>) => {
-		const [row] = await db.select().from(projects).where(condition);
+const toRow = (project: Project) => ({
+	...project,
+	archivedAt: project.archivedAt ? new Date(project.archivedAt) : null,
+	createdAt: new Date(project.createdAt)
+});
+
+export const drizzleProjects = (db: Db): ProjectRepository => ({
+	list: async () =>
+		(await db.select().from(projects).orderBy(asc(projects.createdAt))).map(toProject),
+	async get(id) {
+		const [row] = await db.select().from(projects).where(eq(projects.id, id));
 		return row ? toProject(row) : null;
-	};
-	return {
-		create: async (input) => toProject((await db.insert(projects).values(input).returning())[0]),
-		update: async (id, changes) =>
-			toProject((await db.update(projects).set(changes).where(eq(projects.id, id)).returning())[0]),
-		findById: (id) => findOne(eq(projects.id, id)),
-		findBySlug: (slug) => findOne(eq(projects.slug, slug)),
-		slugExists: async (slug) => (await findOne(eq(projects.slug, slug))) !== null,
-		listForUser: async (userId) => {
-			const rows = await db
-				.select({ project: projects })
-				.from(projects)
-				.innerJoin(projectMembers, eq(projectMembers.projectId, projects.id))
-				.where(eq(projectMembers.userId, userId))
-				.orderBy(asc(projects.name));
-			return rows.map((row) => toProject(row.project));
-		}
-	};
-};
+	},
+	async insert(project) {
+		await db.insert(projects).values(toRow(project));
+	},
+	async save(project) {
+		await db.update(projects).set(toRow(project)).where(eq(projects.id, project.id));
+	}
+});

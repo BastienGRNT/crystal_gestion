@@ -2,15 +2,18 @@
 <html lang="fr">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="color-scheme" content="light dark" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 		<script>
 			// Applied before paint to avoid a flash of the wrong theme.
 			(() => {
-				const stored = localStorage.getItem('crystal-theme');
-				const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
-				const theme =
-					stored === 'light' || stored === 'dark' ? stored : prefersDark ? 'dark' : 'light';
+				let stored = null;
+				try {
+					stored = localStorage.getItem('crystal-theme');
+				} catch {}
+				const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+				const theme = stored === 'light' || stored === 'dark' ? stored : dark ? 'dark' : 'light';
 				document.documentElement.dataset.theme = theme;
 			})();
 		</script>

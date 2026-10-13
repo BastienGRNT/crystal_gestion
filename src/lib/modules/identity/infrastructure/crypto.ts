@@ -1,4 +1,4 @@
-import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, randomUUID, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import type { PasswordHasher, TokenService } from '../application/ports';
 
@@ -16,12 +16,14 @@ export const scryptHasher: PasswordHasher = {
 	},
 	async verify(password, stored) {
 		const [salt, key] = stored.split(':');
+		if (!salt || !key) return false;
 		const derived = await derive(password, salt, KEY_LENGTH);
 		return timingSafeEqual(derived, Buffer.from(key, 'hex'));
 	}
 };
 
-export const randomTokenService: TokenService = {
+export const randomTokens: TokenService = {
 	generate: () => randomBytes(32).toString('base64url'),
-	hash: (token) => createHash('sha256').update(token).digest('hex')
+	hash: (token) => createHash('sha256').update(token).digest('hex'),
+	uuid: () => randomUUID()
 };

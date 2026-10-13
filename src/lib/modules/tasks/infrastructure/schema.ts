@@ -1,45 +1,46 @@
 import {
-	boolean,
 	date,
 	doublePrecision,
+	index,
+	integer,
 	pgTable,
-	primaryKey,
 	text,
+	unique,
 	uuid
 } from 'drizzle-orm/pg-core';
-import { timestamptz } from '../../../server/db/columns';
-import { elementPrimaryKey } from '../../elements/infrastructure/schema';
-import { features } from '../../features/infrastructure/schema';
+import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
 import { projects } from '../../projects/infrastructure/schema';
-import type { TaskStatus } from '../domain/task';
+import { QUADRANTS, TASK_STATUSES } from '../domain/task';
 
-export const tasks = pgTable('tasks', {
-	id: elementPrimaryKey(),
-	projectId: uuid()
-		.notNull()
-		.references(() => projects.id, { onDelete: 'cascade' }),
-	description: text().notNull().default(''),
-	featureId: uuid().references(() => features.id, { onDelete: 'set null' }),
-	status: text().$type<TaskStatus>().notNull(),
-	dueDate: date({ mode: 'string' }),
-	important: boolean(),
-	urgent: boolean(),
-	position: doublePrecision().notNull(),
-	isFix: boolean().notNull().default(false),
-	reviewerId: uuid().references(() => users.id, { onDelete: 'set null' }),
-	completedAt: timestamptz()
-});
-
-export const taskAssignees = pgTable(
-	'task_assignees',
+export const tasks = pgTable(
+	'tasks',
 	{
-		taskId: uuid()
+		id: uuid().primaryKey(),
+		projectId: uuid()
 			.notNull()
-			.references(() => tasks.id, { onDelete: 'cascade' }),
-		userId: uuid()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		number: integer().notNull(),
+		title: text().notNull(),
+		notes: text().notNull().default(''),
+		status: text({ enum: TASK_STATUSES }).notNull(),
+		quadrant: text({ enum: QUADRANTS }),
+		assigneeId: uuid().references(() => users.id, { onDelete: 'set null' }),
+		dueDate: date(),
+		position: doublePrecision().notNull(),
+		createdBy: uuid()
 			.notNull()
-			.references(() => users.id, { onDelete: 'cascade' })
+			.references(() => users.id),
+		createdAt: createdAt(),
+		updatedAt: timestamptz().notNull(),
+		completedAt: timestamptz()
 	},
-	(table) => [primaryKey({ columns: [table.taskId, table.userId] })]
+	(t) => [unique().on(t.projectId, t.number), index().on(t.projectId)]
 );
+
+export const taskCounters = pgTable('task_counters', {
+	projectId: uuid()
+		.primaryKey()
+		.references(() => projects.id, { onDelete: 'cascade' }),
+	last: integer().notNull()
+});

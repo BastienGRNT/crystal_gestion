@@ -1,27 +1,29 @@
 import { z } from 'zod';
-import { defineCommand } from '$lib/server/commands/define';
-import { dateKey, id, projectScoped, text } from '$lib/server/commands/schemas';
-import type { ProjectsModule } from '..';
+import { command, dateKey, id } from '$lib/server/commands/define';
+import type { Projects } from '../index';
 
-const framing = z.object({
-	name: z.string().trim().min(1).max(120),
-	objective: text(500),
-	audience: text(500),
-	deadline: dateKey.nullable(),
-	outOfScope: text(),
-	doneDefinition: text()
-});
-
-export const projectCommands = (projects: ProjectsModule) => ({
-	'projects.create': defineCommand(framing, (actor, input) => projects.create(actor, input)),
-	'projects.updateFraming': defineCommand(
-		projectScoped.extend({ changes: framing.partial() }),
-		(_actor, input) => projects.updateFraming(input.projectId, input.changes)
+export const projectCommands = (projects: Projects) => ({
+	'projects.create': command(
+		z.object({
+			id,
+			name: z.string(),
+			description: z.string().optional(),
+			color: z.number().int().optional(),
+			deadline: dateKey.nullable().optional()
+		}),
+		({ userId }, input) => projects.create(input, userId)
 	),
-	'projects.createInvitation': defineCommand(projectScoped, (actor, input) =>
-		projects.createInvitation(input.projectId, actor.id)
+	'projects.update': command(
+		z.object({
+			id,
+			name: z.string().optional(),
+			description: z.string().optional(),
+			color: z.number().int().optional(),
+			deadline: dateKey.nullable().optional()
+		}),
+		(_, { id, ...patch }) => projects.update(id, patch)
 	),
-	'projects.addMember': defineCommand(projectScoped.extend({ userId: id }), (_actor, input) =>
-		projects.addMember(input.projectId, input.userId)
+	'projects.archive': command(z.object({ id, archived: z.boolean() }), (_, input) =>
+		projects.setArchived(input.id, input.archived)
 	)
 });

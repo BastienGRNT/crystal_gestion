@@ -1,56 +1,103 @@
-import type { ElementBase } from '$lib/modules/kernel/domain/element';
+import { isDateKey, type DateKey } from '../../kernel/domain/dates';
+import { ensure, requiredText } from '../../kernel/domain/errors';
 
-/** « Icebox » holds what is noted but deliberately not thought about yet. */
-export const TASK_STATUSES = ['icebox', 'todo', 'in_progress', 'review', 'done'] as const;
+/** `idea` is parked out of sight; the board shows the three others. */
+export const TASK_STATUSES = ['idea', 'todo', 'doing', 'done'] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
-export const STATUS_LABELS: Record<TaskStatus, string> = {
-	icebox: 'Icebox',
-	todo: 'À faire',
-	in_progress: 'En cours',
-	review: 'À valider',
-	done: 'Fait'
+/** The four boxes of the Eisenhower matrix. `null` means "not sorted yet". */
+export const QUADRANTS = ['now', 'plan', 'delegate', 'later'] as const;
+export type Quadrant = (typeof QUADRANTS)[number];
+
+export const QUADRANT_AXES: Record<Quadrant, { urgent: boolean; important: boolean }> = {
+	now: { urgent: true, important: true },
+	plan: { urgent: false, important: true },
+	delegate: { urgent: true, important: false },
+	later: { urgent: false, important: false }
 };
 
-export interface TaskFields {
-	title: string;
-	description: string;
-	featureId: string | null;
-	dueDate: string | null;
-	/** Manual override of the importance derived from the feature priority. */
-	important: boolean | null;
-	/** Manual override of the urgency derived from the due date (set by moving the task in the matrix). */
-	urgent: boolean | null;
-	assigneeIds: string[];
-	/** A Fix: something to correct, inside a feat or not. */
-	isFix: boolean;
-	/** Who checks the work: ticking the task sends it to « À valider » for them. */
-	reviewerId: string | null;
-}
-
-export interface Task extends ElementBase, TaskFields {
-	kind: 'task';
+export interface Task {
+	id: string;
 	projectId: string;
+	/** `#12` inside its project, to point at it in a message. */
+	number: number;
+	title: string;
+	notes: string;
 	status: TaskStatus;
+	quadrant: Quadrant | null;
+	assigneeId: string | null;
+	dueDate: DateKey | null;
+	/** Fractional order shared by the board columns and the matrix boxes. */
 	position: number;
-	completedAt: string | null;
+	createdBy: string;
 	createdAt: string;
 	updatedAt: string;
+	completedAt: string | null;
 }
 
-export const isDone = (task: Pick<Task, 'status'>) => task.status === 'done';
-/** Neither done nor in the icebox: something someone should be working on. */
-export const isActive = (task: Pick<Task, 'status'>) =>
-	task.status !== 'done' && task.status !== 'icebox';
-/**
- * Where ticking a task sends it: to its reviewer first (« À valider »), unless the reviewer is the
- * one ticking, or it is already waiting for them. Without reviewer, straight to « Fait ».
- */
-export const finishedStatus = (
-	task: Pick<Task, 'status' | 'reviewerId'>,
-	actorId: string
-): TaskStatus =>
-	task.reviewerId && task.status !== 'review' && task.reviewerId !== actorId ? 'review' : 'done';
+export type TaskPatch = Partial<
+	Pick<Task, 'title' | 'notes' | 'status' | 'quadrant' | 'assigneeId' | 'dueDate' | 'position'>
+>;
 
-export const isAssignedTo = (task: Pick<Task, 'assigneeIds'>, userId: string) =>
-	task.assigneeIds.includes(userId);
+export const validTitle = (title: string) => requiredText(title, 'Le titre', 200);
+
+export function validNotes(notes: string): string {
+	ensure(notes.length <= 20_000, 'Les notes sont trop longues.');
+	return notes;
+}
+
+export function validDueDate(dueDate: string | null): DateKey | null {
+	ensure(dueDate === null || isDateKey(dueDate), 'Échéance invalide.');
+	return dueDate;
+}
+
+export const isActive = (task: Task) => task.status === 'todo' || task.status === 'doing';
+
+/**
+ * Applies an edit and the rules that come with it: finishing stamps the date, reopening clears
+ * it, and starting a task nobody holds gives it to the person who started it.
+ */
+export function applyPatch(task: Task, patch: TaskPatch, actorId: string, now: Date): Task {
+	const next: Task = { ...task, ...patch, updatedAt: now.toISOString() };
+	if (patch.title !== undefined) next.title = validTitle(patch.title);
+	if (patch.notes !== undefined) next.notes = validNotes(patch.notes);
+	if (patch.dueDate !== undefined) next.dueDate = validDueDate(patch.dueDate);
+	if (patch.status === undefined || patch.status === task.status) return next;
+	if (patch.status === 'done') next.completedAt = now.toISOString();
+	else next.completedAt = null;
+	if (patch.status === 'doing' && !next.assigneeId) next.assigneeId = actorId;
+	return next;
+}
+
+export interface NewTaskInput {
+	id: string;
+	projectId: string;
+	number: number;
+	title: string;
+	notes?: string;
+	status?: TaskStatus;
+	quadrant?: Quadrant | null;
+	assigneeId?: string | null;
+	dueDate?: string | null;
+	position: number;
+}
+
+export function newTask(input: NewTaskInput, actorId: string, now: Date): Task {
+	const status = input.status ?? 'todo';
+	return {
+		id: input.id,
+		projectId: input.projectId,
+		number: input.number,
+		title: validTitle(input.title),
+		notes: validNotes(input.notes ?? ''),
+		status,
+		quadrant: input.quadrant ?? null,
+		assigneeId: input.assigneeId ?? (status === 'doing' ? actorId : null),
+		dueDate: validDueDate(input.dueDate ?? null),
+		position: input.position,
+		createdBy: actorId,
+		createdAt: now.toISOString(),
+		updatedAt: now.toISOString(),
+		completedAt: status === 'done' ? now.toISOString() : null
+	};
+}

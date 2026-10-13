@@ -1,15 +1,18 @@
-import type { Availability } from '../domain/availability';
-
-export type AvailabilityChanges = Partial<Pick<Availability, 'startsAt' | 'endsAt' | 'status'>>;
+import type { ChangeFeed, Clock } from '../../kernel/application/ports';
+import type { DateKey } from '../../kernel/domain/dates';
+import type { Availability, Slot } from '../domain/availability';
 
 export interface AvailabilityRepository {
-	create(input: Omit<Availability, 'id'>): Promise<Availability>;
-	update(id: string, changes: AvailabilityChanges): Promise<Availability>;
-	delete(id: string): Promise<void>;
-	findOwned(id: string, userId: string): Promise<Availability | null>;
-	listForProject(projectId: string): Promise<Availability[]>;
+	/** Everyone's usual week, and their exceptions from `since` on. */
+	all(since: DateKey): Promise<Availability[]>;
+	get(userId: string, since: DateKey): Promise<Availability>;
+	setWeekday(userId: string, weekday: number, slots: Slot[]): Promise<void>;
+	setOverride(userId: string, date: DateKey, slots: Slot[]): Promise<void>;
+	clearOverride(userId: string, date: DateKey): Promise<void>;
 }
 
-export interface UserProjects {
-	projectIdsOf(userId: string): Promise<string[]>;
+export interface PlanningDeps {
+	availability: AvailabilityRepository;
+	clock: Clock;
+	feed: ChangeFeed<Availability>;
 }

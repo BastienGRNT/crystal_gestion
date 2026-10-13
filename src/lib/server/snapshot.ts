@@ -1,73 +1,49 @@
-import type { Project } from '$lib/modules/projects/domain/project';
-import type { Container } from './container';
+import { container } from './container';
 
-/** Everything a project page needs, loaded once; the client keeps it live through realtime events. */
-export async function loadProjectSnapshot(c: Container, project: Project, userId: string) {
-	const id = project.id;
-	const [members, features, tasks, timeEntries, availabilities, journal, ideas] = await Promise.all(
-		[
-			c.projects.listMembers(id),
-			c.features.list(id),
-			c.tasks.list(id),
-			c.time.list(id),
-			c.planning.listForProject(id),
-			c.journal.list(id),
-			c.ideas.list(id)
-		]
-	);
+/**
+ * Everything a screen needs, loaded once when the app opens; the realtime feed keeps it fresh.
+ * A team of a few people produces little data, so navigation never waits for the network.
+ */
+export async function loadSnapshot(userId: string) {
+	const { identity, projects, tasks, chat, files, vault, planning, activity, hub } = container;
+	await chat.ensureGeneral(userId);
 	const [
-		accounts,
-		links,
-		contacts,
-		files,
-		folders,
+		users,
+		projectList,
+		taskList,
 		channels,
-		elements,
-		references,
-		activity,
-		questions,
-		notifications,
-		aiNotes,
-		timer
+		channelStates,
+		fileList,
+		vaultList,
+		availability,
+		activities,
+		notifications
 	] = await Promise.all([
-		c.resources.accounts.list(id),
-		c.resources.links.list(id),
-		c.resources.contacts.list(id),
-		c.files.list(id),
-		c.files.folders.list(id),
-		c.discussion.channels.list(id),
-		c.elements.listElements(id),
-		c.elements.listReferences(id),
-		c.activity.listRecent(id),
-		c.discussion.openQuestions(id),
-		c.notifications.list(userId, id),
-		c.ai.notes.list(id),
-		c.time.runningFor(userId)
+		identity.list(),
+		projects.list(),
+		tasks.list(),
+		chat.channels(),
+		chat.states(userId),
+		files.list(),
+		vault.list(),
+		planning.all(),
+		activity.recent(),
+		activity.notificationsFor(userId)
 	]);
 	return {
-		project,
-		members,
-		features,
-		tasks,
-		timeEntries,
-		availabilities,
-		journal,
-		ideas,
-		accounts,
-		links,
-		contacts,
-		files,
-		folders,
+		meId: userId,
+		online: hub.online(),
+		users,
+		projects: projectList,
+		tasks: taskList,
 		channels,
-		elements,
-		references,
-		activity,
-		questions,
-		notifications,
-		aiNotes,
-		timer,
-		online: c.presence(id)
+		channelStates,
+		files: fileList,
+		vault: vaultList,
+		availability,
+		activities,
+		notifications
 	};
 }
 
-export type ProjectSnapshot = Awaited<ReturnType<typeof loadProjectSnapshot>>;
+export type Snapshot = Awaited<ReturnType<typeof loadSnapshot>>;

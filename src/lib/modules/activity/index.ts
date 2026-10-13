@@ -1,14 +1,14 @@
-import type { ChangeFeed } from '$lib/modules/kernel/application/ports';
-import type { ActivityRepository } from './application/ports';
-import { makeActivityLog } from './application/record-activity';
+import { activityLog, markNotificationsRead, notifier } from './application/log';
+import type { ActivityDeps } from './application/ports';
 
-const RECENT_LIMIT = 300;
-
-export function createActivityModule(deps: { activities: ActivityRepository; feed: ChangeFeed }) {
+export function createActivity(deps: ActivityDeps) {
 	return {
-		log: makeActivityLog(deps),
-		listRecent: (projectId: string) => deps.activities.listRecent(projectId, RECENT_LIMIT)
+		log: activityLog(deps),
+		notifier: notifier(deps),
+		recent: (limit = 80) => deps.activities.recent(limit),
+		notificationsFor: (userId: string) => deps.notifications.forUser(userId, 60),
+		markRead: markNotificationsRead(deps)
 	};
 }
 
-export type ActivityModule = ReturnType<typeof createActivityModule>;
+export type ActivityModule = ReturnType<typeof createActivity>;

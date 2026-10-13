@@ -1,21 +1,20 @@
-import type { ActivityVerb } from '$lib/modules/kernel/application/ports';
-import type { ElementKind } from '$lib/modules/kernel/domain/element';
+import type { ActivityVerb, NotificationKind, Subject } from '../../kernel/domain/subject';
 
-/** Keeps a snapshot of the element so the feed survives deletions. */
 export interface Activity {
 	id: string;
-	projectId: string;
 	actorId: string;
 	verb: ActivityVerb;
-	elementId: string | null;
-	elementRef: string;
-	elementKind: ElementKind;
-	elementTitle: string;
-	details: Record<string, string>;
+	subject: Subject;
 	createdAt: string;
 }
 
-export const since = (activities: Activity[], moment: string | null, exceptActorId?: string) =>
-	activities.filter(
-		(activity) => (!moment || activity.createdAt > moment) && activity.actorId !== exceptActorId
-	);
+/** Something addressed to one person: a task given to them, a message that mentions them. */
+export interface Notification {
+	id: string;
+	userId: string;
+	actorId: string;
+	kind: NotificationKind;
+	subject: Subject;
+	createdAt: string;
+	readAt: string | null;
+}

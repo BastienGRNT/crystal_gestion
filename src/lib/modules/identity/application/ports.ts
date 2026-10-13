@@ -1,35 +1,40 @@
-import type { Session } from '../domain/session';
-import type { User, UserPreferences } from '../domain/user';
+import type { Invitation } from '../domain/session';
+import type { User } from '../domain/user';
 
-export interface NewUser {
-	email: string;
-	name: string;
-	passwordHash: string;
-	color: string;
-}
+export type ProfilePatch = Partial<Pick<User, 'name' | 'color' | 'status' | 'statusNote'>>;
 
 export interface UserRepository {
 	count(): Promise<number>;
-	findById(id: string): Promise<User | null>;
-	findCredentials(email: string): Promise<{ user: User; passwordHash: string } | null>;
-	create(user: NewUser): Promise<User>;
-	savePreferences(id: string, preferences: UserPreferences): Promise<User>;
 	list(): Promise<User[]>;
+	findById(id: string): Promise<User | null>;
+	findByEmail(email: string): Promise<User | null>;
+	passwordHash(userId: string): Promise<string | null>;
+	create(user: User, passwordHash: string): Promise<void>;
+	update(id: string, patch: ProfilePatch & { lastSeenAt?: string }): Promise<User>;
+	setPasswordHash(id: string, hash: string): Promise<void>;
 }
 
 export interface SessionRepository {
-	create(id: string, session: Session): Promise<void>;
-	find(id: string): Promise<Session | null>;
-	extend(id: string, expiresAt: Date): Promise<void>;
-	delete(id: string): Promise<void>;
+	create(session: { tokenHash: string; userId: string; expiresAt: Date }): Promise<void>;
+	find(tokenHash: string): Promise<{ userId: string; expiresAt: Date } | null>;
+	renew(tokenHash: string, expiresAt: Date): Promise<void>;
+	delete(tokenHash: string): Promise<void>;
+	deleteOthers(userId: string, keepTokenHash: string): Promise<void>;
+}
+
+export interface InvitationRepository {
+	create(tokenHash: string, invitation: Invitation): Promise<void>;
+	find(tokenHash: string): Promise<Invitation | null>;
+	markUsed(tokenHash: string, userId: string, at: Date): Promise<void>;
 }
 
 export interface PasswordHasher {
 	hash(password: string): Promise<string>;
-	verify(password: string, hash: string): Promise<boolean>;
+	verify(password: string, stored: string): Promise<boolean>;
 }
 
 export interface TokenService {
 	generate(): string;
 	hash(token: string): string;
+	uuid(): string;
 }
