@@ -1,6 +1,11 @@
 import { SvelteMap } from 'svelte/reactivity';
 import type { Activity, Notification, ProjectVisit } from '$lib/modules/activity/domain/activity';
-import type { Channel, ChannelState, Message } from '$lib/modules/chat/domain/chat';
+import {
+	isOpenQuestion,
+	type Channel,
+	type ChannelState,
+	type Message
+} from '$lib/modules/chat/domain/chat';
 import type { StoredFile } from '$lib/modules/files/domain/file';
 import type { Folder } from '$lib/modules/files/domain/folder';
 import type { User } from '$lib/modules/identity/domain/user';
@@ -38,6 +43,8 @@ export class AppState {
 	/** My last catch-up per project. */
 	visits = new Collection<ProjectVisit>([], (v) => v.projectId);
 	messages = new MessageStore();
+	/** Open questions of all my projects, loaded or not: they wait on someone. */
+	questions = new Collection<Message>();
 	/** `channelId:userId` → when the "is typing" hint stops. */
 	typing = new SvelteMap<string, number>();
 	/** The channel on screen: its new messages count as read. */
@@ -73,6 +80,7 @@ export class AppState {
 		this.activities.reset(snapshot.activities);
 		this.notifications.reset(snapshot.notifications);
 		this.visits.reset(snapshot.visits);
+		this.questions.reset(snapshot.questions);
 		this.messages.invalidate();
 	}
 
@@ -92,8 +100,20 @@ export class AppState {
 		return this[name] as Collection<unknown>;
 	}
 
+	/** A message as it now stands, in its channel and among the open questions. */
+	putMessage(message: Message) {
+		this.messages.upsert(message);
+		if (isOpenQuestion(message)) this.questions.upsert(message);
+		else this.questions.remove(message.id);
+	}
+
+	dropMessage(id: string) {
+		this.messages.remove(id);
+		this.questions.remove(id);
+	}
+
 	private removed(name: CollectionName, item: object) {
-		if (name === 'messages') return this.messages.remove(keyOf(item));
+		if (name === 'messages') return this.dropMessage(keyOf(item));
 		if (name === 'members' && (item as Member).userId === this.meId) return this.onTeamChange?.();
 		this.collection(name)?.remove(keyOf(item));
 	}
@@ -106,8 +126,12 @@ export class AppState {
 	}
 
 	private messageSaved(message: Message) {
-		const isNew = !message.editedAt && !this.messages.find(message.id);
-		this.messages.upsert(message);
+		const isNew =
+			!message.editedAt &&
+			!message.answeredAt &&
+			!this.messages.find(message.id) &&
+			!this.questions.get(message.id);
+		this.putMessage(message);
 		this.typing.delete(`${message.channelId}:${message.authorId}`);
 		const state = this.channelStates.get(message.channelId);
 		const total = (state?.total ?? 0) + (isNew ? 1 : 0);

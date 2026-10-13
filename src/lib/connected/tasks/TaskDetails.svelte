@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Ellipsis, Link, Trash2, X } from '@lucide/svelte';
+	import { Ellipsis, Link, Trash2, TriangleAlert, X } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { relativeTime } from '$lib/client/format';
 	import { tint } from '$lib/client/labels';
@@ -16,6 +16,7 @@
 	import { teamOrder } from '../team/usePresence.svelte';
 	import BlockButton from './BlockButton.svelte';
 	import Checklist from './Checklist.svelte';
+	import { riskOf } from './risk';
 	import TaskComments from './TaskComments.svelte';
 
 	let { task, onclose }: { task: Task; onclose: () => void } = $props();
@@ -25,6 +26,8 @@
 	const author = $derived(app.users.get(task.createdBy));
 	const people = $derived(teamOrder(app, task.projectId));
 	const active = $derived(task.status === 'todo' || task.status === 'doing');
+	// Said right where the date is chosen: a deadline nobody has time for is visible at once.
+	const risk = $derived(riskOf(app, task));
 
 	// Drafts: what is being typed is never replaced by a live update.
 	let title = $state('');
@@ -164,12 +167,22 @@
 
 			<div class="flex flex-col gap-2.5">
 				{@render section('Échéance')}
-				<dd>
+				<dd class="flex flex-col gap-2">
 					<DuePicker
 						value={task.dueDate}
 						today={now.today}
 						onchange={(dueDate) => actions.tasks.update(task.id, { dueDate })}
 					/>
+					{#if risk}
+						<p
+							class={[
+								'flex items-center gap-1.5 text-sm font-medium',
+								risk.tone === 'danger' ? 'text-danger-text' : 'text-warn-text'
+							]}
+						>
+							<TriangleAlert size={14} class="shrink-0" />{risk.text}
+						</p>
+					{/if}
 				</dd>
 			</div>
 

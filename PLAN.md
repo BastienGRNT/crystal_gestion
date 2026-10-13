@@ -31,16 +31,16 @@ dans l'ordre de la matrice puis de l'échéance) avec un bouton « Je m'y mets �
 
 ## 3. Les pages d'un projet
 
-| Page       | Rôle                                                                                                                                                                                     |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accueil    | À rattraper depuis ton dernier passage (voir plus bas), pour toi maintenant (en cours, à relire, prochaine tâche), échéances, l'équipe (en ligne, sur quoi, dispo quand), ce qui a bougé |
-| Tableau    | Le Kanban : filtres (texte, personne), colonnes fixes qui défilent seules, bouton « étape suivante » ; en glissant, un emplacement de la taille de la carte et rien d'autre ne bouge     |
-| Priorités  | La matrice 2×2 + « À trier », classement en un clic ou en glissant                                                                                                                       |
-| Discussion | Canal `général` + canaux libres (créer, renommer, supprimer), réponses citées, `@` mentions, `#12` pour une tâche, pièces jointes                                                        |
-| Planning   | Agenda à l'heure près : on dessine ses dispos (ou « peut-être ») et le travail prévu, moments dispos ensemble, échéances et tâches finies sur les jours, « Copier la semaine d'avant »   |
-| Documents  | Dossiers et sous-dossiers, glisser un fichier sur un dossier, « Déplacer vers… », recherche dans tout le projet ; les pièces jointes du chat vont dans « Partagés dans la discussion »   |
-| Accès      | Comptes partagés (identifiant, mot de passe chiffré, lien, note), copiés en un clic                                                                                                      |
-| Équipe     | Membres, inviter par lien, retirer / quitter, réglages et archivage du projet                                                                                                            |
+| Page       | Rôle                                                                                                                                                                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accueil    | À rattraper (voir plus bas), pour toi maintenant (en cours, à relire, prochaine tâche, tes questions en attente), échéances et ce qui les menace, le prochain point, l'équipe, ce qui a bougé ; « Compte rendu » copie la semaine |
+| Tableau    | Le Kanban : filtres (texte, personne), colonnes fixes qui défilent seules, bouton « étape suivante » ; en glissant, un emplacement de la taille de la carte et rien d'autre ne bouge                                              |
+| Priorités  | La matrice 2×2 + « À trier », classement en un clic ou en glissant                                                                                                                                                                |
+| Discussion | Canal `général` + canaux libres (créer, renommer, supprimer), réponses citées, `@` mentions, `#12` pour une tâche, pièces jointes                                                                                                 |
+| Planning   | Agenda à l'heure près : on dessine ses dispos (ou « peut-être ») et le travail prévu, moments dispos ensemble, échéances et tâches finies sur les jours, « Copier la semaine d'avant »                                            |
+| Documents  | Dossiers et sous-dossiers, glisser un fichier sur un dossier, « Déplacer vers… », recherche dans tout le projet ; les pièces jointes du chat vont dans « Partagés dans la discussion »                                            |
+| Accès      | Comptes partagés (identifiant, mot de passe chiffré, lien, note), copiés en un clic                                                                                                                                               |
+| Équipe     | Membres, inviter par lien, retirer / quitter, réglages et archivage du projet                                                                                                                                                     |
 
 **À rattraper** (en haut de l'accueil) répond à « qu'est-ce que j'ai raté ? » sans ouvrir une autre page :
 
@@ -51,10 +51,29 @@ dans l'ordre de la matrice puis de l'échéance) avec un bouton « Je m'y mets �
   chaque tâche une seule fois dans son dernier état. C'est le point du matin, sans réunion.
 - « Tout est vu » remet le compteur à zéro (messages lus, notifications lues, nouveau point de départ).
 
+## 4. Ce que Crystal fait à ta place
+
+L'organisation qu'on ne fait plus soi-même, parce que l'app sait déjà tout ce qu'il faut :
+
+- **Les questions ne se perdent plus.** Un message qui mentionne quelqu'un et contient un « ? » devient une question
+  suivie, sans rien cocher (le champ le dit avant l'envoi). Elle reste en haut de l'accueil de la personne
+  (« On attend ta réponse », avec le temps d'attente et un champ pour répondre), dans « Tu attends une réponse » chez
+  celui qui demande, en bandeau au-dessus du champ de message du canal, et sur la carte de la tâche (« Attend la
+  réponse de… »). Elle se ferme toute seule à la réponse, et celui qui demandait le sait.
+- **« Ça tient ? »** Chaque échéance est croisée avec ce que l'app sait : bloquée, en attente d'une réponse, personne
+  dessus, pas de dispo dans le planning de qui doit agir d'ici là, pas encore commencée à deux jours. C'est dit sur
+  l'accueil et dans la fiche, juste sous la date. La livraison du projet est comparée au rythme réel des quatre
+  dernières semaines (« 4 tâches de trop ») : aucune estimation à faire.
+- **Le prochain point se prépare tout seul.** Le prochain moment où vous êtes dispo ensemble (d'après le planning) et
+  l'ordre du jour : questions ouvertes, relectures, blocages, échéances en danger, tâches à trier, cartes qui ne
+  bougent plus. Un clic l'envoie dans `#général`. S'il n'y a rien, l'app dit que le point peut attendre.
+- **Le compte rendu en un clic.** Terminé, en cours, bloqué, ensuite, et si la livraison tient : en texte, prêt à
+  coller dans un mail au client.
+
 Chaque tâche a sa fiche (tiroir `?tache=<id>`) : statut, priorité, qui s'en occupe, qui relit, échéance, blocage,
 étapes (checklist), notes et commentaires.
 
-## 4. Arbitrages
+## 5. Arbitrages
 
 | Sujet           | Décision                                                                                                                                                      |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -68,10 +87,12 @@ Chaque tâche a sa fiche (tiroir `?tache=<id>`) : statut, priorité, qui s'en oc
 | Fichiers servis | `nosniff`, CSP `sandbox` (sauf PDF), HTML/JS toujours téléchargés : un fichier envoyé ne peut pas exécuter de code                                            |
 | Temps réel      | Chaque connexion n'entend que ses projets et ses coéquipiers ; à l'arrivée ou au départ d'un membre, le client recharge                                       |
 | Dernier passage | Par personne et par projet, posé par « Tout est vu » ; sans passage, depuis l'arrivée dans le projet, et jamais plus de 7 jours en arrière                    |
+| Questions       | Mention + « ? » (hors code et liens). Fermée par la réponse citée d'une personne interrogée (dans un fil de tâche, n'importe quel commentaire) ou « Clore »   |
+| Prévisions      | Aucune estimation demandée : dispos sûres du planning et rythme des 4 dernières semaines (à partir de 3 tâches finies)                                        |
 | Données client  | Un snapshot de tous mes projets au chargement, puis le flux WebSocket ; navigation instantanée                                                                |
 | Conflits        | Dernière écriture gagne ; numérotation `#12` atomique ; positions fractionnaires (tableau et matrice)                                                         |
 
-## 5. Plus tard
+## 6. Plus tard
 
 - Matrice personnelle, tous projets confondus (« mes urgences »).
 - Notifications du navigateur.

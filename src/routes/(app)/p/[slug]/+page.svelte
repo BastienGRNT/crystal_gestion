@@ -1,10 +1,15 @@
 <script lang="ts">
-	import { Plus } from '@lucide/svelte';
+	import { ClipboardCopy, Plus } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
+	import { firstName } from '$lib/client/format';
+	import { now } from '$lib/client/now.svelte';
+	import { toasts } from '$lib/client/toasts.svelte';
+	import { weekReport } from '$lib/client/views/report';
 	import ActivityFeed from '$lib/connected/home/ActivityFeed.svelte';
 	import CatchUp from '$lib/connected/home/CatchUp.svelte';
 	import Deadlines from '$lib/connected/home/Deadlines.svelte';
 	import MyWork from '$lib/connected/home/MyWork.svelte';
+	import NextSync from '$lib/connected/home/NextSync.svelte';
 	import TeamPanel from '$lib/connected/home/TeamPanel.svelte';
 	import WeekGoal from '$lib/connected/home/WeekGoal.svelte';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
@@ -13,11 +18,26 @@
 
 	const { app, overlays } = useApp();
 	const project = $derived(currentProject(app));
+
+	/** The week, written for whoever was not there: the client, an associate. */
+	async function copyReport() {
+		if (!project) return;
+		const nameOf = (id: string | null) => {
+			const user = app.users.get(id);
+			return user ? firstName(user.name) : null;
+		};
+		const text = weekReport(project, app.tasks.all, nameOf, now.today, now.value);
+		await navigator.clipboard.writeText(text).catch(() => {});
+		toasts.show('Compte rendu de la semaine copié : colle-le dans ton mail ou ton message.', {
+			tone: 'success'
+		});
+	}
 </script>
 
 {#if project}
 	<PageHeader title={project.name} subtitle={project.description || undefined}>
 		{#snippet actions()}
+			<Button icon={ClipboardCopy} onclick={copyReport}>Compte rendu</Button>
 			<Button
 				variant="primary"
 				icon={Plus}
@@ -36,6 +56,7 @@
 				<Deadlines {project} />
 			</div>
 			<div class="flex flex-col gap-10">
+				<NextSync {project} />
 				<TeamPanel {project} />
 				<ActivityFeed {project} />
 			</div>

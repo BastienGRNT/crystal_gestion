@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Paperclip, SendHorizontal, X } from '@lucide/svelte';
+	import { MessageCircleQuestion, Paperclip, SendHorizontal, X } from '@lucide/svelte';
 	import { tick, untrack } from 'svelte';
 	import { useApp } from '$lib/client/context';
 	import { channelName } from '$lib/client/views/workspace';
@@ -11,6 +11,7 @@
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
 	import Spinner from '$lib/ui/atoms/Spinner.svelte';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
+	import QuestionHint from './QuestionHint.svelte';
 	import { suggestionsFor, tokenBefore, type Suggestion } from './suggestions';
 
 	interface Props {
@@ -35,6 +36,12 @@
 	const suggestions = $derived(token ? suggestionsFor(token, app.users.all, projectTasks) : []);
 	let uploading = $state(0);
 	const canSend = $derived((text.trim().length > 0 || attached.length > 0) && uploading === 0);
+	/** The oldest question here someone waits for me to answer. */
+	const waiting = $derived(
+		app.questions.all
+			.filter((q) => q.channelId === channel.id && q.asks.includes(app.meId))
+			.sort((a, b) => a.createdAt.localeCompare(b.createdAt))[0]
+	);
 
 	$effect(() => {
 		void text;
@@ -145,6 +152,24 @@
 		</ul>
 	{/if}
 
+	{#if waiting && !replyTo}
+		<div
+			class="mb-2 flex items-center gap-2 rounded-xl bg-warn-soft px-3.5 py-2 text-sm text-warn-text"
+		>
+			<MessageCircleQuestion size={15} class="shrink-0" aria-hidden="true" />
+			<span class="shrink-0 font-semibold"
+				>{app.users.get(waiting.authorId)?.name.split(' ')[0]} attend ta réponse :</span
+			>
+			<span class="min-w-0 flex-1 truncate"
+				>{plainText(toDisplay(waiting.body, app.users.all))}</span
+			>
+			<button
+				class="shrink-0 font-semibold hover:underline"
+				onclick={() => ((replyTo = waiting), focus())}>Répondre</button
+			>
+		</div>
+	{/if}
+
 	<div
 		class="rounded-2xl border border-line-strong/70 bg-surface shadow-card focus-within:border-accent focus-within:ring-4 focus-within:ring-accent-soft"
 	>
@@ -226,7 +251,11 @@
 			</button>
 		</div>
 	</div>
-	<p class="mt-1.5 hidden px-1 text-xs text-ink-3 sm:block">
-		Entrée pour envoyer · Maj + Entrée pour aller à la ligne · colle une capture pour la joindre
-	</p>
+	<div class="mt-1.5">
+		<QuestionHint {text} projectId={channel.projectId}>
+			<p class="hidden px-1 text-xs text-ink-3 sm:block">
+				Entrée pour envoyer · Maj + Entrée pour aller à la ligne · colle une capture pour la joindre
+			</p>
+		</QuestionHint>
+	</div>
 </div>

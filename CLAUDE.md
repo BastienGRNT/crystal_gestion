@@ -73,6 +73,8 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
   qui compte (une colonne), `data-drop-gaps` = le conteneur dont les espaces ne renvoient pas la carte chez elle.
   Règle : **rien n'apparaît, ne disparaît ni ne change de taille pendant un glisser** (pas de `{#if dnd.active}`).
 - Agenda : `ui/organisms/agenda/*` (grille, gestes) + `connected/planning/*` (données, commandes).
+- Lectures qui croisent plusieurs modules (rattrapage, questions, prévisions, prochain point, compte rendu) :
+  fonctions pures dans `client/views/*`, testées là.
 
 ## Conventions
 
@@ -89,4 +91,6 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Hub temps réel et pool SQL vivent sur `globalThis` (survivent au HMR). **Modif du hub → redémarrer `npm run dev`.**
 - Un snippet nommé `actions` dans un `PageHeader` masque `actions` de `useApp()` : renommer (`actions: act`).
 - `$effect` qui appelle une action lisant le store : l'envelopper dans `untrack` (sinon boucle).
+- Messages : `asks` / `answeredAt` font les questions suivies, et `app.questions` garde celles encore ouvertes de tous
+  mes projets. Côté client, passer par `app.putMessage` / `app.dropMessage`, jamais `app.messages.upsert` seul.
 - Postgres écoute sur 55432. Prod : `ORIGIN` = URL publique, `APP_SECRET` obligatoire (ne plus la changer ensuite).

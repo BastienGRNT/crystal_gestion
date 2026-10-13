@@ -5,7 +5,8 @@ import {
 	editMessage,
 	listMessages,
 	markRead,
-	postMessage
+	postMessage,
+	resolveQuestion
 } from './application/messages';
 import type { ChatDeps } from './application/ports';
 
@@ -22,7 +23,10 @@ export function createChat(deps: ChatDeps) {
 		comment: commentTask(deps),
 		edit: editMessage(deps),
 		delete: deleteMessage(deps),
-		markRead: markRead(deps)
+		markRead: markRead(deps),
+		resolveQuestion: resolveQuestion(deps),
+		openQuestions: (projectIds: string[]) =>
+			projectIds.length ? deps.messages.openQuestions({ projectIds }) : Promise.resolve([])
 	};
 }
 

@@ -54,7 +54,18 @@ function setup() {
 			insert: async (m) => messages.put({ ...m, attachments: [] }),
 			save: async (m) => messages.put(m),
 			delete: async (id: string) => messages.delete(id),
-			page: async () => messages.all()
+			page: async () => messages.all(),
+			openQuestions: async (scope) =>
+				messages
+					.all()
+					.filter(
+						(m) =>
+							m.asks.length &&
+							!m.answeredAt &&
+							('channelId' in scope
+								? m.channelId === scope.channelId
+								: scope.projectIds.includes(m.projectId))
+					)
 		}
 	});
 	return { chat, notifier, messageFeed };
@@ -82,17 +93,32 @@ describe('chat', () => {
 		).rejects.toThrow(/ne fais pas partie/);
 	});
 
-	it('opens a task thread on its first comment, and mentions point to the task', async () => {
-		await ctx.chat.comment(
+	it('opens a task thread on its first comment, where any comment of the person asked answers', async () => {
+		const question = await ctx.chat.comment(
 			{ id: testId(), taskId: 't1', body: `<@${ana}> c’est corrigé ?` },
 			bastien
 		);
+		expect(question.asks).toEqual([ana]);
 		await ctx.chat.comment({ id: testId(), taskId: 't1', body: 'Oui !' }, ana);
-		expect(ctx.messageFeed.saves.map((m) => m.channelId)).toEqual([
-			ctx.messageFeed.saves[0].channelId,
-			ctx.messageFeed.saves[0].channelId
+		expect(new Set(ctx.messageFeed.saves.map((m) => m.channelId)).size).toBe(1);
+		expect(ctx.messageFeed.last).toMatchObject({ id: question.id, answeredAt: expect.any(String) });
+		expect(ctx.notifier.sent).toMatchObject([
+			{ userId: ana, kind: 'mention', subject: { kind: 'task', id: 't1' } },
+			{ userId: bastien, kind: 'answer', subject: { kind: 'task', id: 't1', title: 'Oui !' } }
 		]);
-		expect(ctx.notifier.sent[0].subject).toMatchObject({ kind: 'task', id: 't1' });
+	});
+
+	it('closes a channel question only when someone asked replies to it', async () => {
+		const general = await ctx.chat.ensureGeneral('p1', bastien);
+		const say = (body: string, author: string, replyToId: string | null = null) =>
+			ctx.chat.post({ id: testId(), channelId: general.id, body, replyToId }, author);
+		const question = await say(`<@${ana}> Stripe ou PayPal ? https://stripe.com/?ref=1`, bastien);
+		await say('Autre sujet', ana);
+		await say('Je relance', bastien, question.id);
+		expect(ctx.messageFeed.saves.filter((m) => m.answeredAt)).toEqual([]);
+		await say('Stripe', ana, question.id);
+		expect(ctx.messageFeed.last).toMatchObject({ id: question.id, answeredAt: expect.any(String) });
+		await expect(ctx.chat.resolveQuestion(question.id, 'paul')).rejects.toThrow();
 	});
 
 	it('lets only the author edit or delete', async () => {

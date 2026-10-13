@@ -52,9 +52,19 @@ export const messages = pgTable(
 		body: text().notNull(),
 		replyToId: uuid().references((): AnyPgColumn => messages.id, { onDelete: 'set null' }),
 		createdAt: createdAt(),
-		editedAt: timestamptz()
+		editedAt: timestamptz(),
+		asks: uuid()
+			.array()
+			.notNull()
+			.default(sql`'{}'::uuid[]`),
+		answeredAt: timestamptz()
 	},
-	(t) => [index().on(t.channelId, t.createdAt)]
+	(t) => [
+		index().on(t.channelId, t.createdAt),
+		index('messages_open_questions')
+			.on(t.projectId)
+			.where(sql`${t.answeredAt} is null and cardinality(${t.asks}) > 0`)
+	]
 );
 
 export const channelReads = pgTable(

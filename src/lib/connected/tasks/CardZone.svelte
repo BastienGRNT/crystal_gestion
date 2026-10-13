@@ -2,7 +2,9 @@
 	import type { Snippet } from 'svelte';
 	import { useApp } from '$lib/client/context';
 	import { dnd, reflow } from '$lib/client/dnd.svelte';
+	import { firstName, joinNames } from '$lib/client/format';
 	import { now } from '$lib/client/now.svelte';
+	import { waitingOn } from '$lib/client/views/questions';
 	import { threadOf } from '$lib/client/views/workspace';
 	import { daysInColumn, STALE_DAYS } from '$lib/modules/tasks/domain/views';
 	import type { Task, TaskStatus } from '$lib/modules/tasks/domain/task';
@@ -50,6 +52,13 @@
 		return thread ? (app.channelStates.get(thread.id)?.total ?? 0) : 0;
 	};
 
+	const waiting = (taskId: string) =>
+		joinNames(
+			waitingOn(app.questions.all, threadOf(app.channels.all, taskId)?.id).map((id) =>
+				firstName(app.users.get(id)?.name ?? '')
+			)
+		) || undefined;
+
 	const stale = (task: Task) => {
 		if (task.status !== 'doing' && task.status !== 'review') return null;
 		const days = daysInColumn(task, now.value);
@@ -75,6 +84,7 @@
 					today={now.today}
 					comments={comments(task.id)}
 					staleDays={stale(task)}
+					waitingOn={waiting(task.id)}
 					next={next?.label}
 					onnext={() => next?.run(task.id)}
 					onopen={() => overlays.openTask(task.id)}

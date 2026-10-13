@@ -21,8 +21,8 @@ export type ActivityVerb =
 	| 'vault.added'
 	| 'channel.created';
 
-/** `review`: someone asks you to check their work. */
-export type NotificationKind = 'assigned' | 'mention' | 'review';
+/** `review`: someone asks you to check their work. `answer`: someone answered your question. */
+export type NotificationKind = 'assigned' | 'mention' | 'review' | 'answer';
 
 export interface ActivityInput {
 	actorId: string;

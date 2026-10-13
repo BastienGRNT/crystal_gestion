@@ -1,4 +1,10 @@
-import { validBody, validChannelName, type Message } from '$lib/modules/chat/domain/chat';
+import {
+	answers,
+	askedIn,
+	validBody,
+	validChannelName,
+	type Message
+} from '$lib/modules/chat/domain/chat';
 import { errorMessage, send } from '../api';
 import { toStored } from '../mentions';
 import type { AppState } from '../state/app.svelte';
@@ -7,9 +13,9 @@ import { attempt, settle } from './optimistic';
 
 export function chatActions(app: AppState) {
 	function markRead(channelId: string) {
-		// Read where it was said: its mentions are no longer news either.
+		// Read where it was said: its mentions (and answers) are no longer news either.
 		const mentions = app.notifications.all.filter(
-			(n) => !n.readAt && n.kind === 'mention' && n.subject.channelId === channelId
+			(n) => !n.readAt && n.subject.channelId === channelId
 		);
 		if (mentions.length) {
 			const now = new Date().toISOString();
@@ -26,6 +32,15 @@ export function chatActions(app: AppState) {
 			total: state?.total ?? 0
 		});
 		void send('chat.read', { channelId }).catch(() => {});
+	}
+
+	/** An answer shows at once: the questions it closes leave the screens before the server says so. */
+	function closeAnswered(reply: Pick<Message, 'authorId' | 'replyToId' | 'channelId'>) {
+		const inThread = app.channels.get(reply.channelId)?.kind === 'task';
+		const answered = app.questions.all.filter((q) => answers(reply, q, inThread));
+		const at = new Date().toISOString();
+		for (const question of answered) app.putMessage({ ...question, answeredAt: at });
+		return () => answered.forEach((question) => app.putMessage(question));
 	}
 
 	const attachmentsOf = (fileIds: string[]) =>
@@ -57,15 +72,18 @@ export function chatActions(app: AppState) {
 				replyToId,
 				createdAt: new Date().toISOString(),
 				editedAt: null,
-				attachments: attachmentsOf(fileIds)
+				attachments: attachmentsOf(fileIds),
+				asks: askedIn(body, app.meId),
+				answeredAt: null
 			};
-			app.messages.upsert(draft);
+			app.putMessage(draft);
+			const reopen = closeAnswered(draft);
 			const saved = await settle(
 				app,
 				id,
 				send('chat.post', { id, channelId, body, fileIds, replyToId }),
-				(m) => app.messages.upsert(m),
-				() => app.messages.remove(id)
+				(m) => app.putMessage(m),
+				() => (app.dropMessage(id), reopen())
 			);
 			return saved !== undefined;
 		},
@@ -81,7 +99,8 @@ export function chatActions(app: AppState) {
 					body,
 					fileIds
 				});
-				app.messages.upsert(message);
+				app.putMessage(message);
+				closeAnswered(message);
 				return true;
 			} catch (error) {
 				toasts.error(errorMessage(error));
@@ -94,24 +113,41 @@ export function chatActions(app: AppState) {
 				validBody(toStored(text, app.users.all), message.attachments.length > 0)
 			);
 			if (body === null || body === message.body) return;
-			app.messages.upsert({ ...message, body, editedAt: new Date().toISOString() });
+			app.putMessage({
+				...message,
+				body,
+				editedAt: new Date().toISOString(),
+				asks: message.answeredAt ? message.asks : askedIn(body, app.meId)
+			});
 			settle(
 				app,
 				message.id,
 				send('chat.edit', { id: message.id, body }),
-				(m) => app.messages.upsert(m),
-				() => app.messages.upsert(message)
+				(m) => app.putMessage(m),
+				() => app.putMessage(message)
+			);
+		},
+
+		/** "Déjà répondu": the question leaves everyone's screens. */
+		resolve(question: Message) {
+			app.putMessage({ ...question, answeredAt: new Date().toISOString() });
+			settle(
+				app,
+				question.id,
+				send('chat.resolve', { id: question.id }),
+				(m) => app.putMessage(m),
+				() => app.putMessage(question)
 			);
 		},
 
 		remove(message: Message) {
 			deleteWithUndo(
 				'Message supprimé',
-				() => app.messages.remove(message.id),
-				() => app.messages.upsert(message),
+				() => app.dropMessage(message.id),
+				() => app.putMessage(message),
 				() =>
 					void send('chat.delete', { id: message.id }, { keepalive: true }).catch(() =>
-						app.messages.upsert(message)
+						app.putMessage(message)
 					)
 			);
 		},

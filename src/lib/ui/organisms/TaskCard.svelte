@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { ArrowRight, Hourglass, ListChecks, MessageSquare, OctagonAlert } from '@lucide/svelte';
+	import {
+		ArrowRight,
+		Hourglass,
+		ListChecks,
+		MessageCircleQuestion,
+		MessageSquare,
+		OctagonAlert
+	} from '@lucide/svelte';
 	import { BOXES } from '$lib/client/labels';
 	import type { Task } from '$lib/modules/tasks/domain/task';
 	import Avatar from '../atoms/Avatar.svelte';
@@ -17,6 +24,8 @@
 		comments?: number;
 		/** Days in this column, shown once a card stops moving. */
 		staleDays?: number | null;
+		/** Teammates asked a question in its thread: the card waits on them. */
+		waitingOn?: string;
 		/** Label of the one-click move to the next column ("Commencer", "À relire"…). */
 		next?: string | null;
 		onopen: () => void;
@@ -33,6 +42,7 @@
 		showPriority = true,
 		comments = 0,
 		staleDays = null,
+		waitingOn,
 		next = null,
 		onopen,
 		oncomplete,
@@ -89,6 +99,14 @@
 			class="flex items-start gap-1.5 rounded-lg bg-danger-soft px-2 py-1.5 text-sm font-medium text-danger-text"
 		>
 			<OctagonAlert size={14} class="mt-0.5 shrink-0" />{task.blockedReason}
+		</p>
+	{/if}
+
+	{#if waitingOn && !done}
+		<p
+			class="flex items-start gap-1.5 rounded-lg bg-warn-soft px-2 py-1.5 text-sm font-medium text-warn-text"
+		>
+			<MessageCircleQuestion size={14} class="mt-0.5 shrink-0" />Attend la réponse de {waitingOn}
 		</p>
 	{/if}
 

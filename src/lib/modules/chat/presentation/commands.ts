@@ -20,6 +20,9 @@ export const chatCommands = (chat: Chat) => ({
 		chat.edit(input.id, input.body, userId)
 	),
 	'chat.delete': command(z.object({ id }), ({ userId }, input) => chat.delete(input.id, userId)),
+	'chat.resolve': command(z.object({ id }), ({ userId }, input) =>
+		chat.resolveQuestion(input.id, userId)
+	),
 	'chat.read': command(z.object({ channelId: id }), ({ userId }, input) =>
 		chat.markRead(input.channelId, userId)
 	),

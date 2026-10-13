@@ -34,7 +34,7 @@ export const notifications = pgTable(
 		actorId: uuid()
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		kind: text({ enum: ['assigned', 'mention', 'review'] }).notNull(),
+		kind: text({ enum: ['assigned', 'mention', 'review', 'answer'] }).notNull(),
 		subject: jsonb().$type<Subject>().notNull(),
 		createdAt: createdAt(),
 		readAt: timestamptz()

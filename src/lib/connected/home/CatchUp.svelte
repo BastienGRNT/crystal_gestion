@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CheckCheck } from '@lucide/svelte';
+	import { CheckCheck, MessageCircleQuestion } from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { useApp } from '$lib/client/context';
@@ -13,6 +13,7 @@
 		teamProgress,
 		type Progress
 	} from '$lib/client/views/catch-up';
+	import { askedOfMe } from '$lib/client/views/questions';
 	import { catchUpSince, type Notification } from '$lib/modules/activity/domain/activity';
 	import type { Subject } from '$lib/modules/kernel/domain/subject';
 	import { memberId } from '$lib/modules/projects/domain/membership';
@@ -20,6 +21,7 @@
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import MissedChannel from './MissedChannel.svelte';
+	import QuestionCard from './QuestionCard.svelte';
 
 	let { project }: { project: Project } = $props();
 	const { app, actions, overlays } = useApp();
@@ -48,7 +50,10 @@
 			app.meId
 		)
 	);
-	const anything = $derived(missed.length + forMe.length + progress.length > 0);
+	// Not news but debts: they stay after "Tout est vu", until answered.
+	const questions = $derived(askedOfMe(app.questions.all, app.meId, project.id));
+	const news = $derived(missed.length + forMe.length + progress.length > 0);
+	const anything = $derived(news || questions.length > 0);
 	const base = $derived(`/p/${project.slug}`);
 
 	function openSubject(subject: Subject) {
@@ -122,7 +127,7 @@
 			{app.visits.get(project.id) ? 'depuis ton dernier passage,' : 'depuis ton arrivée,'}
 			{momentLabel(since, now.value)}
 		</p>
-		{#if anything}
+		{#if news}
 			<Button size="sm" icon={CheckCheck} class="ml-auto" onclick={caughtUp}>Tout est vu</Button>
 		{/if}
 	</header>
@@ -136,8 +141,19 @@
 		</p>
 	{:else}
 		<div class="grid gap-4 xl:grid-cols-2">
-			{#if forMe.length || missed.length}
+			{#if questions.length || forMe.length || missed.length}
 				<div class="flex flex-col gap-3">
+					{#if questions.length}
+						<h3 class="flex items-center gap-1.5 text-sm font-semibold text-warn-text">
+							<MessageCircleQuestion size={15} aria-hidden="true" />
+							On attend ta réponse
+						</h3>
+						{#each questions as question (question.id)}
+							<div transition:slide={{ duration: motion(160) }}>
+								<QuestionCard {question} {project} />
+							</div>
+						{/each}
+					{/if}
 					{#if forMe.length}
 						<ul
 							class="divide-y divide-line overflow-hidden rounded-xl border border-accent/40 bg-surface shadow-card"

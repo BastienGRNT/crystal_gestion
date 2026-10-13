@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { excerpt, mentionedIds, validBody, validChannelName } from './chat';
+import { askedIn, excerpt, mentionedIds, validBody, validChannelName } from './chat';
 
 const ana = '11111111-1111-4111-8111-111111111111';
 
@@ -16,6 +16,13 @@ describe('chat rules', () => {
 
 	it('finds each mentioned person once', () => {
 		expect(mentionedIds(`<@${ana}> tu peux relire ? <@${ana}>`)).toEqual([ana]);
+	});
+
+	it('reads a question from a mention and a "?", not from code or links', () => {
+		const bastien = '22222222-2222-4222-8222-222222222222';
+		expect(askedIn(`<@${ana}> on part sur Stripe ?`, bastien)).toEqual([ana]);
+		expect(askedIn(`<@${ana}> regarde https://x.io/?q=1 et \`a ?? b\``, bastien)).toEqual([]);
+		expect(askedIn(`Je me demande, <@${bastien}> ?`, bastien)).toEqual([]);
 	});
 
 	it('writes readable excerpts', () => {

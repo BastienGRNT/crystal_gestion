@@ -1,5 +1,5 @@
 import type { Activity, Notification } from '$lib/modules/activity/domain/activity';
-import type { ActivityVerb, Subject } from '$lib/modules/kernel/domain/subject';
+import type { ActivityVerb, NotificationKind, Subject } from '$lib/modules/kernel/domain/subject';
 
 const VERBS: Record<ActivityVerb, string> = {
 	'project.created': 'a créé le projet',
@@ -16,12 +16,15 @@ const VERBS: Record<ActivityVerb, string> = {
 
 export const activityVerb = (activity: Activity) => VERBS[activity.verb] ?? 'a modifié';
 
+const NOTIFICATION_VERBS: Record<NotificationKind, string> = {
+	assigned: 'te confie',
+	review: 'te demande de relire',
+	mention: 't’a mentionné',
+	answer: 'a répondu à ta question :'
+};
+
 export const notificationVerb = (notification: Notification) =>
-	notification.kind === 'assigned'
-		? 'te confie'
-		: notification.kind === 'review'
-			? 'te demande de relire'
-			: 't’a mentionné';
+	NOTIFICATION_VERBS[notification.kind];
 
 /** Where clicking an activity or a notification leads. */
 export function subjectHref(subject: Subject, slug: string | undefined): string {

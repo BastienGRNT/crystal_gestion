@@ -47,6 +47,7 @@
 	--color-ok-soft: var(--ok-soft);
 	--color-ok-text: var(--ok-text);
 	--color-warn: var(--warn);
+	--color-warn-soft: var(--warn-soft);
 	--color-warn-text: var(--warn-text);
 	--color-danger: var(--danger);
 	--color-danger-soft: var(--danger-soft);

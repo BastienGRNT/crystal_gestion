@@ -35,6 +35,14 @@ export function relativeTime(iso: string, now: Date): string {
 	return `le ${dayMonth.format(new Date(iso))}`;
 }
 
+/** How long since then, in a word: "5 min", "3 h", "2 j". */
+export function elapsed(iso: string, now: Date): string {
+	const minutes = Math.max(1, Math.round((now.getTime() - Date.parse(iso)) / 60_000));
+	if (minutes < 60) return `${minutes} min`;
+	const hours = Math.round(minutes / 60);
+	return hours < 24 ? `${hours} h` : `${Math.round(hours / 24)} j`;
+}
+
 export const timeOf = (iso: string) => clock.format(new Date(iso));
 
 /** "aujourd'hui à 09:12", "hier à 18:40", "lundi à 18:40", "le 3 oct.". */
@@ -70,6 +78,10 @@ export function dueLabel(key: DateKey, today: DateKey): string {
 /** "19:00–23:00". */
 export const rangeLabel = (startsAt: string, endsAt: string) =>
 	`${timeOf(startsAt)}–${timeOf(endsAt)}`;
+
+/** "Ana", "Ana et Léo", "Ana, Léo et Max". */
+export const joinNames = (names: string[]) =>
+	names.length > 1 ? `${names.slice(0, -1).join(', ')} et ${names.at(-1)}` : (names[0] ?? '');
 
 export const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n > 1 ? many : one}`;
 

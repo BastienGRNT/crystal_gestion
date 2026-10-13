@@ -2,7 +2,8 @@
 	import { Download, Pencil, Reply, SquarePlus, Trash2 } from '@lucide/svelte';
 	import { fileUrl } from '$lib/client/api';
 	import { useApp } from '$lib/client/context';
-	import { timeOf } from '$lib/client/format';
+	import { elapsed, firstName, joinNames, timeOf } from '$lib/client/format';
+	import { now } from '$lib/client/now.svelte';
 	import { toDisplay } from '$lib/client/mentions';
 	import { plainText } from '$lib/client/rich-text';
 	import type { MessageView } from '$lib/client/views/messages';
@@ -11,6 +12,7 @@
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
 	import FileIcon from '$lib/ui/atoms/FileIcon.svelte';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
+	import QuestionTag from '$lib/ui/atoms/QuestionTag.svelte';
 	import TextArea from '$lib/ui/atoms/TextArea.svelte';
 	import RichText from '$lib/ui/organisms/RichText.svelte';
 
@@ -34,6 +36,10 @@
 	const taskOf = (number: number) =>
 		app.tasks.all.find((t) => t.projectId === channel.projectId && t.number === number);
 	const original = $derived(message.replyToId ? app.messages.find(message.replyToId) : undefined);
+	const askedNames = $derived(
+		joinNames(message.asks.map((id) => firstName(app.users.get(id)?.name ?? 'quelqu’un')))
+	);
+	const askedMe = $derived(message.asks.includes(app.meId));
 
 	function toTask() {
 		const text = plainText(toDisplay(message.body, app.users.all));
@@ -113,6 +119,16 @@
 				onopentask={(id) => overlays.openTask(id)}
 			/>
 			{#if message.editedAt}<span class="text-xs text-ink-3">(modifié)</span>{/if}
+		{/if}
+		{#if message.asks.length && !editing}
+			<QuestionTag
+				names={askedNames}
+				answered={!!message.answeredAt}
+				forMe={askedMe}
+				waited={message.answeredAt ? undefined : elapsed(message.createdAt, now.value)}
+				onreply={askedMe ? () => onreply(message) : undefined}
+				onresolve={mine || askedMe ? () => actions.chat.resolve(message) : undefined}
+			/>
 		{/if}
 		{#if message.attachments.length}
 			<div class="mt-2 flex flex-wrap gap-2">

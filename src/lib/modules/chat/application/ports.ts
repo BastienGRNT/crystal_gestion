@@ -24,6 +24,8 @@ export interface MessageRepository {
 	delete(id: string): Promise<void>;
 	/** Messages before `before` (or the latest), oldest first. */
 	page(channelId: string, before: string | null, limit: number): Promise<Message[]>;
+	/** Questions nobody answered yet, oldest first: of some projects, or of one channel. */
+	openQuestions(scope: { projectIds: string[] } | { channelId: string }): Promise<Message[]>;
 }
 
 export interface ReadRepository {

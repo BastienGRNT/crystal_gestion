@@ -83,7 +83,7 @@ export const unreadMessages = (
 		.filter((m) => m.authorId !== meId && (!lastReadAt || m.createdAt > lastReadAt))
 		.slice(-max);
 
-/** Mentions are already visible in their channel's missed messages: no need to say it twice. */
+/** Mentions and answers are already visible in their channel's missed messages: no need to say it twice. */
 export const pendingNotifications = (
 	notifications: Notification[],
 	projectId: string,
@@ -94,6 +94,6 @@ export const pendingNotifications = (
 			(n) =>
 				n.projectId === projectId &&
 				!n.readAt &&
-				!(n.kind === 'mention' && n.subject.channelId && missedChannelIds.has(n.subject.channelId))
+				!(n.subject.channelId && missedChannelIds.has(n.subject.channelId))
 		)
 		.sort((a, b) => b.createdAt.localeCompare(a.createdAt));

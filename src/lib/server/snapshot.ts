@@ -21,7 +21,8 @@ export async function loadSnapshot(userId: string) {
 		blocks,
 		activities,
 		notifications,
-		visits
+		visits,
+		questions
 	] = await Promise.all([
 		identity.listByIds(people),
 		tasks.ofProjects(ids),
@@ -34,7 +35,8 @@ export async function loadSnapshot(userId: string) {
 		planning.blocksOf(ids),
 		activity.recent(ids),
 		activity.notificationsFor(userId),
-		activity.visitsOf(userId)
+		activity.visitsOf(userId),
+		chat.openQuestions(ids)
 	]);
 	return {
 		meId: userId,
@@ -52,7 +54,9 @@ export async function loadSnapshot(userId: string) {
 		blocks,
 		activities,
 		notifications: notifications.filter((n) => ids.includes(n.projectId)),
-		visits: visits.filter((v) => ids.includes(v.projectId))
+		visits: visits.filter((v) => ids.includes(v.projectId)),
+		/** Every open question of my projects: mine to answer, mine waiting, a task waiting. */
+		questions
 	};
 }
 
