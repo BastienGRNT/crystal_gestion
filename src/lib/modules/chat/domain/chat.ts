@@ -1,14 +1,18 @@
 import { ensure, requiredText } from '../../kernel/domain/errors';
 
-/** `general` and one `project` channel per project exist by construction; `topic` ones are free. */
-export type ChannelKind = 'general' | 'project' | 'topic';
+/**
+ * Every project has its `general` channel, as many `custom` ones as the team wants, and a
+ * hidden `task` thread per task that gets comments.
+ */
+export type ChannelKind = 'general' | 'custom' | 'task';
 
 export interface Channel {
 	id: string;
+	projectId: string;
 	kind: ChannelKind;
-	/** Empty for project channels: they show their project's current name. */
 	name: string;
-	projectId: string | null;
+	/** Set for the comment thread of a task. */
+	taskId: string | null;
 	createdBy: string | null;
 	createdAt: string;
 }
@@ -23,9 +27,11 @@ export interface Attachment {
 export interface Message {
 	id: string;
 	channelId: string;
+	projectId: string;
 	authorId: string;
 	/** Mentions are stored as `<@userId>` so renaming someone never breaks them. */
 	body: string;
+	replyToId: string | null;
 	createdAt: string;
 	editedAt: string | null;
 	attachments: Attachment[];
@@ -37,13 +43,15 @@ export interface ChannelState {
 	lastReadAt: string | null;
 	unread: number;
 	mentions: number;
+	/** All messages, read or not (comment counts on cards). */
+	total: number;
 }
 
 export const MESSAGE_MAX = 8000;
 
 export function validChannelName(name: string): string {
 	const clean = requiredText(name.trim().replace(/^#+/, ''), 'Le nom du canal', 40);
-	return clean.toLowerCase();
+	return clean.toLowerCase().replace(/\s+/g, '-');
 }
 
 export function validBody(body: string, hasAttachments: boolean): string {

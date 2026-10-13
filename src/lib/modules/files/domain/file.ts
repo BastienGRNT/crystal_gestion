@@ -2,8 +2,9 @@ import { requiredText } from '../../kernel/domain/errors';
 
 export interface StoredFile {
 	id: string;
-	/** `null` for files shared in the general channel. */
-	projectId: string | null;
+	projectId: string;
+	/** `null`: at the root of the project's documents. */
+	folderId: string | null;
 	name: string;
 	mime: string;
 	size: number;

@@ -3,6 +3,7 @@ import {
 	doublePrecision,
 	index,
 	integer,
+	jsonb,
 	pgTable,
 	text,
 	unique,
@@ -11,7 +12,7 @@ import {
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
 import { projects } from '../../projects/infrastructure/schema';
-import { QUADRANTS, TASK_STATUSES } from '../domain/task';
+import { QUADRANTS, TASK_STATUSES, type ChecklistItem } from '../domain/task';
 
 export const tasks = pgTable(
 	'tasks',
@@ -26,6 +27,9 @@ export const tasks = pgTable(
 		status: text({ enum: TASK_STATUSES }).notNull(),
 		quadrant: text({ enum: QUADRANTS }),
 		assigneeId: uuid().references(() => users.id, { onDelete: 'set null' }),
+		reviewerId: uuid().references(() => users.id, { onDelete: 'set null' }),
+		blockedReason: text(),
+		checklist: jsonb().$type<ChecklistItem[]>().notNull().default([]),
 		dueDate: date(),
 		position: doublePrecision().notNull(),
 		createdBy: uuid()
@@ -33,6 +37,7 @@ export const tasks = pgTable(
 			.references(() => users.id),
 		createdAt: createdAt(),
 		updatedAt: timestamptz().notNull(),
+		statusChangedAt: timestamptz().notNull(),
 		completedAt: timestamptz()
 	},
 	(t) => [unique().on(t.projectId, t.number), index().on(t.projectId)]

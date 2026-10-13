@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { nextColor, validEmail, validPassword, validStatusNote } from './user';
-import { isUsable, shouldRenew } from './session';
+import { shouldRenew } from './session';
 
 describe('user rules', () => {
 	it('normalizes emails and rejects malformed ones', () => {
@@ -24,18 +24,11 @@ describe('user rules', () => {
 	});
 });
 
-describe('sessions and invitations', () => {
+describe('sessions', () => {
 	const now = new Date('2026-10-13T10:00:00Z');
 
 	it('renews a session past half of its life', () => {
 		expect(shouldRenew(new Date('2026-10-20T10:00:00Z'), now)).toBe(true);
 		expect(shouldRenew(new Date('2026-11-10T10:00:00Z'), now)).toBe(false);
-	});
-
-	it('refuses used or expired invitations', () => {
-		const base = { createdBy: 'u1', expiresAt: new Date('2026-10-14T00:00:00Z'), usedAt: null };
-		expect(isUsable(base, now)).toBe(true);
-		expect(isUsable({ ...base, usedAt: now }, now)).toBe(false);
-		expect(isUsable({ ...base, expiresAt: new Date('2026-10-12T00:00:00Z') }, now)).toBe(false);
 	});
 });

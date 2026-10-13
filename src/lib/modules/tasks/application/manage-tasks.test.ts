@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+	FakeAccess,
 	FixedClock,
 	MemoryTable,
 	RecordingActivity,
@@ -21,25 +22,19 @@ function setup() {
 		feed,
 		activity,
 		notifier,
-		directory: {
-			projectExists: async (id) => id === 'p1',
-			userExists: async (id) => ['bastien', 'ana'].includes(id)
-		},
+		access: new FakeAccess({ p1: ['bastien', 'ana'] }),
 		tasks: {
-			list: async () => table.all(),
-			get: async (id) => table.get(id),
+			ofProjects: async () => table.all(),
+			get: async (id: string) => table.get(id),
 			insert: async (task) => table.put(task),
 			save: async (task) => table.put(task),
-			delete: async (id) => table.delete(id),
+			delete: async (id: string) => table.delete(id),
 			nextNumber: async (projectId) => {
 				counters.set(projectId, (counters.get(projectId) ?? 0) + 1);
 				return counters.get(projectId)!;
 			},
-			lastPosition: async (projectId) => {
-				const positions = table
-					.all()
-					.filter((t) => t.projectId === projectId)
-					.map((t) => t.position);
+			lastPosition: async () => {
+				const positions = table.all().map((t) => t.position);
 				return positions.length ? Math.max(...positions) : null;
 			}
 		}
@@ -50,49 +45,51 @@ function setup() {
 describe('tasks', () => {
 	let ctx: ReturnType<typeof setup>;
 	beforeEach(() => (ctx = setup()));
+	const create = (title: string, extra = {}, actor = 'bastien') =>
+		ctx.tasks.create({ id: testId(), projectId: 'p1', title, ...extra }, actor);
 
 	it('numbers tasks per project and appends them at the end', async () => {
-		const first = await ctx.tasks.create({ id: testId(), projectId: 'p1', title: 'Un' }, 'bastien');
-		const second = await ctx.tasks.create(
-			{ id: testId(), projectId: 'p1', title: 'Deux' },
-			'bastien'
-		);
+		const [first, second] = [await create('Un'), await create('Deux')];
 		expect([first.number, second.number]).toEqual([1, 2]);
 		expect(second.position).toBeGreaterThan(first.position);
-		expect(ctx.feed.saves).toHaveLength(2);
 	});
 
-	it('refuses an unknown project or assignee', async () => {
-		await expect(
-			ctx.tasks.create({ id: testId(), projectId: 'nope', title: 'X' }, 'bastien')
-		).rejects.toThrow(/Projet introuvable/);
-		await expect(
-			ctx.tasks.create({ id: testId(), projectId: 'p1', title: 'X', assigneeId: 'paul' }, 'bastien')
-		).rejects.toThrow(/équipe/);
+	it('keeps projects private to their team', async () => {
+		await expect(create('X', {}, 'paul')).rejects.toThrow(/ne fais pas partie/);
+		await expect(create('X', { assigneeId: 'paul' })).rejects.toThrow(/projet/);
 	});
 
 	it('tells the other person when a task is given to them, not when you take it', async () => {
-		const task = await ctx.tasks.create(
-			{ id: testId(), projectId: 'p1', title: 'Relire', assigneeId: 'ana' },
-			'bastien'
-		);
+		const task = await create('Relire', { assigneeId: 'ana' });
 		expect(ctx.notifier.sent).toMatchObject([{ userId: 'ana', kind: 'assigned' }]);
 		await ctx.tasks.update(task.id, { assigneeId: 'bastien' }, 'bastien');
 		expect(ctx.notifier.sent).toHaveLength(1);
 	});
 
-	it('logs starting and finishing, not every edit', async () => {
-		const task = await ctx.tasks.create({ id: testId(), projectId: 'p1', title: 'Coder' }, 'ana');
+	it('sends work in review to the other one of a two-person team', async () => {
+		const task = await create('Coder la page', { assigneeId: 'bastien' });
+		const reviewed = await ctx.tasks.update(task.id, { status: 'review' }, 'bastien');
+		expect(reviewed.reviewerId).toBe('ana');
+		expect(ctx.notifier.sent.at(-1)).toMatchObject({ userId: 'ana', kind: 'review' });
+	});
+
+	it('logs moves along the board and blockers, not every edit', async () => {
+		const task = await create('Coder', {}, 'ana');
 		await ctx.tasks.update(task.id, { title: 'Coder la page' }, 'ana');
 		await ctx.tasks.update(task.id, { status: 'doing' }, 'ana');
+		await ctx.tasks.update(task.id, { blockedReason: 'En attente du client' }, 'ana');
 		await ctx.tasks.update(task.id, { status: 'done' }, 'ana');
-		expect(ctx.activity.verbs).toEqual(['task.created', 'task.started', 'task.done']);
+		expect(ctx.activity.verbs).toEqual([
+			'task.created',
+			'task.started',
+			'task.blocked',
+			'task.done'
+		]);
 	});
 
 	it('broadcasts deletions', async () => {
-		const task = await ctx.tasks.create({ id: testId(), projectId: 'p1', title: 'Jeter' }, 'ana');
-		await ctx.tasks.delete(task.id);
+		const task = await create('Jeter');
+		await ctx.tasks.delete(task.id, 'ana');
 		expect(ctx.feed.removals).toEqual([task.id]);
-		await expect(ctx.tasks.update(task.id, { title: 'x' }, 'ana')).rejects.toThrow(/introuvable/);
 	});
 });

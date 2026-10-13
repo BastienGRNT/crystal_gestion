@@ -39,8 +39,15 @@ function clean(fields: Partial<EntryFields>): Partial<EntryFields> {
 	};
 }
 
+async function memberEntry(deps: VaultDeps, id: string, actorId: string) {
+	const found = await deps.vault.get(id);
+	if (!found) throw notFound('Accès');
+	await deps.access.assertMember(found.entry.projectId, actorId);
+	return found;
+}
+
 export const createEntry = (deps: VaultDeps) => async (input: NewEntry, actorId: string) => {
-	if (!(await deps.projectExists(input.projectId))) throw notFound('Projet');
+	await deps.access.assertMember(input.projectId, actorId);
 	const now = deps.clock.now().toISOString();
 	const cipher = encrypt(deps, input.secret);
 	const entry: VaultEntry = {
@@ -62,28 +69,28 @@ export const createEntry = (deps: VaultDeps) => async (input: NewEntry, actorId:
 	return entry;
 };
 
-export const updateEntry = (deps: VaultDeps) => async (id: string, patch: EntryPatch) => {
-	const current = await deps.vault.get(id);
-	if (!current) throw notFound('Accès');
-	const cipher = patch.secret === undefined ? undefined : encrypt(deps, patch.secret);
-	const entry: VaultEntry = {
-		...current.entry,
-		...clean(patch),
-		hasSecret: cipher === undefined ? current.entry.hasSecret : cipher !== null,
-		updatedAt: deps.clock.now().toISOString()
+export const updateEntry =
+	(deps: VaultDeps) => async (id: string, patch: EntryPatch, actorId: string) => {
+		const current = await memberEntry(deps, id, actorId);
+		const cipher = patch.secret === undefined ? undefined : encrypt(deps, patch.secret);
+		const entry: VaultEntry = {
+			...current.entry,
+			...clean(patch),
+			hasSecret: cipher === undefined ? current.entry.hasSecret : cipher !== null,
+			updatedAt: deps.clock.now().toISOString()
+		};
+		await deps.vault.save(entry, cipher);
+		deps.feed.saved(entry);
+		return entry;
 	};
-	await deps.vault.save(entry, cipher);
-	deps.feed.saved(entry);
-	return entry;
-};
 
-export const deleteEntry = (deps: VaultDeps) => async (id: string) => {
+export const deleteEntry = (deps: VaultDeps) => async (id: string, actorId: string) => {
+	const { entry } = await memberEntry(deps, id, actorId);
 	await deps.vault.delete(id);
-	deps.feed.removed(id);
+	deps.feed.removed(entry);
 };
 
-export const revealSecret = (deps: VaultDeps) => async (id: string) => {
-	const found = await deps.vault.get(id);
-	if (!found) throw notFound('Accès');
+export const revealSecret = (deps: VaultDeps) => async (id: string, actorId: string) => {
+	const found = await memberEntry(deps, id, actorId);
 	return { secret: found.cipher ? deps.cipher.decrypt(found.cipher) : null };
 };

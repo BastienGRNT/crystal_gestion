@@ -1,4 +1,4 @@
-import { date, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { date, index, integer, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
 
@@ -9,9 +9,39 @@ export const projects = pgTable('projects', {
 	description: text().notNull().default(''),
 	color: integer().notNull().default(0),
 	deadline: date(),
+	weekGoal: text().notNull().default(''),
 	archivedAt: timestamptz(),
 	createdBy: uuid()
 		.notNull()
 		.references(() => users.id),
+	createdAt: createdAt()
+});
+
+export const projectMembers = pgTable(
+	'project_members',
+	{
+		projectId: uuid()
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		userId: uuid()
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		role: text({ enum: ['owner', 'member'] }).notNull(),
+		joinedAt: createdAt()
+	},
+	(t) => [primaryKey({ columns: [t.projectId, t.userId] }), index().on(t.userId)]
+);
+
+export const projectInvitations = pgTable('project_invitations', {
+	tokenHash: text().primaryKey(),
+	projectId: uuid()
+		.notNull()
+		.references(() => projects.id, { onDelete: 'cascade' }),
+	createdBy: uuid()
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	expiresAt: timestamptz().notNull(),
+	usedAt: timestamptz(),
+	usedBy: uuid().references(() => users.id, { onDelete: 'set null' }),
 	createdAt: createdAt()
 });

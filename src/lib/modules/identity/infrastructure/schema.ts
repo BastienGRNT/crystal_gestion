@@ -26,14 +26,3 @@ export const sessions = pgTable(
 	},
 	(t) => [index().on(t.userId)]
 );
-
-export const invitations = pgTable('invitations', {
-	tokenHash: text().primaryKey(),
-	createdBy: uuid()
-		.notNull()
-		.references(() => users.id, { onDelete: 'cascade' }),
-	expiresAt: timestamptz().notNull(),
-	usedAt: timestamptz(),
-	usedBy: uuid().references(() => users.id, { onDelete: 'set null' }),
-	createdAt: createdAt()
-});

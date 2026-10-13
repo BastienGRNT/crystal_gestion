@@ -9,63 +9,85 @@ async function add(deps: ChatDeps, channel: Omit<Channel, 'createdAt'>) {
 	return created;
 }
 
-/** The team-wide channel; created on first need so a fresh install always has one. */
-export const ensureGeneral = (deps: ChatDeps) => async (actorId: string | null) =>
-	(await deps.channels.findGeneral()) ??
-	add(deps, {
-		id: crypto.randomUUID(),
-		kind: 'general',
-		name: 'général',
-		projectId: null,
-		createdBy: actorId
-	});
-
-export const createProjectChannel =
-	(deps: ChatDeps) => (project: { id: string }, actorId: string) =>
+/** Created with the project: a team can always talk. */
+export const ensureGeneral =
+	(deps: ChatDeps) => async (projectId: string, actorId: string | null) =>
+		(await deps.channels.generalOf(projectId)) ??
 		add(deps, {
 			id: crypto.randomUUID(),
-			kind: 'project',
-			name: '',
-			projectId: project.id,
+			projectId,
+			kind: 'general',
+			name: 'général',
+			taskId: null,
 			createdBy: actorId
 		});
 
-export const createTopic =
-	(deps: ChatDeps) => async (input: { id: string; name: string }, actorId: string) => {
+export const createChannel =
+	(deps: ChatDeps) =>
+	async (input: { id: string; projectId: string; name: string }, actorId: string) => {
+		await deps.access.assertMember(input.projectId, actorId);
 		const channel = await add(deps, {
 			id: input.id,
-			kind: 'topic',
+			projectId: input.projectId,
+			kind: 'custom',
 			name: validChannelName(input.name),
-			projectId: null,
+			taskId: null,
 			createdBy: actorId
 		});
 		await deps.activity.record({
 			actorId,
 			verb: 'channel.created',
-			subject: { kind: 'channel', id: channel.id, title: channel.name, projectId: null }
+			subject: {
+				kind: 'channel',
+				id: channel.id,
+				title: channel.name,
+				projectId: channel.projectId,
+				channelId: channel.id
+			}
 		});
 		return channel;
 	};
 
-async function topic(deps: ChatDeps, id: string) {
+/** The comment thread of a task, opened on its first comment. */
+export async function taskThread(deps: ChatDeps, taskId: string, actorId: string) {
+	const task = await deps.tasks.get(taskId, actorId);
+	return (
+		(await deps.channels.ofTask(task.id)) ??
+		add(deps, {
+			id: crypto.randomUUID(),
+			projectId: task.projectId,
+			kind: 'task',
+			name: '',
+			taskId: task.id,
+			createdBy: actorId
+		})
+	);
+}
+
+export async function memberChannel(deps: ChatDeps, id: string, actorId: string) {
 	const channel = await deps.channels.get(id);
 	if (!channel) throw notFound('Canal');
-	if (channel.kind !== 'topic')
-		throw forbidden(
-			'Ce canal existe tant que son projet existe : il ne se renomme ni ne se supprime.'
-		);
+	await deps.access.assertMember(channel.projectId, actorId);
 	return channel;
 }
 
-export const renameTopic = (deps: ChatDeps) => async (id: string, name: string) => {
-	const channel = { ...(await topic(deps, id)), name: validChannelName(name) };
-	await deps.channels.save(channel);
-	deps.channelFeed.saved(channel);
+async function custom(deps: ChatDeps, id: string, actorId: string) {
+	const channel = await memberChannel(deps, id, actorId);
+	if (channel.kind !== 'custom')
+		throw forbidden('Le canal général reste : il ne se renomme ni ne se supprime.');
 	return channel;
-};
+}
 
-export const deleteTopic = (deps: ChatDeps) => async (id: string) => {
-	await topic(deps, id);
+export const renameChannel =
+	(deps: ChatDeps) => async (id: string, name: string, actorId: string) => {
+		const channel = { ...(await custom(deps, id, actorId)), name: validChannelName(name) };
+		await deps.channels.save(channel);
+		deps.channelFeed.saved(channel);
+		return channel;
+	};
+
+export const deleteChannel = (deps: ChatDeps) => async (id: string, actorId: string) => {
+	const channel = await custom(deps, id, actorId);
 	await deps.channels.delete(id);
-	deps.channelFeed.removed(id);
+	deps.channelFeed.removed(channel);
 };

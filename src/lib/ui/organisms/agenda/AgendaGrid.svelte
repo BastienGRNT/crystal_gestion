@@ -1,0 +1,75 @@
+<script lang="ts">
+	import { untrack } from 'svelte';
+	import AgendaColumn from './AgendaColumn.svelte';
+	import AgendaHeader from './AgendaHeader.svelte';
+	import AgendaHours from './AgendaHours.svelte';
+	import AgendaTooltip from './AgendaTooltip.svelte';
+	import NowLine from './NowLine.svelte';
+	import { AgendaDrag } from './drag.svelte';
+	import { draftIn } from './drag-preview';
+	import { hoverAt, pointerAt } from './geometry';
+	import type { AgendaGridProps, AgendaItem } from './types';
+
+	let {
+		days,
+		lanes,
+		items,
+		bands,
+		layer,
+		now,
+		myLane,
+		hourHeight = 48,
+		onmark,
+		...handlers
+	}: AgendaGridProps = $props();
+	let surface = $state<HTMLElement>();
+	const locate = (event: PointerEvent) => pointerAt(surface!, event, days.length, hourHeight);
+	const drag = new AgendaDrag(
+		locate,
+		() => handlers,
+		() => days.length
+	);
+	// Opens an hour before the first slot of the period (8h when the week is empty).
+	const firstHour = $derived(
+		items.length ? Math.max(0, Math.floor(Math.min(...items.map((i) => i.start)) / 60) - 1) : 8
+	);
+	// Once, when shown: later edits must not move the view under the pointer.
+	const scrollToMorning = (node: HTMLElement) =>
+		void (node.scrollTop = untrack(() => firstHour) * hourHeight);
+	let hover = $state<{ item: AgendaItem; x: number; y: number } | null>(null);
+</script>
+
+<div
+	class="h-full overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface"
+	{@attach scrollToMorning}
+	onpointermove={(event) => (hover = hoverAt(event, items, !!drag.draft))}
+	onpointerleave={() => (hover = null)}
+	role="presentation"
+>
+	<AgendaHeader {days} {lanes} {onmark} />
+	<div class="relative flex" style="height:{24 * hourHeight}px">
+		<AgendaHours {hourHeight} />
+		<div
+			bind:this={surface}
+			class="relative grid flex-1"
+			style="grid-template-columns:repeat({days.length},minmax(0,1fr))"
+		>
+			{#each days as day, index (day.key)}
+				<AgendaColumn
+					items={items.filter((item) => item.day === index)}
+					bands={bands.filter((band) => band.day === index)}
+					lanes={lanes.length}
+					{layer}
+					{hourHeight}
+					today={day.today}
+					draft={draftIn(drag.draft, index)}
+					draggingId={drag.draft?.id ?? null}
+					onbegin={(event, mode, item) =>
+						drag.begin(event, mode, item?.layer ?? layer, item?.lane ?? myLane, item)}
+				/>
+			{/each}
+			{#if now}<NowLine day={now.day} days={days.length} minutes={now.minutes} {hourHeight} />{/if}
+		</div>
+	</div>
+</div>
+{#if hover}<AgendaTooltip {...hover} />{/if}

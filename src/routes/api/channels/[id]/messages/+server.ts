@@ -1,5 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import { container } from '$lib/server/container';
+import { errorResponse } from '$lib/server/http/errors';
 import type { RequestHandler } from './$types';
 
 const UUID = /^[0-9a-f-]{36}$/;
@@ -10,5 +11,9 @@ export const GET: RequestHandler = async ({ params, url, locals }) => {
 	const before = url.searchParams.get('before');
 	const limit = Number(url.searchParams.get('limit') ?? 60) || 60;
 	if (before && Number.isNaN(Date.parse(before))) error(400, 'Date invalide.');
-	return json(await container.chat.messages(params.id, before, limit));
+	try {
+		return json(await container.chat.messages(params.id, before, limit, locals.user.id));
+	} catch (e) {
+		return errorResponse(e);
+	}
 };

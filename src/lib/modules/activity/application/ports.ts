@@ -3,7 +3,8 @@ import type { Activity, Notification } from '../domain/activity';
 
 export interface ActivityRepository {
 	insert(activity: Activity): Promise<void>;
-	recent(limit: number): Promise<Activity[]>;
+	/** The latest lines of each project. */
+	recent(projectIds: string[], perProject: number): Promise<Activity[]>;
 }
 
 export interface NotificationRepository {

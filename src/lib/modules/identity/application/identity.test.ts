@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FixedClock, MemoryTable, RecordingFeed, testId } from '../../kernel/testing';
-import type { Invitation } from '../domain/session';
 import type { User } from '../domain/user';
 import { createIdentity } from '../index';
 import type { IdentityDeps } from './deps';
@@ -9,7 +8,6 @@ function memoryDeps(clock = new FixedClock()): IdentityDeps & { feed: RecordingF
 	const users = new MemoryTable<User>();
 	const hashes = new Map<string, string>();
 	const sessions = new Map<string, { userId: string; expiresAt: Date }>();
-	const invitations = new Map<string, Invitation>();
 	return {
 		clock,
 		feed: new RecordingFeed<User>(),
@@ -43,11 +41,6 @@ function memoryDeps(clock = new FixedClock()): IdentityDeps & { feed: RecordingF
 				for (const [hash, s] of sessions)
 					if (s.userId === userId && hash !== keep) sessions.delete(hash);
 			}
-		},
-		invitations: {
-			create: async (hash, invitation) => void invitations.set(hash, invitation),
-			find: async (hash) => invitations.get(hash) ?? null,
-			markUsed: async (hash, _userId, at) => void (invitations.get(hash)!.usedAt = at)
 		}
 	};
 }
@@ -88,16 +81,15 @@ describe('identity', () => {
 		expect(await identity.authenticate(token)).toBeNull();
 	});
 
-	it('lets an invited person join once, with a different color', async () => {
+	it('gives a newcomer a color nobody has yet', async () => {
 		const { user: host } = await identity.setupFirstUser(bastien);
-		const { token } = await identity.createInvitation(host.id);
-		expect(await identity.inspectInvitation(token)).toEqual({ invitedBy: 'Bastien' });
-		const ana = { name: 'Ana', email: 'ana@crystal.test', password: 'motdepasse' };
-		const { user } = await identity.acceptInvitation(token, ana);
+		const { user } = await identity.register({
+			name: 'Ana',
+			email: 'ana@crystal.test',
+			password: 'motdepasse'
+		});
 		expect(user.color).not.toBe(host.color);
-		await expect(identity.acceptInvitation(token, { ...ana, email: 'b@c.fr' })).rejects.toThrow(
-			/expiré ou a déjà servi/
-		);
+		await expect(identity.register({ ...bastien, name: 'Autre' })).rejects.toThrow(/existe déjà/);
 	});
 
 	it('broadcasts profile changes', async () => {

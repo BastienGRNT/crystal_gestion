@@ -16,6 +16,5 @@ export const identityCommands = (identity: Identity) => ({
 	'me.changePassword': command(
 		z.object({ current: z.string(), next: z.string() }),
 		({ userId, sessionToken }, input) => identity.changePassword(userId, input, sessionToken)
-	),
-	'team.invite': command(z.object({}), ({ userId }) => identity.createInvitation(userId))
+	)
 });

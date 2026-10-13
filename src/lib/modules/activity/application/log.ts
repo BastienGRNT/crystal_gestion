@@ -5,6 +5,7 @@ export const activityLog = (deps: ActivityDeps): ActivityLog => ({
 	async record(entry) {
 		const activity = {
 			id: crypto.randomUUID(),
+			projectId: entry.subject.projectId,
 			...entry,
 			createdAt: deps.clock.now().toISOString()
 		};
@@ -17,6 +18,7 @@ export const notifier = (deps: ActivityDeps): Notifier => ({
 	async notify(input) {
 		const notification = {
 			id: crypto.randomUUID(),
+			projectId: input.subject.projectId,
 			...input,
 			createdAt: deps.clock.now().toISOString(),
 			readAt: null

@@ -2,11 +2,15 @@ import { index, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import type { Subject } from '../../kernel/domain/subject';
 import { users } from '../../identity/infrastructure/schema';
+import { projects } from '../../projects/infrastructure/schema';
 
 export const activities = pgTable(
 	'activities',
 	{
 		id: uuid().primaryKey(),
+		projectId: uuid()
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
 		actorId: uuid()
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
@@ -14,7 +18,7 @@ export const activities = pgTable(
 		subject: jsonb().$type<Subject>().notNull(),
 		createdAt: createdAt()
 	},
-	(t) => [index().on(t.createdAt)]
+	(t) => [index().on(t.projectId, t.createdAt)]
 );
 
 export const notifications = pgTable(
@@ -24,10 +28,13 @@ export const notifications = pgTable(
 		userId: uuid()
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
+		projectId: uuid()
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
 		actorId: uuid()
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		kind: text({ enum: ['assigned', 'mention'] }).notNull(),
+		kind: text({ enum: ['assigned', 'mention', 'review'] }).notNull(),
 		subject: jsonb().$type<Subject>().notNull(),
 		createdAt: createdAt(),
 		readAt: timestamptz()

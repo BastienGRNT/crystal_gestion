@@ -2,18 +2,11 @@ import type { ChangeFeed, Clock } from '../../kernel/application/ports';
 import { conflict } from '../../kernel/domain/errors';
 import { sessionExpiry } from '../domain/session';
 import { nextColor, validEmail, validName, validPassword, type User } from '../domain/user';
-import type {
-	InvitationRepository,
-	PasswordHasher,
-	SessionRepository,
-	TokenService,
-	UserRepository
-} from './ports';
+import type { PasswordHasher, SessionRepository, TokenService, UserRepository } from './ports';
 
 export interface IdentityDeps {
 	users: UserRepository;
 	sessions: SessionRepository;
-	invitations: InvitationRepository;
 	hasher: PasswordHasher;
 	tokens: TokenService;
 	clock: Clock;

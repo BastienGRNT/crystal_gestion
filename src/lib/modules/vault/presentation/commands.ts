@@ -23,8 +23,8 @@ export const vaultCommands = (vault: Vault) => ({
 			.object({ id, ...fields })
 			.partial()
 			.required({ id: true }),
-		(_, { id, ...patch }) => vault.update(id, patch)
+		({ userId }, { id, ...patch }) => vault.update(id, patch, userId)
 	),
-	'vault.delete': command(z.object({ id }), (_, input) => vault.delete(input.id)),
-	'vault.reveal': command(z.object({ id }), (_, input) => vault.reveal(input.id))
+	'vault.delete': command(z.object({ id }), ({ userId }, input) => vault.delete(input.id, userId)),
+	'vault.reveal': command(z.object({ id }), ({ userId }, input) => vault.reveal(input.id, userId))
 });

@@ -16,7 +16,8 @@ export const POST: RequestHandler = async ({ params, request, locals, cookies })
 		const ctx = { userId: locals.user.id, sessionToken: cookies.get(SESSION_COOKIE) ?? '' };
 		// Each entry pairs its own schema and handler; TS cannot follow that through the union.
 		const run = command.run as (c: typeof ctx, input: unknown) => Promise<unknown>;
-		return json((await run(ctx, parsed.data)) ?? null);
+		const result = await run(ctx, parsed.data);
+		return json(result === undefined ? { ok: true } : result);
 	} catch (e) {
 		return errorResponse(e);
 	}

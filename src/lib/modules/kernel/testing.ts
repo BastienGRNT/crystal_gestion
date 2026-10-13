@@ -1,5 +1,6 @@
 /** Test doubles shared by the use case tests of every module. */
-import type { ActivityLog, ChangeFeed, Clock, Notifier } from './application/ports';
+import type { Access, ActivityLog, ChangeFeed, Clock, Notifier } from './application/ports';
+import { forbidden } from './domain/errors';
 import type { ActivityInput, NotificationInput } from './domain/subject';
 
 export class FixedClock implements Clock {
@@ -12,14 +13,14 @@ export class FixedClock implements Clock {
 	}
 }
 
-export class RecordingFeed<Item> implements ChangeFeed<Item> {
+export class RecordingFeed<Item extends { id?: string }> implements ChangeFeed<Item> {
 	saves: Item[] = [];
 	removals: string[] = [];
 	saved(item: Item) {
 		this.saves.push(item);
 	}
-	removed(id: string) {
-		this.removals.push(id);
+	removed(item: Item) {
+		this.removals.push(item.id ?? '');
 	}
 	get last() {
 		return this.saves.at(-1);
@@ -61,5 +62,20 @@ export class MemoryTable<Row extends { id: string }> {
 	}
 	all() {
 		return [...this.rows.values()];
+	}
+}
+
+/** Membership for tests: `members` lists who belongs to each project. */
+export class FakeAccess implements Access {
+	constructor(private projects: Record<string, string[]>) {}
+	async isMember(projectId: string, userId: string) {
+		return this.projects[projectId]?.includes(userId) ?? false;
+	}
+	async assertMember(projectId: string, userId: string) {
+		if (!(await this.isMember(projectId, userId)))
+			throw forbidden('Tu ne fais pas partie de ce projet.');
+	}
+	async members(projectId: string) {
+		return this.projects[projectId] ?? [];
 	}
 }

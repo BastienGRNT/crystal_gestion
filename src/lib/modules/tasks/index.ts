@@ -1,9 +1,11 @@
-import { createTask, deleteTask, updateTask } from './application/manage-tasks';
+import { createTask, deleteTask, getTask, updateTask } from './application/manage-tasks';
 import type { TaskDeps } from './application/ports';
 
 export function createTasks(deps: TaskDeps) {
 	return {
-		list: () => deps.tasks.list(),
+		ofProjects: (projectIds: string[]) => deps.tasks.ofProjects(projectIds),
+		/** A task the actor may see (for comments on it). */
+		get: getTask(deps),
 		create: createTask(deps),
 		update: updateTask(deps),
 		delete: deleteTask(deps)

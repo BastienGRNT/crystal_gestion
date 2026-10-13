@@ -3,7 +3,7 @@ import type { VaultDeps } from './application/ports';
 
 export function createVault(deps: VaultDeps) {
 	return {
-		list: () => deps.vault.list(),
+		ofProjects: (projectIds: string[]) => deps.vault.ofProjects(projectIds),
 		create: createEntry(deps),
 		update: updateEntry(deps),
 		delete: deleteEntry(deps),

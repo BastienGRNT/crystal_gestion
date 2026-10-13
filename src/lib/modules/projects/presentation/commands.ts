@@ -19,11 +19,18 @@ export const projectCommands = (projects: Projects) => ({
 			name: z.string().optional(),
 			description: z.string().optional(),
 			color: z.number().int().optional(),
-			deadline: dateKey.nullable().optional()
+			deadline: dateKey.nullable().optional(),
+			weekGoal: z.string().optional()
 		}),
-		(_, { id, ...patch }) => projects.update(id, patch)
+		({ userId }, { id, ...patch }) => projects.update(id, patch, userId)
 	),
-	'projects.archive': command(z.object({ id, archived: z.boolean() }), (_, input) =>
-		projects.setArchived(input.id, input.archived)
+	'projects.archive': command(z.object({ id, archived: z.boolean() }), ({ userId }, input) =>
+		projects.setArchived(input.id, input.archived, userId)
+	),
+	'projects.invite': command(z.object({ projectId: id }), ({ userId }, input) =>
+		projects.invite(input.projectId, userId)
+	),
+	'projects.removeMember': command(z.object({ projectId: id, userId: id }), (ctx, input) =>
+		projects.removeMember(input.projectId, input.userId, ctx.userId)
 	)
 });

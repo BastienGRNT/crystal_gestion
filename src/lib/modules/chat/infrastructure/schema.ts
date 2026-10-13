@@ -1,24 +1,37 @@
 import { sql } from 'drizzle-orm';
-import { index, pgTable, primaryKey, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+	index,
+	pgTable,
+	primaryKey,
+	text,
+	uniqueIndex,
+	uuid,
+	type AnyPgColumn
+} from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
 import { projects } from '../../projects/infrastructure/schema';
+import { tasks } from '../../tasks/infrastructure/schema';
 
 export const channels = pgTable(
 	'channels',
 	{
 		id: uuid().primaryKey(),
-		kind: text({ enum: ['general', 'project', 'topic'] }).notNull(),
-		name: text().notNull(),
 		projectId: uuid()
-			.unique()
+			.notNull()
 			.references(() => projects.id, { onDelete: 'cascade' }),
+		kind: text({ enum: ['general', 'custom', 'task'] }).notNull(),
+		name: text().notNull(),
+		taskId: uuid()
+			.unique()
+			.references(() => tasks.id, { onDelete: 'cascade' }),
 		createdBy: uuid().references(() => users.id, { onDelete: 'set null' }),
 		createdAt: createdAt()
 	},
 	(t) => [
-		uniqueIndex('channels_single_general')
-			.on(t.kind)
+		index().on(t.projectId),
+		uniqueIndex('channels_one_general_per_project')
+			.on(t.projectId)
 			.where(sql`${t.kind} = 'general'`)
 	]
 );
@@ -30,10 +43,14 @@ export const messages = pgTable(
 		channelId: uuid()
 			.notNull()
 			.references(() => channels.id, { onDelete: 'cascade' }),
+		projectId: uuid()
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
 		authorId: uuid()
 			.notNull()
 			.references(() => users.id),
 		body: text().notNull(),
+		replyToId: uuid().references((): AnyPgColumn => messages.id, { onDelete: 'set null' }),
 		createdAt: createdAt(),
 		editedAt: timestamptz()
 	},

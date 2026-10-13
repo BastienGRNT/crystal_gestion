@@ -4,96 +4,131 @@ import {
 	drizzleActivities,
 	drizzleNotifications
 } from '$lib/modules/activity/infrastructure/repositories';
-import { createChat, type Chat } from '$lib/modules/chat';
+import { createChat } from '$lib/modules/chat';
 import { drizzleChannels, drizzleReads } from '$lib/modules/chat/infrastructure/channel-repository';
 import { drizzleMessages } from '$lib/modules/chat/infrastructure/message-repository';
 import { createFiles } from '$lib/modules/files';
 import { diskStorage } from '$lib/modules/files/infrastructure/disk-storage';
-import { drizzleFiles } from '$lib/modules/files/infrastructure/file-repository';
+import { drizzleFiles, drizzleFolders } from '$lib/modules/files/infrastructure/file-repository';
 import { createIdentity } from '$lib/modules/identity';
 import { randomTokens, scryptHasher } from '$lib/modules/identity/infrastructure/crypto';
-import {
-	drizzleInvitations,
-	drizzleSessions,
-	drizzleUsers
-} from '$lib/modules/identity/infrastructure/repositories';
+import { drizzleSessions, drizzleUsers } from '$lib/modules/identity/infrastructure/repositories';
 import { systemClock as clock } from '$lib/modules/kernel/application/ports';
 import { createPlanning } from '$lib/modules/planning';
-import { drizzleAvailability } from '$lib/modules/planning/infrastructure/availability-repository';
+import { drizzleBlocks, drizzleSlots } from '$lib/modules/planning/infrastructure/repositories';
 import { createProjects } from '$lib/modules/projects';
-import { drizzleProjects } from '$lib/modules/projects/infrastructure/project-repository';
+import { projectAccess } from '$lib/modules/projects/application/access';
+import {
+	drizzleInvitations,
+	drizzleMembers,
+	drizzleProjects
+} from '$lib/modules/projects/infrastructure/project-repository';
 import { createTasks } from '$lib/modules/tasks';
 import { drizzleTasks } from '$lib/modules/tasks/infrastructure/task-repository';
 import { createVault } from '$lib/modules/vault';
+import type { SecretCipher } from '$lib/modules/vault/application/ports';
 import { aesCipher } from '$lib/modules/vault/infrastructure/aes-cipher';
 import { drizzleVault } from '$lib/modules/vault/infrastructure/vault-repository';
-import type { SecretCipher } from '$lib/modules/vault/application/ports';
 import { db } from './db';
 import { config } from './env';
-import { feedFor, inboxFor } from './realtime/feeds';
+import { byProject, feedFor, inboxFor } from './realtime/feeds';
 import { hub } from './realtime/hub';
 
 const users = drizzleUsers(db);
-const projectRepository = drizzleProjects(db);
-const projectExists = async (id: string) => (await projectRepository.get(id)) !== null;
+const members = drizzleMembers(db);
+const access = projectAccess(members);
+const taskRepository = drizzleTasks(db);
+
+// Each socket hears about its person's projects and the people they share them with.
+hub.configure(async (userId) => {
+	const projectIds = await members.projectIdsOf(userId);
+	const team = await members.ofProjects(projectIds);
+	return { projects: new Set(projectIds), people: new Set([userId, ...team.map((m) => m.userId)]) };
+});
 
 const activity = createActivity({
 	activities: drizzleActivities(db),
 	notifications: drizzleNotifications(db),
 	clock,
-	feed: feedFor(hub, 'activities'),
+	feed: feedFor(hub, 'activities', byProject),
 	inbox: inboxFor(hub)
 });
 
 const identity = createIdentity({
 	users,
 	sessions: drizzleSessions(db),
-	invitations: drizzleInvitations(db),
 	hasher: scryptHasher,
 	tokens: randomTokens,
 	clock,
-	feed: feedFor(hub, 'users')
+	feed: feedFor(hub, 'users', (user) => ({ teammatesOf: user.id }))
+});
+
+const tasks = createTasks({
+	tasks: taskRepository,
+	access,
+	clock,
+	feed: feedFor(hub, 'tasks', byProject),
+	activity: activity.log,
+	notifier: activity.notifier
 });
 
 const files = createFiles({
 	files: drizzleFiles(db),
+	folders: drizzleFolders(db),
 	blobs: diskStorage(config.storageDir()),
-	projectExists,
+	access,
 	clock,
-	feed: feedFor(hub, 'files'),
+	feed: feedFor(hub, 'files', byProject),
+	folderFeed: feedFor(hub, 'folders', byProject),
 	activity: activity.log
 });
 
-const chat: Chat = createChat({
+const chat = createChat({
 	channels: drizzleChannels(db),
 	messages: drizzleMessages(db),
 	reads: drizzleReads(db),
 	attachments: { attach: files.attachToMessage },
-	people: { names: async () => new Map((await users.list()).map((u) => [u.id, u.name])) },
+	people: {
+		names: async () => new Map((await users.list()).map((u) => [u.id, u.name.split(' ')[0]]))
+	},
+	tasks: { get: tasks.get },
+	access,
 	clock,
-	channelFeed: feedFor(hub, 'channels'),
-	messageFeed: feedFor(hub, 'messages'),
+	channelFeed: feedFor(hub, 'channels', byProject),
+	messageFeed: feedFor(hub, 'messages', byProject),
 	activity: activity.log,
 	notifier: activity.notifier
 });
+
+const memberFeed = feedFor(hub, 'members', byProject);
 
 const projects = createProjects({
-	projects: projectRepository,
+	projects: drizzleProjects(db),
+	members,
+	invitations: drizzleInvitations(db),
+	tokens: randomTokens,
+	nameOf: async (id) => (await users.findById(id))?.name ?? 'Quelqu’un',
 	clock,
-	feed: feedFor(hub, 'projects'),
+	feed: feedFor(hub, 'projects', (project) => ({ project: project.id })),
+	// Joining or leaving changes who hears what: refresh first, then tell the team (and the person).
+	memberFeed: {
+		saved: (member) =>
+			void hub.refresh([member.userId]).then(async () => {
+				memberFeed.saved(member);
+				const user = await users.findById(member.userId);
+				if (user)
+					hub.toProject(member.projectId, { type: 'saved', collection: 'users', item: user });
+			}),
+		removed: (member) => {
+			memberFeed.removed(member);
+			hub.toUser(member.userId, { type: 'removed', collection: 'members', item: member });
+			void hub.refresh([member.userId]);
+		}
+	},
 	activity: activity.log,
 	hooks: {
-		created: async (project, actorId) => void (await chat.createProjectChannel(project, actorId))
+		created: async (project, actorId) => void (await chat.ensureGeneral(project.id, actorId))
 	}
-});
-
-const tasks = createTasks({
-	tasks: drizzleTasks(db),
-	directory: { projectExists, userExists: async (id) => (await users.findById(id)) !== null },
-	clock,
-	feed: feedFor(hub, 'tasks'),
-	activity: activity.log,
-	notifier: activity.notifier
 });
 
 // Derived on first use so a build without APP_SECRET still works.
@@ -106,17 +141,32 @@ const vault = createVault({
 		encrypt: (plain) => vaultCipher().encrypt(plain),
 		decrypt: (c) => vaultCipher().decrypt(c)
 	},
-	projectExists,
+	access,
 	clock,
-	feed: feedFor(hub, 'vault'),
+	feed: feedFor(hub, 'vault', byProject),
 	activity: activity.log
 });
 
 const planning = createPlanning({
-	availability: drizzleAvailability(db),
+	slots: drizzleSlots(db),
+	blocks: drizzleBlocks(db),
+	tasks: { projectOf: async (id) => (await taskRepository.get(id))?.projectId ?? null },
+	access,
 	clock,
-	feed: feedFor(hub, 'availability')
+	slotFeed: feedFor(hub, 'slots', (slot) => ({ teammatesOf: slot.userId })),
+	blockFeed: feedFor(hub, 'blocks', byProject)
 });
 
-export const container = { identity, projects, tasks, chat, files, vault, planning, activity, hub };
+export const container = {
+	identity,
+	projects,
+	tasks,
+	chat,
+	files,
+	vault,
+	planning,
+	activity,
+	access,
+	hub
+};
 export type Container = typeof container;

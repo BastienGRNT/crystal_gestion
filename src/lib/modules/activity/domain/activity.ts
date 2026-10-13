@@ -2,6 +2,7 @@ import type { ActivityVerb, NotificationKind, Subject } from '../../kernel/domai
 
 export interface Activity {
 	id: string;
+	projectId: string;
 	actorId: string;
 	verb: ActivityVerb;
 	subject: Subject;
@@ -12,6 +13,7 @@ export interface Activity {
 export interface Notification {
 	id: string;
 	userId: string;
+	projectId: string;
 	actorId: string;
 	kind: NotificationKind;
 	subject: Subject;

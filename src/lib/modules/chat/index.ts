@@ -1,25 +1,25 @@
+import { createChannel, deleteChannel, ensureGeneral, renameChannel } from './application/channels';
 import {
-	createProjectChannel,
-	createTopic,
-	deleteTopic,
-	ensureGeneral,
-	renameTopic
-} from './application/channels';
-import { deleteMessage, editMessage, markRead, postMessage } from './application/messages';
+	commentTask,
+	deleteMessage,
+	editMessage,
+	listMessages,
+	markRead,
+	postMessage
+} from './application/messages';
 import type { ChatDeps } from './application/ports';
 
 export function createChat(deps: ChatDeps) {
 	return {
-		channels: () => deps.channels.list(),
-		states: (userId: string) => deps.reads.states(userId),
-		messages: (channelId: string, before: string | null, limit = 60) =>
-			deps.messages.page(channelId, before, Math.min(limit, 200)),
+		channels: (projectIds: string[]) => deps.channels.ofProjects(projectIds),
+		states: (userId: string, projectIds: string[]) => deps.reads.states(userId, projectIds),
+		messages: listMessages(deps),
 		ensureGeneral: ensureGeneral(deps),
-		createProjectChannel: createProjectChannel(deps),
-		createTopic: createTopic(deps),
-		renameTopic: renameTopic(deps),
-		deleteTopic: deleteTopic(deps),
+		createChannel: createChannel(deps),
+		renameChannel: renameChannel(deps),
+		deleteChannel: deleteChannel(deps),
 		post: postMessage(deps),
+		comment: commentTask(deps),
 		edit: editMessage(deps),
 		delete: deleteMessage(deps),
 		markRead: markRead(deps)

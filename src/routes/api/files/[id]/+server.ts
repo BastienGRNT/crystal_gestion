@@ -24,8 +24,11 @@ function headersFor(file: StoredFile, download: boolean): Record<string, string>
 
 export const GET: RequestHandler = async ({ params, request, url, locals }) => {
 	if (!locals.user) error(401, 'Ta session a expiré : reconnecte-toi.');
-	const file = /^[0-9a-f-]{36}$/.test(params.id) ? await container.files.get(params.id) : null;
-	if (!file) error(404, 'Fichier introuvable.');
+	if (!/^[0-9a-f-]{36}$/.test(params.id)) error(404, 'Fichier introuvable.');
+	const file = await container.files.get(params.id, locals.user.id).catch((e) => {
+		if (e instanceof DomainError) error(e.code === 'forbidden' ? 403 : 404, e.message);
+		throw e;
+	});
 	const headers = headersFor(file, url.searchParams.has('download'));
 	const range = byteRange(request.headers.get('range'), file.size);
 	if (range === 'unsatisfiable')
@@ -34,7 +37,7 @@ export const GET: RequestHandler = async ({ params, request, url, locals }) => {
 			headers: { 'content-range': `bytes */${file.size}` }
 		});
 	try {
-		const { stream } = await container.files.open(file.id, range ?? undefined);
+		const { stream } = await container.files.open(file.id, locals.user.id, range ?? undefined);
 		if (!range)
 			return new Response(stream, { headers: { ...headers, 'content-length': String(file.size) } });
 		return new Response(stream, {

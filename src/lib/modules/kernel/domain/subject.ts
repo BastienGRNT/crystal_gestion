@@ -5,20 +5,24 @@ export interface Subject {
 	kind: SubjectKind;
 	id: string;
 	title: string;
-	projectId: string | null;
+	projectId: string;
 	channelId?: string;
 }
 
 export type ActivityVerb =
 	| 'project.created'
+	| 'member.joined'
 	| 'task.created'
 	| 'task.started'
+	| 'task.review'
 	| 'task.done'
+	| 'task.blocked'
 	| 'file.uploaded'
 	| 'vault.added'
 	| 'channel.created';
 
-export type NotificationKind = 'assigned' | 'mention';
+/** `review`: someone asks you to check their work. */
+export type NotificationKind = 'assigned' | 'mention' | 'review';
 
 export interface ActivityInput {
 	actorId: string;

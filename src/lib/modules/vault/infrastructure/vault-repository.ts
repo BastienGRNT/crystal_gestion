@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 import { iso } from '$lib/server/db/columns';
 import type { Db } from '$lib/server/db/types';
 import type { VaultEntry } from '../domain/entry';
@@ -19,8 +19,16 @@ const toRow = ({ hasSecret: _, ...entry }: VaultEntry) => ({
 });
 
 export const drizzleVault = (db: Db): VaultRepository => ({
-	list: async () =>
-		(await db.select().from(vaultEntries).orderBy(asc(vaultEntries.name))).map(toEntry),
+	ofProjects: async (ids) =>
+		ids.length
+			? (
+					await db
+						.select()
+						.from(vaultEntries)
+						.where(inArray(vaultEntries.projectId, ids))
+						.orderBy(asc(vaultEntries.name))
+				).map(toEntry)
+			: [],
 	async get(id) {
 		const [row] = await db.select().from(vaultEntries).where(eq(vaultEntries.id, id));
 		return row ? { entry: toEntry(row), cipher: row.secretCipher } : null;

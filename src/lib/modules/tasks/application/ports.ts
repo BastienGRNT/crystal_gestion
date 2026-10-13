@@ -1,8 +1,14 @@
-import type { ActivityLog, ChangeFeed, Clock, Notifier } from '../../kernel/application/ports';
+import type {
+	Access,
+	ActivityLog,
+	ChangeFeed,
+	Clock,
+	Notifier
+} from '../../kernel/application/ports';
 import type { Task } from '../domain/task';
 
 export interface TaskRepository {
-	list(): Promise<Task[]>;
+	ofProjects(projectIds: string[]): Promise<Task[]>;
 	get(id: string): Promise<Task | null>;
 	insert(task: Task): Promise<void>;
 	save(task: Task): Promise<void>;
@@ -12,15 +18,9 @@ export interface TaskRepository {
 	lastPosition(projectId: string): Promise<number | null>;
 }
 
-/** What tasks need to know about projects and people, without depending on their modules. */
-export interface Directory {
-	projectExists(id: string): Promise<boolean>;
-	userExists(id: string): Promise<boolean>;
-}
-
 export interface TaskDeps {
 	tasks: TaskRepository;
-	directory: Directory;
+	access: Access;
 	clock: Clock;
 	feed: ChangeFeed<Task>;
 	activity: ActivityLog;

@@ -1,4 +1,3 @@
-import type { Invitation } from '../domain/session';
 import type { User } from '../domain/user';
 
 export type ProfilePatch = Partial<Pick<User, 'name' | 'color' | 'status' | 'statusNote'>>;
@@ -20,12 +19,6 @@ export interface SessionRepository {
 	renew(tokenHash: string, expiresAt: Date): Promise<void>;
 	delete(tokenHash: string): Promise<void>;
 	deleteOthers(userId: string, keepTokenHash: string): Promise<void>;
-}
-
-export interface InvitationRepository {
-	create(tokenHash: string, invitation: Invitation): Promise<void>;
-	find(tokenHash: string): Promise<Invitation | null>;
-	markUsed(tokenHash: string, userId: string, at: Date): Promise<void>;
 }
 
 export interface PasswordHasher {

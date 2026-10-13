@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { iso, isoOrNull } from '$lib/server/db/columns';
 import type { Db } from '$lib/server/db/types';
 import type { ActivityVerb } from '../../kernel/domain/subject';
@@ -22,10 +22,26 @@ export const drizzleActivities = (db: Db): ActivityRepository => ({
 	async insert(activity) {
 		await db.insert(activities).values({ ...activity, createdAt: new Date(activity.createdAt) });
 	},
-	recent: async (limit) =>
-		(await db.select().from(activities).orderBy(desc(activities.createdAt)).limit(limit)).map(
-			toActivity
-		)
+	async recent(projectIds, perProject) {
+		if (!projectIds.length) return [];
+		const ranked = db
+			.select({
+				id: activities.id,
+				rank: sql<number>`row_number() over (partition by ${activities.projectId} order by ${activities.createdAt} desc)`.as(
+					'rank'
+				)
+			})
+			.from(activities)
+			.where(inArray(activities.projectId, projectIds))
+			.as('ranked');
+		const rows = await db
+			.select({ activity: activities })
+			.from(activities)
+			.innerJoin(ranked, eq(ranked.id, activities.id))
+			.where(sql`${ranked.rank} <= ${perProject}`)
+			.orderBy(desc(activities.createdAt));
+		return rows.map((row) => toActivity(row.activity));
+	}
 });
 
 export const drizzleNotifications = (db: Db): NotificationRepository => ({

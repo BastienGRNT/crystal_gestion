@@ -5,7 +5,7 @@ const ana = '11111111-1111-4111-8111-111111111111';
 
 describe('chat rules', () => {
 	it('normalizes channel names', () => {
-		expect(validChannelName(' #Marketing ')).toBe('marketing');
+		expect(validChannelName(' #Mise en prod ')).toBe('mise-en-prod');
 		expect(() => validChannelName('#')).toThrow(/vide/);
 	});
 

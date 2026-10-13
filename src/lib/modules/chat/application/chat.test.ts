@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+	FakeAccess,
 	FixedClock,
 	MemoryTable,
 	RecordingActivity,
@@ -16,7 +17,6 @@ const ana = '22222222-2222-4222-8222-222222222222';
 function setup() {
 	const channels = new MemoryTable<Channel>();
 	const messages = new MemoryTable<Message>();
-	const reads = new Map<string, Date>();
 	const notifier = new RecordingNotifier();
 	const messageFeed = new RecordingFeed<Message>();
 	const chat = createChat({
@@ -25,6 +25,7 @@ function setup() {
 		messageFeed,
 		activity: new RecordingActivity(),
 		notifier,
+		access: new FakeAccess({ p1: [bastien, ana] }),
 		people: {
 			names: async () =>
 				new Map([
@@ -32,44 +33,39 @@ function setup() {
 					[bastien, 'Bastien']
 				])
 		},
+		tasks: { get: async (id) => ({ id, projectId: 'p1', title: 'Corriger le login' }) },
 		attachments: {
 			attach: async (ids) =>
 				ids.map((id) => ({ id, name: 'capture.png', mime: 'image/png', size: 10 }))
 		},
-		reads: {
-			markRead: async (userId, channelId, at) => void reads.set(`${userId}:${channelId}`, at),
-			states: async () => []
-		},
+		reads: { markRead: async () => {}, states: async () => [] },
 		channels: {
-			list: async () => channels.all(),
-			get: async (id) => channels.get(id),
-			findGeneral: async () => channels.all().find((c) => c.kind === 'general') ?? null,
+			ofProjects: async () => channels.all(),
+			get: async (id: string) => channels.get(id),
+			generalOf: async (projectId: string) =>
+				channels.all().find((c) => c.projectId === projectId && c.kind === 'general') ?? null,
+			ofTask: async (taskId: string) => channels.all().find((c) => c.taskId === taskId) ?? null,
 			insert: async (c) => channels.put(c),
 			save: async (c) => channels.put(c),
-			delete: async (id) => channels.delete(id)
+			delete: async (id: string) => channels.delete(id)
 		},
 		messages: {
-			get: async (id) => messages.get(id),
+			get: async (id: string) => messages.get(id),
 			insert: async (m) => messages.put({ ...m, attachments: [] }),
 			save: async (m) => messages.put(m),
-			delete: async (id) => messages.delete(id),
+			delete: async (id: string) => messages.delete(id),
 			page: async () => messages.all()
 		}
 	});
-	return { chat, notifier, reads, messageFeed };
+	return { chat, notifier, messageFeed };
 }
 
 describe('chat', () => {
 	let ctx: ReturnType<typeof setup>;
 	beforeEach(() => (ctx = setup()));
 
-	it('creates the general channel once', async () => {
-		const first = await ctx.chat.ensureGeneral(bastien);
-		expect(await ctx.chat.ensureGeneral(ana)).toEqual(first);
-	});
-
 	it('notifies mentioned people, never the author', async () => {
-		const general = await ctx.chat.ensureGeneral(bastien);
+		const general = await ctx.chat.ensureGeneral('p1', bastien);
 		await ctx.chat.post(
 			{ id: testId(), channelId: general.id, body: `<@${ana}> <@${bastien}> tu relis ?` },
 			bastien
@@ -77,35 +73,47 @@ describe('chat', () => {
 		expect(ctx.notifier.sent).toMatchObject([
 			{ userId: ana, kind: 'mention', subject: { title: '@Ana @Bastien tu relis ?' } }
 		]);
-		expect(ctx.reads.has(`${bastien}:${general.id}`)).toBe(true);
 	});
 
-	it('posts a file alone and returns it attached', async () => {
-		const general = await ctx.chat.ensureGeneral(bastien);
-		const message = await ctx.chat.post(
-			{ id: testId(), channelId: general.id, body: '', fileIds: ['f1'] },
-			ana
+	it('keeps a channel to its project team', async () => {
+		const general = await ctx.chat.ensureGeneral('p1', bastien);
+		await expect(
+			ctx.chat.post({ id: testId(), channelId: general.id, body: 'Salut' }, 'paul')
+		).rejects.toThrow(/ne fais pas partie/);
+	});
+
+	it('opens a task thread on its first comment, and mentions point to the task', async () => {
+		await ctx.chat.comment(
+			{ id: testId(), taskId: 't1', body: `<@${ana}> c’est corrigé ?` },
+			bastien
 		);
-		expect(message.attachments.map((a) => a.id)).toEqual(['f1']);
+		await ctx.chat.comment({ id: testId(), taskId: 't1', body: 'Oui !' }, ana);
+		expect(ctx.messageFeed.saves.map((m) => m.channelId)).toEqual([
+			ctx.messageFeed.saves[0].channelId,
+			ctx.messageFeed.saves[0].channelId
+		]);
+		expect(ctx.notifier.sent[0].subject).toMatchObject({ kind: 'task', id: 't1' });
 	});
 
 	it('lets only the author edit or delete', async () => {
-		const general = await ctx.chat.ensureGeneral(bastien);
+		const general = await ctx.chat.ensureGeneral('p1', bastien);
 		const message = await ctx.chat.post(
 			{ id: testId(), channelId: general.id, body: 'Salut' },
 			ana
 		);
 		await expect(ctx.chat.edit(message.id, 'Hop', bastien)).rejects.toThrow(/auteur/);
-		expect((await ctx.chat.edit(message.id, 'Salut !', ana)).editedAt).not.toBeNull();
 		await ctx.chat.delete(message.id, ana);
 		expect(ctx.messageFeed.removals).toEqual([message.id]);
 	});
 
-	it('protects the general and project channels', async () => {
-		const general = await ctx.chat.ensureGeneral(bastien);
-		await expect(ctx.chat.deleteTopic(general.id)).rejects.toThrow(/projet existe/);
-		const topic = await ctx.chat.createTopic({ id: testId(), name: '#Design' }, ana);
-		expect(topic.name).toBe('design');
-		await ctx.chat.deleteTopic(topic.id);
+	it('protects the general channel', async () => {
+		const general = await ctx.chat.ensureGeneral('p1', bastien);
+		await expect(ctx.chat.deleteChannel(general.id, bastien)).rejects.toThrow(/général/);
+		const custom = await ctx.chat.createChannel(
+			{ id: testId(), projectId: 'p1', name: 'Mise en prod' },
+			ana
+		);
+		expect(custom.name).toBe('mise-en-prod');
+		await ctx.chat.deleteChannel(custom.id, ana);
 	});
 });

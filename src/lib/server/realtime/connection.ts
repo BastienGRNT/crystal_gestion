@@ -26,15 +26,19 @@ export function createConnectionHandler({ identity, hub }: Container) {
 			const token = readCookie(request, SESSION_COOKIE);
 			const user = token ? await identity.authenticate(decodeURIComponent(token)) : null;
 			if (!user) return socket.close(4401, 'Unauthenticated');
-			hub.add(socket, user.id);
+			await hub.add(socket, user.id);
 			socket.on('close', () => {
 				const offline = hub.remove(socket);
 				if (offline) identity.touch(offline).catch((error) => console.error('[realtime]', error));
 			});
 			socket.on('message', (raw) => {
 				const event = parse(raw);
-				if (event?.type === 'typing' && typeof event.channelId === 'string')
-					hub.broadcast({ type: 'typing', userId: user.id, channelId: event.channelId }, user.id);
+				if (
+					event?.type === 'typing' &&
+					typeof event.channelId === 'string' &&
+					typeof event.projectId === 'string'
+				)
+					hub.typing(socket, event.projectId, event.channelId);
 			});
 		}
 	};

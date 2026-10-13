@@ -10,6 +10,8 @@ export interface Project {
 	color: number;
 	/** Delivery date, when there is one. */
 	deadline: DateKey | null;
+	/** One sentence the team aims at this week: the focus everyone sees on the project home. */
+	weekGoal: string;
 	archivedAt: string | null;
 	createdBy: string;
 	createdAt: string;
@@ -21,6 +23,11 @@ export const validProjectName = (name: string) => requiredText(name, 'Le nom du 
 
 export function validDescription(text: string): string {
 	ensure(text.length <= 500, 'La description est trop longue (500 caractères maximum).');
+	return text.trim();
+}
+
+export function validWeekGoal(text: string): string {
+	ensure(text.length <= 160, 'L’objectif est trop long (160 caractères maximum).');
 	return text.trim();
 }
 

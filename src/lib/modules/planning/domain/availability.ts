@@ -1,98 +1,121 @@
-import { weekdayOf, type DateKey } from '../../kernel/domain/dates';
-import { ensure } from '../../kernel/domain/errors';
+import { ensure, invalid } from '../../kernel/domain/errors';
+import { addDays, startOfWeek } from './calendar';
 
-/** Wall-clock `HH:MM`, from `00:00` to `24:00`. */
-export type Time = string;
+export type AvailabilityStatus = 'available' | 'maybe';
 
-export interface Slot {
-	start: Time;
-	end: Time;
-}
-
-/** Seven days, Monday first: the usual week that fills every week by itself. */
-export type WeekTemplate = Slot[][];
-
-/** A specific day that differs from the usual week. No slots = not available that day. */
-export interface DayOverride {
-	date: DateKey;
-	slots: Slot[];
-}
-
-export interface Availability {
+/** When someone can work: personal, shown in every project they belong to. */
+export interface AvailabilitySlot {
+	id: string;
 	userId: string;
-	template: WeekTemplate;
-	overrides: DayOverride[];
+	startsAt: string;
+	endsAt: string;
+	status: AvailabilityStatus;
 }
 
-export const PRESETS = [
-	{ key: 'morning', label: 'Matin', slot: { start: '09:00', end: '12:00' } },
-	{ key: 'afternoon', label: 'Après-midi', slot: { start: '14:00', end: '18:00' } },
-	{ key: 'evening', label: 'Soir', slot: { start: '19:00', end: '23:00' } }
-] as const;
-
-const TIME = /^(([01]\d|2[0-3]):[0-5]\d|24:00)$/;
-
-export const toMinutes = (time: Time) => {
-	const [h, m] = time.split(':').map(Number);
-	return h * 60 + m;
-};
-
-export const fromMinutes = (minutes: number): Time =>
-	`${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-
-export const emptyWeek = (): WeekTemplate => Array.from({ length: 7 }, () => []);
-
-/** Sorted, with touching or overlapping slots merged: 9–12 + 11–14 reads as 9–14. */
-export function normalizeSlots(slots: Slot[]): Slot[] {
-	ensure(slots.length <= 12, 'Trop de créneaux dans une journée.');
-	for (const slot of slots) {
-		ensure(TIME.test(slot.start) && TIME.test(slot.end), 'Heure invalide (format 14:30).');
-		ensure(toMinutes(slot.start) < toMinutes(slot.end), 'Un créneau doit finir après son début.');
-	}
-	const sorted = [...slots].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
-	const merged: Slot[] = [];
-	for (const slot of sorted) {
-		const last = merged.at(-1);
-		if (last && toMinutes(slot.start) <= toMinutes(last.end)) {
-			if (toMinutes(slot.end) > toMinutes(last.end)) last.end = slot.end;
-		} else merged.push({ ...slot });
-	}
-	return merged;
+/** Time planned (or spent) on a project, on a task when there is one. */
+export interface WorkBlock {
+	id: string;
+	projectId: string;
+	userId: string;
+	taskId: string | null;
+	startsAt: string;
+	endsAt: string;
 }
 
-export const overrideOn = (availability: Availability, date: DateKey) =>
-	availability.overrides.find((o) => o.date === date) ?? null;
+const DAY_MS = 86_400_000;
 
-export const slotsOn = (availability: Availability, date: DateKey): Slot[] =>
-	overrideOn(availability, date)?.slots ?? availability.template[weekdayOf(date)] ?? [];
+export function validRange(startsAt: string, endsAt: string) {
+	const start = Date.parse(startsAt);
+	const end = Date.parse(endsAt);
+	if (Number.isNaN(start) || Number.isNaN(end)) throw invalid('Date invalide.');
+	ensure(end > start, 'La fin doit être après le début.');
+	ensure(end - start <= DAY_MS, 'Un créneau dure 24 h au plus.');
+	return { startsAt: new Date(start).toISOString(), endsAt: new Date(end).toISOString() };
+}
 
-/** When both are free: what makes a call or a pairing session possible. */
-export function overlap(a: Slot[], b: Slot[]): Slot[] {
-	const shared: Slot[] = [];
-	for (const x of a)
-		for (const y of b) {
-			const start = Math.max(toMinutes(x.start), toMinutes(y.start));
-			const end = Math.min(toMinutes(x.end), toMinutes(y.end));
-			if (start < end) shared.push({ start: fromMinutes(start), end: fromMinutes(end) });
-		}
-	return normalizeSlots(shared);
+/** One-click presets for a day (the grid lets you draw anything else). */
+export const DAY_PERIODS = {
+	morning: { label: 'Matin', from: 9, to: 12 },
+	afternoon: { label: 'Après-midi', from: 14, to: 18 },
+	evening: { label: 'Soir', from: 19, to: 23 }
+} as const;
+
+export type DayPeriod = keyof typeof DAY_PERIODS;
+
+export function periodSlot(day: Date, period: DayPeriod) {
+	const { from, to } = DAY_PERIODS[period];
+	const at = (hour: number) =>
+		new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour).toISOString();
+	return { startsAt: at(from), endsAt: at(to) };
+}
+
+export const overlaps = (
+	a: { startsAt: string; endsAt: string },
+	b: { startsAt: string; endsAt: string }
+) => a.startsAt < b.endsAt && b.startsAt < a.endsAt;
+
+export function isOnDay(slot: { startsAt: string; endsAt: string }, day: Date) {
+	const start = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+	const end = new Date(start.getTime() + DAY_MS);
+	return overlaps(slot, { startsAt: start.toISOString(), endsAt: end.toISOString() });
+}
+
+/**
+ * "Copier la semaine dernière": the slots of the week of `from`, moved to the week of `to`,
+ * skipping those that would overlap what is already there.
+ */
+export function copiedWeek(
+	slots: AvailabilitySlot[],
+	from: Date,
+	to: Date
+): Omit<AvailabilitySlot, 'id'>[] {
+	const source = startOfWeek(from);
+	const target = startOfWeek(to);
+	const sourceEnd = addDays(source, 7);
+	const shift = target.getTime() - source.getTime();
+	const existing = slots.filter(
+		(s) =>
+			Date.parse(s.startsAt) >= target.getTime() &&
+			Date.parse(s.startsAt) < addDays(target, 7).getTime()
+	);
+	const moved = (iso: string) => {
+		const date = new Date(Date.parse(iso) + shift);
+		// Calendar arithmetic keeps the same wall-clock hour across daylight saving changes.
+		const original = new Date(iso);
+		date.setHours(original.getHours(), original.getMinutes(), 0, 0);
+		return date.toISOString();
+	};
+	return slots
+		.filter(
+			(s) =>
+				Date.parse(s.startsAt) >= source.getTime() && Date.parse(s.startsAt) < sourceEnd.getTime()
+		)
+		.map(({ id: _, ...s }) => ({ ...s, startsAt: moved(s.startsAt), endsAt: moved(s.endsAt) }))
+		.filter((s) => !existing.some((e) => overlaps(e, s)));
 }
 
 export type NowState =
-	| { state: 'available'; until: Time }
-	| { state: 'later'; from: Time }
+	| { state: 'available'; until: Date; maybe: boolean }
+	| { state: 'later'; from: Date; maybe: boolean }
 	| { state: 'done' }
 	| { state: 'off' };
 
 /** "Dispo jusqu'à 23h", "Dispo à 19h", or nothing left today. */
-export function availabilityAt(slots: Slot[], time: Time): NowState {
-	if (!slots.length) return { state: 'off' };
-	const now = toMinutes(time);
-	const current = slots.find((s) => toMinutes(s.start) <= now && now < toMinutes(s.end));
-	if (current) return { state: 'available', until: current.end };
-	const next = slots.find((s) => toMinutes(s.start) > now);
-	return next ? { state: 'later', from: next.start } : { state: 'done' };
+export function availabilityNow(slots: AvailabilitySlot[], now: Date): NowState {
+	const today = slots
+		.filter((s) => isOnDay(s, now))
+		.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+	if (!today.length) return { state: 'off' };
+	const t = now.getTime();
+	const current = today.find((s) => Date.parse(s.startsAt) <= t && t < Date.parse(s.endsAt));
+	if (current)
+		return {
+			state: 'available',
+			until: new Date(current.endsAt),
+			maybe: current.status === 'maybe'
+		};
+	const next = today.find((s) => Date.parse(s.startsAt) > t);
+	return next
+		? { state: 'later', from: new Date(next.startsAt), maybe: next.status === 'maybe' }
+		: { state: 'done' };
 }
-
-export const totalMinutes = (slots: Slot[]) =>
-	slots.reduce((sum, s) => sum + toMinutes(s.end) - toMinutes(s.start), 0);

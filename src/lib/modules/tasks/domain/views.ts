@@ -18,8 +18,12 @@ export function matrixOf(tasks: Task[]): Record<MatrixBox, Task[]> {
 	return boxes;
 }
 
-export const BOARD_COLUMNS = ['todo', 'doing', 'done'] as const;
+export const BOARD_COLUMNS = ['idea', 'todo', 'doing', 'review', 'done'] as const;
 export type BoardColumn = (typeof BOARD_COLUMNS)[number];
+
+/** "À faire" reads in priority order: the matrix decides what comes first. */
+export const PRIORITY_ORDER: (Quadrant | null)[] = ['now', 'plan', 'delegate', 'later', null];
+const rank = (task: Task) => PRIORITY_ORDER.indexOf(task.quadrant);
 
 export interface Board {
 	columns: Record<BoardColumn, Task[]>;
@@ -30,19 +34,38 @@ export interface Board {
 /** The "Done" column keeps the last two weeks: enough to see what moved, not a graveyard. */
 export function boardOf(tasks: Task[], now: Date, showAllDone = false, doneDays = 14): Board {
 	const since = now.getTime() - doneDays * 86_400_000;
-	const columns: Record<BoardColumn, Task[]> = { todo: [], doing: [], done: [] };
+	const columns: Record<BoardColumn, Task[]> = {
+		idea: [],
+		todo: [],
+		doing: [],
+		review: [],
+		done: []
+	};
 	let olderDone = 0;
 	for (const task of tasks) {
-		if (task.status === 'idea') continue;
 		const recent = task.status !== 'done' || Date.parse(task.completedAt ?? '') >= since;
 		if (recent || showAllDone) columns[task.status].push(task);
 		else olderDone++;
 	}
-	columns.todo.sort(byPosition);
+	columns.todo.sort((a, b) => rank(a) - rank(b) || byPosition(a, b));
 	columns.doing.sort(byPosition);
+	columns.review.sort(byPosition);
+	columns.idea.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 	columns.done.sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
 	return { columns, olderDone };
 }
+
+/** Work in progress allowed: two things at a time per person. Finish before starting. */
+export const WIP_PER_PERSON = 2;
+
+export const doingCount = (tasks: Task[], userId: string) =>
+	tasks.filter((t) => t.status === 'doing' && t.assigneeId === userId).length;
+
+/** Days spent in the current column: a card that does not move is a card to talk about. */
+export const daysInColumn = (task: Task, now: Date) =>
+	Math.floor((now.getTime() - Date.parse(task.statusChangedAt)) / 86_400_000);
+
+export const STALE_DAYS = 4;
 
 export const ideasOf = (tasks: Task[]) =>
 	tasks

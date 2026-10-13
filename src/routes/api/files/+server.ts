@@ -7,7 +7,8 @@ import type { RequestHandler } from './$types';
 
 const query = z.object({
 	id: z.uuid(),
-	projectId: z.uuid().nullable(),
+	projectId: z.uuid(),
+	folderId: z.uuid().nullable(),
 	forMessage: z.boolean()
 });
 
@@ -22,7 +23,8 @@ export const PUT: RequestHandler = async ({ request, url, locals }) => {
 		error(413, 'Ce fichier est trop lourd (200 Mo maximum).');
 	const params = query.safeParse({
 		id: url.searchParams.get('id'),
-		projectId: url.searchParams.get('projectId') || null,
+		projectId: url.searchParams.get('projectId'),
+		folderId: url.searchParams.get('folderId') || null,
 		forMessage: url.searchParams.get('for') === 'message'
 	});
 	if (!params.success) error(400, 'Envoi invalide.');

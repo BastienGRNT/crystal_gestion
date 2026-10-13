@@ -3,8 +3,8 @@ import { isoOrNull, iso } from '$lib/server/db/columns';
 import type { Db } from '$lib/server/db/types';
 import { notFound } from '../../kernel/domain/errors';
 import type { User } from '../domain/user';
-import type { InvitationRepository, SessionRepository, UserRepository } from '../application/ports';
-import { invitations, sessions, users } from './schema';
+import type { SessionRepository, UserRepository } from '../application/ports';
+import { sessions, users } from './schema';
 
 const toUser = ({ passwordHash: _, ...row }: typeof users.$inferSelect): User => ({
 	...row,
@@ -62,21 +62,5 @@ export const drizzleSessions = (db: Db): SessionRepository => ({
 	},
 	async deleteOthers(userId, keep) {
 		await db.delete(sessions).where(and(eq(sessions.userId, userId), ne(sessions.tokenHash, keep)));
-	}
-});
-
-export const drizzleInvitations = (db: Db): InvitationRepository => ({
-	async create(tokenHash, invitation) {
-		await db.insert(invitations).values({ tokenHash, ...invitation });
-	},
-	async find(tokenHash) {
-		const [row] = await db.select().from(invitations).where(eq(invitations.tokenHash, tokenHash));
-		return row ? { createdBy: row.createdBy, expiresAt: row.expiresAt, usedAt: row.usedAt } : null;
-	},
-	async markUsed(tokenHash, usedBy, usedAt) {
-		await db
-			.update(invitations)
-			.set({ usedAt, usedBy })
-			.where(eq(invitations.tokenHash, tokenHash));
 	}
 });

@@ -17,6 +17,14 @@ export const setupFirstUser =
 		return { user, token: await openSession(deps, user.id) };
 	};
 
+/** A new account, opened from a project invitation (the caller checked the link first). */
+export const register =
+	(deps: IdentityDeps) =>
+	async (input: AccountInput): Promise<SignedIn> => {
+		const user = await createAccount(deps, input);
+		return { user, token: await openSession(deps, user.id) };
+	};
+
 export const login =
 	(deps: IdentityDeps) =>
 	async (input: { email: string; password: string }): Promise<SignedIn> => {

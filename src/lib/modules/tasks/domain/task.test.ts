@@ -21,8 +21,9 @@ describe('task rules', () => {
 		expect(applyPatch(done, { status: 'todo' }, 'bastien', now).completedAt).toBeNull();
 	});
 
-	it('gives a task nobody holds to whoever starts it', () => {
+	it('gives a task nobody holds to whoever starts or finishes it', () => {
 		expect(applyPatch(task(), { status: 'doing' }, 'ana', now).assigneeId).toBe('ana');
+		expect(applyPatch(task(), { status: 'done' }, 'ana', now).assigneeId).toBe('ana');
 		const held = task({ assigneeId: 'bastien' });
 		expect(applyPatch(held, { status: 'doing' }, 'ana', now).assigneeId).toBe('bastien');
 	});
@@ -72,9 +73,10 @@ describe('views', () => {
 		expect(matrix.plan).toEqual([]);
 	});
 
-	it('keeps ideas off the board and hides old done tasks', () => {
+	it('puts ideas aside, sorts "to do" by priority and hides old done tasks', () => {
 		const board = boardOf(tasks, now);
-		expect(board.columns.todo.map((t) => t.id)).toEqual(['c', 'a']);
+		expect(board.columns.idea.map((t) => t.id)).toEqual(['e']);
+		expect(board.columns.todo.map((t) => t.id)).toEqual(['a', 'c']);
 		expect(board.columns.done.map((t) => t.id)).toEqual(['d']);
 		expect(board.olderDone).toBe(1);
 		expect(boardOf(tasks, now, true).columns.done).toHaveLength(2);

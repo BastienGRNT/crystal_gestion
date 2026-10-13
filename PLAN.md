@@ -1,0 +1,67 @@
+# Crystal — ce qu'on construit et pourquoi
+
+Outil de gestion pour petites équipes de dev (2 à 5 personnes). Objectif : passer **moins de 2 % du temps à
+s'organiser**. En arrivant, on sait en 10 secondes : ce que je fais, ce qu'on attend de moi, si l'autre est là et sur
+quoi, ce qui presse. `CLAUDE.md` décrit comment travailler dans le code.
+
+## 1. Tout se passe dans un projet
+
+Un projet = **son équipe** (on invite par projet), son **accueil**, son **tableau**, ses **priorités**, sa
+**discussion**, son **planning**, ses **documents** et ses **accès**. Un compte peut être dans plusieurs projets ; le
+sélecteur en haut de la barre latérale passe de l'un à l'autre. On ne voit que les projets dont on est membre.
+
+## 2. La méthode : un Kanban priorisé
+
+Pas de sprints ni de cérémonies : trop de temps d'organisation pour deux personnes. On fusionne trois idées éprouvées.
+
+1. **Kanban (le flux)** : `Idées → À faire → En cours → En revue → Terminé`.
+   - **Idées** : le backlog, repliée à gauche du tableau. On y jette ce qui n'est pas pour maintenant, et on n'y pense plus.
+   - **En cours** : limite d'encours, **2 tâches par personne**. L'en-tête passe en orange au-delà : on finit avant de commencer.
+   - **En revue** : l'autre vérifie (relecture de code, test sur son téléphone). À deux, la relecture part
+     automatiquement chez l'autre et lui arrive en notification.
+   - **Bloqué** : un drapeau avec la raison (« en attente du client »), visible en rouge partout.
+   - Une carte qui ne bouge plus depuis 4 jours affiche son ancienneté : c'est une carte dont il faut parler.
+2. **Eisenhower (la priorité)** : chaque tâche a sa case (Maintenant, À planifier, À déléguer, Plus tard, ou à trier).
+   La page **Priorités** sert à décider ; la colonne **À faire** du tableau est rangée dans cet ordre, et y glisser une
+   carte d'un groupe à l'autre change sa priorité. Les deux vues montrent les mêmes tâches.
+3. **Un objectif de la semaine** en une phrase, en haut de l'accueil du projet.
+
+Sur l'accueil, « **Ta prochaine tâche** » propose la première tâche à prendre (à moi d'abord, puis sans personne,
+dans l'ordre de la matrice puis de l'échéance) avec un bouton « Je m'y mets ».
+
+## 3. Les pages d'un projet
+
+| Page       | Rôle                                                                                                                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accueil    | Pour toi maintenant (en cours, à relire, prochaine tâche), on t'a écrit, échéances, l'équipe (en ligne, sur quoi, dispo quand), ce qui a bougé                                         |
+| Tableau    | Le Kanban : filtres (texte, personne), colonnes qui défilent seules, bouton « étape suivante » sur chaque carte                                                                        |
+| Priorités  | La matrice 2×2 + « À trier », classement en un clic ou en glissant                                                                                                                     |
+| Discussion | Canal `général` + canaux libres (créer, renommer, supprimer), réponses citées, `@` mentions, `#12` pour une tâche, pièces jointes                                                      |
+| Planning   | Agenda à l'heure près : on dessine ses dispos (ou « peut-être ») et le travail prévu, moments dispos ensemble, échéances et tâches finies sur les jours, « Copier la semaine d'avant » |
+| Documents  | Dossiers et sous-dossiers, glisser un fichier sur un dossier, « Déplacer vers… », recherche dans tout le projet ; les pièces jointes du chat vont dans « Partagés dans la discussion » |
+| Accès      | Comptes partagés (identifiant, mot de passe chiffré, lien, note), copiés en un clic                                                                                                    |
+| Équipe     | Membres, inviter par lien, retirer / quitter, réglages et archivage du projet                                                                                                          |
+
+Chaque tâche a sa fiche (tiroir `?tache=<id>`) : statut, priorité, qui s'en occupe, qui relit, échéance, blocage,
+étapes (checklist), notes et commentaires.
+
+## 4. Arbitrages
+
+| Sujet           | Décision                                                                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Comptes         | `/setup` crée le tout premier compte ; ensuite on entre par un lien d'invitation de projet (7 jours, usage unique)                                      |
+| Droits          | Tous les membres d'un projet sont égaux ; seul un responsable retire quelqu'un ; un projet garde un responsable                                         |
+| Dispos          | Personnelles (vues dans tous mes projets), à l'heure près ; le pré-remplissage = « Copier la semaine d'avant » et les boutons Matin / Après-midi / Soir |
+| Fuseaux         | La copie de semaine est calculée sur l'appareil (il connaît le fuseau), le serveur ne fait que stocker                                                  |
+| Qui a fait quoi | Commencer ou finir une tâche sans personne la donne à celui qui le fait                                                                                 |
+| Suppressions    | Retrait immédiat + « Annuler » 6 s ; la commande part à l'expiration                                                                                    |
+| Secrets         | AES-256-GCM avec `APP_SECRET` ; le mot de passe n'est envoyé qu'au clic sur « Afficher » ou « Copier »                                                  |
+| Fichiers servis | `nosniff`, CSP `sandbox` (sauf PDF), HTML/JS toujours téléchargés : un fichier envoyé ne peut pas exécuter de code                                      |
+| Temps réel      | Chaque connexion n'entend que ses projets et ses coéquipiers ; à l'arrivée ou au départ d'un membre, le client recharge                                 |
+| Données client  | Un snapshot de tous mes projets au chargement, puis le flux WebSocket ; navigation instantanée                                                          |
+| Conflits        | Dernière écriture gagne ; numérotation `#12` atomique ; positions fractionnaires (tableau et matrice)                                                   |
+
+## 5. Plus tard
+
+- Matrice personnelle, tous projets confondus (« mes urgences »).
+- Notifications du navigateur.
