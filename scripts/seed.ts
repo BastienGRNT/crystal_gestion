@@ -1,5 +1,5 @@
 /**
- * Demo data through the real API: `npm run dev` on an empty database, then `npm run seed`.
+ * Demo data through the real API: `npm run dev`, then `npm run seed` (once: the demo accounts must not exist).
  * Sign in with bastien@crystal.test (or camille@crystal.test) / crystal-demo.
  */
 import { Client } from './client';
@@ -20,7 +20,7 @@ const day = (offset: number) => {
 async function main() {
 	const bastien = new Client(BASE);
 	const camille = new Client(BASE);
-	await bastien.form('/setup', {
+	await bastien.form('/inscription', {
 		name: 'Bastien Grenot',
 		email: 'bastien@crystal.test',
 		password: PASSWORD

@@ -1,5 +1,5 @@
 import { SvelteMap } from 'svelte/reactivity';
-import type { Activity, Notification } from '$lib/modules/activity/domain/activity';
+import type { Activity, Notification, ProjectVisit } from '$lib/modules/activity/domain/activity';
 import type { Channel, ChannelState, Message } from '$lib/modules/chat/domain/chat';
 import type { StoredFile } from '$lib/modules/files/domain/file';
 import type { Folder } from '$lib/modules/files/domain/folder';
@@ -35,6 +35,8 @@ export class AppState {
 	blocks = new Collection<WorkBlock>();
 	activities = new Collection<Activity>();
 	notifications = new Collection<Notification>();
+	/** My last catch-up per project. */
+	visits = new Collection<ProjectVisit>([], (v) => v.projectId);
 	messages = new MessageStore();
 	/** `channelId:userId` → when the "is typing" hint stops. */
 	typing = new SvelteMap<string, number>();
@@ -70,6 +72,7 @@ export class AppState {
 		this.blocks.reset(snapshot.blocks);
 		this.activities.reset(snapshot.activities);
 		this.notifications.reset(snapshot.notifications);
+		this.visits.reset(snapshot.visits);
 		this.messages.invalidate();
 	}
 

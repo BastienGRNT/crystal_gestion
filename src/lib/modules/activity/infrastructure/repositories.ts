@@ -3,8 +3,12 @@ import { iso, isoOrNull } from '$lib/server/db/columns';
 import type { Db } from '$lib/server/db/types';
 import type { ActivityVerb } from '../../kernel/domain/subject';
 import type { Activity, Notification } from '../domain/activity';
-import type { ActivityRepository, NotificationRepository } from '../application/ports';
-import { activities, notifications } from './schema';
+import type {
+	ActivityRepository,
+	NotificationRepository,
+	VisitRepository
+} from '../application/ports';
+import { activities, notifications, projectVisits } from './schema';
 
 const toActivity = (row: typeof activities.$inferSelect): Activity => ({
 	...row,
@@ -75,5 +79,23 @@ export const drizzleNotifications = (db: Db): NotificationRepository => ({
 			)
 			.returning();
 		return rows.map(toNotification);
+	}
+});
+
+export const drizzleVisits = (db: Db): VisitRepository => ({
+	of: async (userId) =>
+		(await db.select().from(projectVisits).where(eq(projectVisits.userId, userId))).map((row) => ({
+			...row,
+			seenAt: iso(row.seenAt)
+		})),
+	async save(visit) {
+		const seenAt = new Date(visit.seenAt);
+		await db
+			.insert(projectVisits)
+			.values({ ...visit, seenAt })
+			.onConflictDoUpdate({
+				target: [projectVisits.userId, projectVisits.projectId],
+				set: { seenAt }
+			});
 	}
 });

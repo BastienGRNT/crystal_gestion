@@ -19,7 +19,13 @@ async function notifyMentions(deps: ChatDeps, message: Message, channel: Channel
 	const title = excerpt(message.body, names);
 	const subject: Subject =
 		channel.kind === 'task' && channel.taskId
-			? { kind: 'task', id: channel.taskId, title, projectId: channel.projectId }
+			? {
+					kind: 'task',
+					id: channel.taskId,
+					title,
+					projectId: channel.projectId,
+					channelId: channel.id
+				}
 			: {
 					kind: 'message',
 					id: message.id,

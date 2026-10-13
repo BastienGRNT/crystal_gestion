@@ -15,6 +15,8 @@
 		zones: string[];
 		collapsed?: boolean;
 		ontoggle?: () => void;
+		/** Folded, the column stays a target: a card dropped on it goes in. */
+		ondropCollapsed?: (taskId: string, index: number) => void;
 		header?: Snippet;
 		children: Snippet;
 		footer?: Snippet;
@@ -29,6 +31,7 @@
 		zones,
 		collapsed = false,
 		ontoggle,
+		ondropCollapsed,
 		header,
 		children,
 		footer
@@ -39,19 +42,28 @@
 
 {#if collapsed}
 	<button
+		{@attach ondropCollapsed && dnd.dropzone(zones[0], ondropCollapsed, { at: 'start' })}
 		onclick={ontoggle}
-		class="flex w-12 shrink-0 flex-col items-center gap-3 rounded-2xl border border-line bg-sunken/70 py-4 text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
+		class={[
+			'flex w-12 shrink-0 flex-col items-center gap-3 rounded-2xl border py-4 transition-colors',
+			over
+				? 'border-accent bg-accent-soft text-accent-text'
+				: 'border-line bg-sunken/70 text-ink-2 hover:border-line-strong hover:text-ink'
+		]}
 		aria-label="Afficher la colonne {title}"
 	>
 		<ChevronsRight size={16} />
 		<span class="text-sm font-semibold [writing-mode:vertical-rl]">{title} · {count}</span>
 	</button>
 {:else}
+	<!-- The whole column is a target, header and empty space included. Its width never depends
+	     on its content, so nothing moves while a card is dragged. -->
 	<section
+		data-drop-area
 		aria-label={title}
 		class={[
-			'flex max-h-full w-[85vw] shrink-0 snap-start flex-col rounded-2xl border bg-sunken/70 transition-colors sm:w-[290px] xl:w-auto xl:min-w-[240px] xl:flex-1',
-			over ? 'border-accent ring-4 ring-accent-soft' : 'border-transparent'
+			'flex w-[85vw] shrink-0 snap-start flex-col rounded-2xl border transition-colors sm:w-[288px] xl:w-0 xl:min-w-[248px] xl:flex-1',
+			over ? 'border-accent/60 bg-accent-soft/40' : 'border-transparent bg-sunken/70'
 		]}
 	>
 		<header

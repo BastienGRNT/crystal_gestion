@@ -1,4 +1,4 @@
-import { index, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { index, jsonb, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import type { Subject } from '../../kernel/domain/subject';
 import { users } from '../../identity/infrastructure/schema';
@@ -40,4 +40,18 @@ export const notifications = pgTable(
 		readAt: timestamptz()
 	},
 	(t) => [index().on(t.userId, t.createdAt)]
+);
+
+export const projectVisits = pgTable(
+	'project_visits',
+	{
+		userId: uuid()
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		projectId: uuid()
+			.notNull()
+			.references(() => projects.id, { onDelete: 'cascade' }),
+		seenAt: timestamptz().notNull()
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.projectId] })]
 );

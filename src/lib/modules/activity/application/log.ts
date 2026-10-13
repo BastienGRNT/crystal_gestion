@@ -34,3 +34,12 @@ export const markNotificationsRead =
 		for (const notification of changed) deps.inbox.deliver(notification);
 		return changed.length;
 	};
+
+/** "I've seen everything here": the next catch-up starts now. */
+export const markSeen = (deps: ActivityDeps) => async (userId: string, projectId: string) => {
+	await deps.access.assertMember(projectId, userId);
+	const visit = { projectId, userId, seenAt: deps.clock.now().toISOString() };
+	await deps.visits.save(visit);
+	deps.visitFeed.saved(visit);
+	return visit;
+};

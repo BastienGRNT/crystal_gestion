@@ -120,13 +120,21 @@
 	}
 }
 
-/* While dragging a card: no text selection, a grabbing hand, and the original card faded. */
+/* While dragging: no text selection and a grabbing hand. In a sortable list the card leaves its
+   place to the slot; dragged onto a target (a folder), it stays faded where it was. */
 .is-dragging,
 .is-dragging * {
 	user-select: none;
 	cursor: grabbing !important;
 }
-[data-dragging='true'] {
+/* Cards under the pointer neither react (hover buttons) nor hide the zone they sit in. */
+.is-dragging [data-drag-id] {
+	pointer-events: none;
+}
+[data-dragging='lifted'] {
+	display: none !important;
+}
+[data-dragging='faded'] {
 	opacity: 0.35;
 }
 [data-drag-id] {

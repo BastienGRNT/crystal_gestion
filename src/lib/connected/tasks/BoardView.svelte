@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Search } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
-	import { dnd } from '$lib/client/dnd.svelte';
 	import { plural } from '$lib/client/format';
 	import { BOXES } from '$lib/client/labels';
 	import { now } from '$lib/client/now.svelte';
@@ -82,6 +81,7 @@
 <!-- Columns scroll on their own; the board scrolls sideways on small screens. -->
 <div
 	data-scroll-x
+	data-drop-gaps
 	class="flex min-h-0 flex-1 scrollbar-thin gap-3 overflow-x-auto px-4 pb-4 max-sm:snap-x sm:px-8"
 >
 	<BoardColumn
@@ -90,14 +90,17 @@
 		hint="De côté, pour ne plus y penser."
 		dot="bg-warn"
 		zones={['idea']}
-		collapsed={!showIdeas && !dnd.active}
+		collapsed={!showIdeas}
 		ontoggle={() => (showIdeas = !showIdeas)}
+		ondropCollapsed={dropInto('idea')}
 	>
 		<CardZone
 			zone="idea"
 			tasks={board.columns.idea}
 			ondrop={dropInto('idea')}
+			dropAtStart
 			showPriority={false}
+			emptyLabel="Rien de côté pour l’instant."
 		/>
 		{#snippet footer()}<InlineAdd
 				label="Noter une idée"
@@ -113,29 +116,28 @@
 		dot="border-2 border-ink-4"
 		zones={PRIORITY_ORDER.map((q) => `todo:${groupKey(q)}`)}
 	>
-		<div class="flex flex-col gap-3">
+		<!-- Every priority keeps its place, even empty: a drop target never appears mid-drag. -->
+		<div class="flex flex-col gap-4">
 			{#each groups as group (groupKey(group.quadrant))}
 				{@const box = BOXES[groupKey(group.quadrant)]}
-				{#if group.tasks.length || dnd.active}
-					<div class="flex flex-col gap-2">
+				<CardZone
+					zone="todo:{groupKey(group.quadrant)}"
+					tasks={group.tasks}
+					ondrop={dropInto('todo', group.quadrant)}
+					showPriority={false}
+				>
+					{#snippet header()}
 						<p
 							class={[
 								'flex items-center gap-1.5 px-1 pt-1 text-xs font-semibold tracking-wide uppercase',
-								box.text
+								group.tasks.length ? box.text : 'text-ink-4'
 							]}
 						>
 							<span class={['size-2 rounded-full', box.dot]}></span>{box.label}
 							<span class="font-medium text-ink-3">{group.tasks.length || ''}</span>
 						</p>
-						<CardZone
-							zone="todo:{groupKey(group.quadrant)}"
-							tasks={group.tasks}
-							ondrop={dropInto('todo', group.quadrant)}
-							showPriority={false}
-							emptyLabel="Dépose ici : {box.label.toLowerCase()}"
-						/>
-					</div>
-				{/if}
+					{/snippet}
+				</CardZone>
 			{/each}
 		</div>
 		{#snippet footer()}<InlineAdd
@@ -153,7 +155,12 @@
 		dot="bg-accent"
 		zones={['doing']}
 	>
-		<CardZone zone="doing" tasks={board.columns.doing} ondrop={dropInto('doing')} />
+		<CardZone
+			zone="doing"
+			tasks={board.columns.doing}
+			ondrop={dropInto('doing')}
+			emptyLabel="Personne n’est dessus. Prends une tâche dans « À faire »."
+		/>
 	</BoardColumn>
 
 	<BoardColumn
@@ -163,7 +170,12 @@
 		dot="bg-plan"
 		zones={['review']}
 	>
-		<CardZone zone="review" tasks={board.columns.review} ondrop={dropInto('review')} />
+		<CardZone
+			zone="review"
+			tasks={board.columns.review}
+			ondrop={dropInto('review')}
+			emptyLabel="Rien à relire."
+		/>
 	</BoardColumn>
 
 	<BoardColumn
@@ -177,7 +189,9 @@
 			zone="done"
 			tasks={board.columns.done}
 			ondrop={dropInto('done')}
+			dropAtStart
 			showPriority={false}
+			emptyLabel="Ce qui est fini arrive ici."
 		/>
 		{#snippet footer()}
 			{#if board.olderDone || showAllDone}

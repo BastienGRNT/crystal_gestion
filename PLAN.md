@@ -31,35 +31,45 @@ dans l'ordre de la matrice puis de l'échéance) avec un bouton « Je m'y mets �
 
 ## 3. Les pages d'un projet
 
-| Page       | Rôle                                                                                                                                                                                   |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Accueil    | Pour toi maintenant (en cours, à relire, prochaine tâche), on t'a écrit, échéances, l'équipe (en ligne, sur quoi, dispo quand), ce qui a bougé                                         |
-| Tableau    | Le Kanban : filtres (texte, personne), colonnes qui défilent seules, bouton « étape suivante » sur chaque carte                                                                        |
-| Priorités  | La matrice 2×2 + « À trier », classement en un clic ou en glissant                                                                                                                     |
-| Discussion | Canal `général` + canaux libres (créer, renommer, supprimer), réponses citées, `@` mentions, `#12` pour une tâche, pièces jointes                                                      |
-| Planning   | Agenda à l'heure près : on dessine ses dispos (ou « peut-être ») et le travail prévu, moments dispos ensemble, échéances et tâches finies sur les jours, « Copier la semaine d'avant » |
-| Documents  | Dossiers et sous-dossiers, glisser un fichier sur un dossier, « Déplacer vers… », recherche dans tout le projet ; les pièces jointes du chat vont dans « Partagés dans la discussion » |
-| Accès      | Comptes partagés (identifiant, mot de passe chiffré, lien, note), copiés en un clic                                                                                                    |
-| Équipe     | Membres, inviter par lien, retirer / quitter, réglages et archivage du projet                                                                                                          |
+| Page       | Rôle                                                                                                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accueil    | À rattraper depuis ton dernier passage (voir plus bas), pour toi maintenant (en cours, à relire, prochaine tâche), échéances, l'équipe (en ligne, sur quoi, dispo quand), ce qui a bougé |
+| Tableau    | Le Kanban : filtres (texte, personne), colonnes fixes qui défilent seules, bouton « étape suivante » ; en glissant, un emplacement de la taille de la carte et rien d'autre ne bouge     |
+| Priorités  | La matrice 2×2 + « À trier », classement en un clic ou en glissant                                                                                                                       |
+| Discussion | Canal `général` + canaux libres (créer, renommer, supprimer), réponses citées, `@` mentions, `#12` pour une tâche, pièces jointes                                                        |
+| Planning   | Agenda à l'heure près : on dessine ses dispos (ou « peut-être ») et le travail prévu, moments dispos ensemble, échéances et tâches finies sur les jours, « Copier la semaine d'avant »   |
+| Documents  | Dossiers et sous-dossiers, glisser un fichier sur un dossier, « Déplacer vers… », recherche dans tout le projet ; les pièces jointes du chat vont dans « Partagés dans la discussion »   |
+| Accès      | Comptes partagés (identifiant, mot de passe chiffré, lien, note), copiés en un clic                                                                                                      |
+| Équipe     | Membres, inviter par lien, retirer / quitter, réglages et archivage du projet                                                                                                            |
+
+**À rattraper** (en haut de l'accueil) répond à « qu'est-ce que j'ai raté ? » sans ouvrir une autre page :
+
+- les messages manqués, canal par canal (fils de tâches compris) : les derniers messages eux-mêmes, les mentions
+  surlignées, et un champ pour **répondre directement** (le canal passe alors en lu) ;
+- ce qu'on te demande (tâche confiée, relecture, mention ailleurs) ;
+- **pendant ce temps** : un compte rendu automatique par coéquipier (terminé, en revue, commencé, bloqué, fichiers…),
+  chaque tâche une seule fois dans son dernier état. C'est le point du matin, sans réunion.
+- « Tout est vu » remet le compteur à zéro (messages lus, notifications lues, nouveau point de départ).
 
 Chaque tâche a sa fiche (tiroir `?tache=<id>`) : statut, priorité, qui s'en occupe, qui relit, échéance, blocage,
 étapes (checklist), notes et commentaires.
 
 ## 4. Arbitrages
 
-| Sujet           | Décision                                                                                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Comptes         | `/setup` crée le tout premier compte ; ensuite on entre par un lien d'invitation de projet (7 jours, usage unique)                                      |
-| Droits          | Tous les membres d'un projet sont égaux ; seul un responsable retire quelqu'un ; un projet garde un responsable                                         |
-| Dispos          | Personnelles (vues dans tous mes projets), à l'heure près ; le pré-remplissage = « Copier la semaine d'avant » et les boutons Matin / Après-midi / Soir |
-| Fuseaux         | La copie de semaine est calculée sur l'appareil (il connaît le fuseau), le serveur ne fait que stocker                                                  |
-| Qui a fait quoi | Commencer ou finir une tâche sans personne la donne à celui qui le fait                                                                                 |
-| Suppressions    | Retrait immédiat + « Annuler » 6 s ; la commande part à l'expiration                                                                                    |
-| Secrets         | AES-256-GCM avec `APP_SECRET` ; le mot de passe n'est envoyé qu'au clic sur « Afficher » ou « Copier »                                                  |
-| Fichiers servis | `nosniff`, CSP `sandbox` (sauf PDF), HTML/JS toujours téléchargés : un fichier envoyé ne peut pas exécuter de code                                      |
-| Temps réel      | Chaque connexion n'entend que ses projets et ses coéquipiers ; à l'arrivée ou au départ d'un membre, le client recharge                                 |
-| Données client  | Un snapshot de tous mes projets au chargement, puis le flux WebSocket ; navigation instantanée                                                          |
-| Conflits        | Dernière écriture gagne ; numérotation `#12` atomique ; positions fractionnaires (tableau et matrice)                                                   |
+| Sujet           | Décision                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Comptes         | Inscription libre (`/inscription`) : on ne voit que ses projets. Un lien d'invitation (7 jours, usage unique) fait entrer dans un projet, avec ou sans compte |
+| Droits          | Tous les membres d'un projet sont égaux ; seul un responsable retire quelqu'un ; un projet garde un responsable                                               |
+| Dispos          | Personnelles (vues dans tous mes projets), à l'heure près ; le pré-remplissage = « Copier la semaine d'avant » et les boutons Matin / Après-midi / Soir       |
+| Fuseaux         | La copie de semaine est calculée sur l'appareil (il connaît le fuseau), le serveur ne fait que stocker                                                        |
+| Qui a fait quoi | Commencer ou finir une tâche sans personne la donne à celui qui le fait                                                                                       |
+| Suppressions    | Retrait immédiat + « Annuler » 6 s ; la commande part à l'expiration                                                                                          |
+| Secrets         | AES-256-GCM avec `APP_SECRET` ; le mot de passe n'est envoyé qu'au clic sur « Afficher » ou « Copier »                                                        |
+| Fichiers servis | `nosniff`, CSP `sandbox` (sauf PDF), HTML/JS toujours téléchargés : un fichier envoyé ne peut pas exécuter de code                                            |
+| Temps réel      | Chaque connexion n'entend que ses projets et ses coéquipiers ; à l'arrivée ou au départ d'un membre, le client recharge                                       |
+| Dernier passage | Par personne et par projet, posé par « Tout est vu » ; sans passage, depuis l'arrivée dans le projet, et jamais plus de 7 jours en arrière                    |
+| Données client  | Un snapshot de tous mes projets au chargement, puis le flux WebSocket ; navigation instantanée                                                                |
+| Conflits        | Dernière écriture gagne ; numérotation `#12` atomique ; positions fractionnaires (tableau et matrice)                                                         |
 
 ## 5. Plus tard
 

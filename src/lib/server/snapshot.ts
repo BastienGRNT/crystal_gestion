@@ -20,7 +20,8 @@ export async function loadSnapshot(userId: string) {
 		slots,
 		blocks,
 		activities,
-		notifications
+		notifications,
+		visits
 	] = await Promise.all([
 		identity.listByIds(people),
 		tasks.ofProjects(ids),
@@ -32,7 +33,8 @@ export async function loadSnapshot(userId: string) {
 		planning.slotsOf(people),
 		planning.blocksOf(ids),
 		activity.recent(ids),
-		activity.notificationsFor(userId)
+		activity.notificationsFor(userId),
+		activity.visitsOf(userId)
 	]);
 	return {
 		meId: userId,
@@ -49,7 +51,8 @@ export async function loadSnapshot(userId: string) {
 		slots,
 		blocks,
 		activities,
-		notifications: notifications.filter((n) => ids.includes(n.projectId))
+		notifications: notifications.filter((n) => ids.includes(n.projectId)),
+		visits: visits.filter((v) => ids.includes(v.projectId))
 	};
 }
 

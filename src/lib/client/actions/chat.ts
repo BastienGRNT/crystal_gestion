@@ -7,6 +7,15 @@ import { attempt, settle } from './optimistic';
 
 export function chatActions(app: AppState) {
 	function markRead(channelId: string) {
+		// Read where it was said: its mentions are no longer news either.
+		const mentions = app.notifications.all.filter(
+			(n) => !n.readAt && n.kind === 'mention' && n.subject.channelId === channelId
+		);
+		if (mentions.length) {
+			const now = new Date().toISOString();
+			for (const n of mentions) app.notifications.upsert({ ...n, readAt: now });
+			void send('notifications.read', { ids: mentions.map((n) => n.id) }).catch(() => {});
+		}
 		const state = app.channelStates.get(channelId);
 		if (state && !state.unread && !state.mentions) return;
 		app.channelStates.upsert({

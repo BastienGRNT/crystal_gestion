@@ -15,7 +15,7 @@ npm test                    # vitest (domaine + cas d'usage)
 npm run check               # svelte-check (types)
 npm run lint                # prettier + eslint   ·   npm run format pour corriger
 npm run build && npm start  # prod : server.js = handler SvelteKit + WebSocket
-npm run seed                # base vide + dev lancé → démo (bastien@crystal.test / crystal-demo)
+npm run seed                # dev lancé → démo, une fois (bastien@crystal.test / crystal-demo)
 ```
 
 Reset de la base : `docker compose down -v && npm run db:start && npm run db:migrate`.
@@ -58,6 +58,7 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Projet courant : `currentProject(app)` (slug de l'URL). Équipe : `teamOrder(app, projectId)`.
 - Toute action passe par `actions.*` : optimiste (`settle()` puis la réponse serveur fait foi). Suppressions :
   `deleteWithUndo` (retrait immédiat, « Annuler » 6 s, envoi à l'expiration).
+- Comptes : `/login`, `/inscription` (libre : on ne voit que les projets créés ou rejoints), `/invite/[token]`.
 - Routes : `/p/[slug]` (accueil), `/tableau`, `/priorites`, `/discussion/[channel]`, `/planning`, `/documents`,
   `/acces`, `/equipe` ; `/projets`, `/compte`. Fiche tâche : `?tache=<id>` sur n'importe quelle page du projet.
 - Mise en page : `PageHeader` (titre, phrase qui dit à quoi sert la page, boutons) puis le contenu.
@@ -66,7 +67,11 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Couleurs : uniquement les tokens de `ui/tokens/theme.css` (clair + `[data-theme='dark']`) mappés dans `app.css`.
   Cases de la matrice : `labels.ts` (`BOXES`). Teintes de projets et de personnes : `tint(i)`.
 - États vides : une phrase qui dit quoi faire + un bouton vers l'action.
-- Glisser-déposer : `client/dnd.svelte.ts` (`dnd.draggable(id, zone)`, `dnd.dropzone(zone, ondrop)`), souris et tactile.
+- Glisser-déposer : `client/dnd.svelte.ts`, souris et tactile. Liste triable : `dnd.dropzone(zone, ondrop)` sur la
+  liste (`relative`), `{#each dnd.rows(zone, items) as row (row.key)}` avec `animate:reflow` et
+  `dnd.draggable(id, zone)` sur chaque enfant, `DropSlot` quand `row.item` est nul. `data-drop-area` = toute la zone
+  qui compte (une colonne), `data-drop-gaps` = le conteneur dont les espaces ne renvoient pas la carte chez elle.
+  Règle : **rien n'apparaît, ne disparaît ni ne change de taille pendant un glisser** (pas de `{#if dnd.active}`).
 - Agenda : `ui/organisms/agenda/*` (grille, gestes) + `connected/planning/*` (données, commandes).
 
 ## Conventions

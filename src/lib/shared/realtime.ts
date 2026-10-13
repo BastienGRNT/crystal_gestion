@@ -1,5 +1,5 @@
 /** The live contract between the server and every open screen. Isomorphic, types only. */
-import type { Activity, Notification } from '$lib/modules/activity/domain/activity';
+import type { Activity, Notification, ProjectVisit } from '$lib/modules/activity/domain/activity';
 import type { Channel, Message } from '$lib/modules/chat/domain/chat';
 import type { StoredFile } from '$lib/modules/files/domain/file';
 import type { Folder } from '$lib/modules/files/domain/folder';
@@ -24,6 +24,7 @@ export interface Collections {
 	blocks: WorkBlock;
 	activities: Activity;
 	notifications: Notification;
+	visits: ProjectVisit;
 }
 
 export type CollectionName = keyof Collections;

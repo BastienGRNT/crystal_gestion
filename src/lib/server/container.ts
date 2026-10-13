@@ -2,7 +2,8 @@
 import { createActivity } from '$lib/modules/activity';
 import {
 	drizzleActivities,
-	drizzleNotifications
+	drizzleNotifications,
+	drizzleVisits
 } from '$lib/modules/activity/infrastructure/repositories';
 import { createChat } from '$lib/modules/chat';
 import { drizzleChannels, drizzleReads } from '$lib/modules/chat/infrastructure/channel-repository';
@@ -49,9 +50,12 @@ hub.configure(async (userId) => {
 const activity = createActivity({
 	activities: drizzleActivities(db),
 	notifications: drizzleNotifications(db),
+	visits: drizzleVisits(db),
+	access,
 	clock,
 	feed: feedFor(hub, 'activities', byProject),
-	inbox: inboxFor(hub)
+	inbox: inboxFor(hub),
+	visitFeed: feedFor(hub, 'visits', (visit) => ({ user: visit.userId }))
 });
 
 const identity = createIdentity({

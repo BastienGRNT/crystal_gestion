@@ -5,7 +5,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.user) redirect(303, safeRedirect(url.searchParams.get('redirect')));
-	if (!(await container.identity.hasUsers())) redirect(303, '/setup');
+	if (!(await container.identity.hasUsers())) redirect(303, '/inscription');
 };
 
 export const actions: Actions = {

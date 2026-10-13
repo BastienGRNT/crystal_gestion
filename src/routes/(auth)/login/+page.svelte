@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import TextInput from '$lib/ui/atoms/TextInput.svelte';
 	import Field from '$lib/ui/molecules/Field.svelte';
 	import AuthForm from '$lib/ui/organisms/AuthForm.svelte';
+	import AuthSwitch from '$lib/ui/organisms/AuthSwitch.svelte';
 
 	let { form } = $props();
 </script>
@@ -30,6 +32,8 @@
 		/>
 	</Field>
 </AuthForm>
-<p class="mt-5 text-center text-sm text-ink-3">
-	Pas encore de compte ? Demande un lien d’invitation à ton équipe.
-</p>
+<AuthSwitch
+	question="Pas encore de compte ?"
+	label="Créer un compte"
+	href="/inscription{page.url.search}"
+/>

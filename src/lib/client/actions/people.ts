@@ -22,6 +22,19 @@ export function peopleActions(app: AppState) {
 		);
 	}
 
+	function markNotificationsRead(ids: string[] | 'all', projectId?: string) {
+		const now = new Date().toISOString();
+		const targets = app.notifications.all.filter(
+			(n) =>
+				!n.readAt &&
+				(!projectId || n.projectId === projectId) &&
+				(ids === 'all' || ids.includes(n.id))
+		);
+		if (!targets.length) return;
+		for (const n of targets) app.notifications.upsert({ ...n, readAt: now });
+		void send('notifications.read', { ids: targets.map((n) => n.id) }).catch(() => {});
+	}
+
 	return {
 		updateMe,
 		setStatus: (status: WorkStatus, statusNote: string | null = null) =>
@@ -40,17 +53,14 @@ export function peopleActions(app: AppState) {
 			}
 		},
 
-		markNotificationsRead(ids: string[] | 'all', projectId?: string) {
-			const now = new Date().toISOString();
-			const targets = app.notifications.all.filter(
-				(n) =>
-					!n.readAt &&
-					(!projectId || n.projectId === projectId) &&
-					(ids === 'all' || ids.includes(n.id))
-			);
-			if (!targets.length) return;
-			for (const n of targets) app.notifications.upsert({ ...n, readAt: now });
-			void send('notifications.read', { ids: targets.map((n) => n.id) }).catch(() => {});
+		markNotificationsRead,
+
+		/** "Tout est vu": messages, notifications and team news of the project. */
+		caughtUp(projectId: string, channelIds: string[], markRead: (channelId: string) => void) {
+			for (const id of channelIds) markRead(id);
+			markNotificationsRead('all', projectId);
+			app.visits.upsert({ projectId, userId: app.meId, seenAt: new Date().toISOString() });
+			void send('activity.seen', { projectId }).catch(() => {});
 		}
 	};
 }

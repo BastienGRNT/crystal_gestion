@@ -1,4 +1,4 @@
-import { forbidden, invalid } from '../../kernel/domain/errors';
+import { invalid } from '../../kernel/domain/errors';
 import { sessionExpiry, shouldRenew } from '../domain/session';
 import type { User } from '../domain/user';
 import { createAccount, openSession, type AccountInput, type IdentityDeps } from './deps';
@@ -8,16 +8,7 @@ export interface SignedIn {
 	token: string;
 }
 
-export const setupFirstUser =
-	(deps: IdentityDeps) =>
-	async (input: AccountInput): Promise<SignedIn> => {
-		if ((await deps.users.count()) > 0)
-			throw forbidden('Le premier compte existe déjà : connecte-toi.');
-		const user = await createAccount(deps, input);
-		return { user, token: await openSession(deps, user.id) };
-	};
-
-/** A new account, opened from a project invitation (the caller checked the link first). */
+/** Anyone can open an account: they only ever see the projects they create or are invited to. */
 export const register =
 	(deps: IdentityDeps) =>
 	async (input: AccountInput): Promise<SignedIn> => {

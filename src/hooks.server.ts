@@ -3,7 +3,7 @@ import { container } from '$lib/server/container';
 import { clearSessionCookie, SESSION_COOKIE } from '$lib/server/http/session-cookie';
 import { createConnectionHandler } from '$lib/server/realtime/connection';
 
-const PUBLIC_PATHS = ['/login', '/setup', '/invite/'];
+const PUBLIC_PATHS = ['/login', '/inscription', '/invite/'];
 
 export const init: ServerInit = () => {
 	// realtime-attach.js (dev plugin and production server) picks the handler up from here.
@@ -19,9 +19,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const path = event.url.pathname;
 	const isPublic = PUBLIC_PATHS.some((p) => path.startsWith(p));
 	if (!event.locals.user && !isPublic && !path.startsWith('/api')) {
-		if (!(await container.identity.hasUsers())) redirect(303, '/setup');
+		const entry = (await container.identity.hasUsers()) ? '/login' : '/inscription';
 		const back = path === '/' ? '' : path + event.url.search;
-		redirect(303, back ? `/login?redirect=${encodeURIComponent(back)}` : '/login');
+		redirect(303, back ? `${entry}?redirect=${encodeURIComponent(back)}` : entry);
 	}
 	return resolve(event);
 };

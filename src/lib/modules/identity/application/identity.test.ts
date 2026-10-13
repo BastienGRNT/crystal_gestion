@@ -55,16 +55,13 @@ describe('identity', () => {
 		identity = createIdentity(deps);
 	});
 
-	it('creates the first account once, then refuses', async () => {
-		const { user, token } = await identity.setupFirstUser(bastien);
+	it('opens a session with the new account', async () => {
+		const { user, token } = await identity.register(bastien);
 		expect(await identity.authenticate(token)).toEqual(user);
-		await expect(identity.setupFirstUser({ ...bastien, email: 'x@y.fr' })).rejects.toThrow(
-			/existe déjà/
-		);
 	});
 
 	it('logs in with the right password only', async () => {
-		await identity.setupFirstUser(bastien);
+		await identity.register(bastien);
 		await expect(identity.login({ ...bastien, password: 'wrong-one' })).rejects.toThrow(
 			/incorrect/
 		);
@@ -76,13 +73,13 @@ describe('identity', () => {
 	});
 
 	it('forgets expired sessions', async () => {
-		const { token } = await identity.setupFirstUser(bastien);
+		const { token } = await identity.register(bastien);
 		(deps.clock as FixedClock).advance(31 * 86_400_000);
 		expect(await identity.authenticate(token)).toBeNull();
 	});
 
 	it('gives a newcomer a color nobody has yet', async () => {
-		const { user: host } = await identity.setupFirstUser(bastien);
+		const { user: host } = await identity.register(bastien);
 		const { user } = await identity.register({
 			name: 'Ana',
 			email: 'ana@crystal.test',
@@ -93,13 +90,13 @@ describe('identity', () => {
 	});
 
 	it('broadcasts profile changes', async () => {
-		const { user } = await identity.setupFirstUser(bastien);
+		const { user } = await identity.register(bastien);
 		await identity.updateProfile(user.id, { status: 'focus', statusNote: '  ' });
 		expect(deps.feed.last).toMatchObject({ status: 'focus', statusNote: null });
 	});
 
 	it('signs other devices out when the password changes', async () => {
-		const { user, token } = await identity.setupFirstUser(bastien);
+		const { user, token } = await identity.register(bastien);
 		const other = await identity.login(bastien);
 		await identity.changePassword(user.id, { current: 'motdepasse', next: 'nouveau-mdp' }, token);
 		expect(await identity.authenticate(token)).not.toBeNull();

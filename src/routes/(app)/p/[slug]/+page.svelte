@@ -2,9 +2,9 @@
 	import { Plus } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import ActivityFeed from '$lib/connected/home/ActivityFeed.svelte';
+	import CatchUp from '$lib/connected/home/CatchUp.svelte';
 	import Deadlines from '$lib/connected/home/Deadlines.svelte';
 	import MyWork from '$lib/connected/home/MyWork.svelte';
-	import ProjectNotifications from '$lib/connected/home/ProjectNotifications.svelte';
 	import TeamPanel from '$lib/connected/home/TeamPanel.svelte';
 	import WeekGoal from '$lib/connected/home/WeekGoal.svelte';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
@@ -29,10 +29,10 @@
 
 	<div class="mx-auto flex max-w-[1240px] flex-col gap-8 px-4 pb-12 sm:px-8">
 		<WeekGoal {project} />
+		<CatchUp {project} />
 		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
 			<div class="flex flex-col gap-10">
 				<MyWork {project} />
-				<ProjectNotifications {project} />
 				<Deadlines {project} />
 			</div>
 			<div class="flex flex-col gap-10">

@@ -1,26 +1,41 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { useApp } from '$lib/client/context';
-	import { dnd } from '$lib/client/dnd.svelte';
+	import { dnd, reflow } from '$lib/client/dnd.svelte';
 	import { now } from '$lib/client/now.svelte';
 	import { threadOf } from '$lib/client/views/workspace';
 	import { daysInColumn, STALE_DAYS } from '$lib/modules/tasks/domain/views';
 	import type { Task, TaskStatus } from '$lib/modules/tasks/domain/task';
-	import DropLine from '$lib/ui/atoms/DropLine.svelte';
+	import DropSlot from '$lib/ui/atoms/DropSlot.svelte';
 	import TaskCard from '$lib/ui/organisms/TaskCard.svelte';
 
 	interface Props {
 		zone: string;
 		tasks: Task[];
 		ondrop: (taskId: string, index: number) => void;
+		/** Columns sorted on their own (latest first) take a drop at the top. */
+		dropAtStart?: boolean;
 		showPriority?: boolean;
-		/** Shown in an empty zone while a card is dragged. */
+		/** Shown when the zone has no card. */
 		emptyLabel?: string;
+		/** Rendered inside the zone, so hovering it counts (a priority group's title). */
+		header?: Snippet;
 	}
 
-	let { zone, tasks, ondrop, showPriority = true, emptyLabel = 'Dépose ici' }: Props = $props();
+	let {
+		zone,
+		tasks,
+		ondrop,
+		dropAtStart = false,
+		showPriority = true,
+		emptyLabel,
+		header
+	}: Props = $props();
 	const { app, actions, overlays } = useApp();
-	const visible = $derived(tasks.filter((t) => t.id !== dnd.active?.id));
-	const order = $derived(new Map(visible.map((t, i) => [t.id, i])));
+	const rows = $derived(dnd.rows(zone, tasks));
+	const empty = $derived(
+		!rows.some((r) => r.item && r.item.id !== dnd.active?.id) && !dnd.isOver(zone)
+	);
 
 	/** One click moves a card along the flow. */
 	const NEXT: Partial<Record<TaskStatus, { label: string; run: (id: string) => void }>> = {
@@ -42,34 +57,36 @@
 	};
 </script>
 
-<div {@attach dnd.dropzone(zone, ondrop)} class="flex min-h-12 flex-col gap-2">
-	{#each tasks as task (task.id)}
-		{@const index = order.get(task.id)}
-		{@const next = NEXT[task.status]}
-		{#if index !== undefined && dnd.lineAt(zone, index)}<DropLine />{/if}
-		<div {@attach dnd.draggable(task.id, zone)}>
-			<TaskCard
-				{task}
-				{showPriority}
-				assignee={app.users.get(task.assigneeId)}
-				reviewer={task.status === 'review' ? app.users.get(task.reviewerId) : undefined}
-				today={now.today}
-				comments={comments(task.id)}
-				staleDays={stale(task)}
-				next={next?.label}
-				onnext={() => next?.run(task.id)}
-				onopen={() => overlays.openTask(task.id)}
-				oncomplete={() => actions.tasks.complete(task.id)}
-				onreopen={() => actions.tasks.update(task.id, { status: 'todo' })}
-			/>
+<div
+	{@attach dnd.dropzone(zone, ondrop, { at: dropAtStart ? 'start' : undefined })}
+	class="relative flex flex-col gap-2"
+>
+	{@render header?.()}
+	{#each rows as row (row.key)}
+		<div animate:reflow {@attach row.item && dnd.draggable(row.item.id, zone)}>
+			{#if row.item}
+				{@const task = row.item}
+				{@const next = NEXT[task.status]}
+				<TaskCard
+					{task}
+					{showPriority}
+					assignee={app.users.get(task.assigneeId)}
+					reviewer={task.status === 'review' ? app.users.get(task.reviewerId) : undefined}
+					today={now.today}
+					comments={comments(task.id)}
+					staleDays={stale(task)}
+					next={next?.label}
+					onnext={() => next?.run(task.id)}
+					onopen={() => overlays.openTask(task.id)}
+					oncomplete={() => actions.tasks.complete(task.id)}
+					onreopen={() => actions.tasks.update(task.id, { status: 'todo' })}
+				/>
+			{:else}
+				<DropSlot height={dnd.active?.height ?? 0} />
+			{/if}
 		</div>
 	{/each}
-	{#if dnd.lineAt(zone, visible.length)}<DropLine />{/if}
-	{#if dnd.active && !visible.length}
-		<p
-			class="rounded-xl border-2 border-dashed border-line-strong py-4 text-center text-sm text-ink-3"
-		>
-			{emptyLabel}
-		</p>
+	{#if empty && emptyLabel}
+		<p class="px-2 py-6 text-center text-sm text-ink-3">{emptyLabel}</p>
 	{/if}
 </div>

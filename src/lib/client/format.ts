@@ -1,4 +1,9 @@
-import { daysBetween, parseDateKey, type DateKey } from '$lib/modules/kernel/domain/dates';
+import {
+	daysBetween,
+	parseDateKey,
+	toDateKey,
+	type DateKey
+} from '$lib/modules/kernel/domain/dates';
 
 const fr = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('fr-FR', options);
 const weekdayDay = fr({ weekday: 'short', day: 'numeric' });
@@ -6,6 +11,7 @@ const weekdayDayMonth = fr({ weekday: 'short', day: 'numeric', month: 'short' })
 const longDay = fr({ weekday: 'long', day: 'numeric', month: 'long' });
 const dayMonth = fr({ day: 'numeric', month: 'short' });
 const clock = fr({ hour: '2-digit', minute: '2-digit' });
+const weekday = fr({ weekday: 'long' });
 
 export const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
@@ -30,6 +36,16 @@ export function relativeTime(iso: string, now: Date): string {
 }
 
 export const timeOf = (iso: string) => clock.format(new Date(iso));
+
+/** "aujourd'hui à 09:12", "hier à 18:40", "lundi à 18:40", "le 3 oct.". */
+export function momentLabel(iso: string, now: Date): string {
+	const date = new Date(iso);
+	const days = daysBetween(toDateKey(date), toDateKey(now));
+	if (days === 0) return `aujourd’hui à ${timeOf(iso)}`;
+	if (days === 1) return `hier à ${timeOf(iso)}`;
+	if (days < 7) return `${weekday.format(date)} à ${timeOf(iso)}`;
+	return `le ${dayMonth.format(date)}`;
+}
 
 export const longDate = (key: DateKey) => longDay.format(parseDateKey(key));
 

@@ -6,5 +6,8 @@ export const activityCommands = (activity: ActivityModule) => ({
 	'notifications.read': command(
 		z.object({ ids: z.union([z.array(id).max(200), z.literal('all')]) }),
 		({ userId }, input) => activity.markRead(userId, input.ids)
+	),
+	'activity.seen': command(z.object({ projectId: id }), ({ userId }, input) =>
+		activity.markSeen(userId, input.projectId)
 	)
 });

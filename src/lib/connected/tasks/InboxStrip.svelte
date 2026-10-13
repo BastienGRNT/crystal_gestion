@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { Inbox } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
-	import { dnd } from '$lib/client/dnd.svelte';
+	import { dnd, reflow } from '$lib/client/dnd.svelte';
 	import { BOXES } from '$lib/client/labels';
 	import { QUADRANTS, type Quadrant, type Task } from '$lib/modules/tasks/domain/task';
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
-	import DropLine from '$lib/ui/atoms/DropLine.svelte';
+	import DropSlot from '$lib/ui/atoms/DropSlot.svelte';
 
 	interface Props {
 		tasks: Task[];
@@ -15,11 +15,11 @@
 
 	let { tasks, ondrop, onsort }: Props = $props();
 	const { app, overlays } = useApp();
-	const visible = $derived(tasks.filter((t) => t.id !== dnd.active?.id));
-	const order = $derived(new Map(visible.map((t, i) => [t.id, i])));
+	const rows = $derived(dnd.rows('inbox', tasks));
 </script>
 
 <section
+	data-drop-area
 	aria-labelledby="inbox-title"
 	class="rounded-2xl border border-dashed border-line-strong bg-surface p-3"
 >
@@ -31,45 +31,48 @@
 			Range chaque tâche d’un clic sur sa case, ou glisse-la dans la matrice.
 		</p>
 	</header>
-	<div {@attach dnd.dropzone('inbox', ondrop)} class="flex flex-col gap-1.5">
-		{#each tasks as task (task.id)}
-			{@const index = order.get(task.id)}
-			{@const assignee = app.users.get(task.assigneeId)}
-			{#if index !== undefined && dnd.lineAt('inbox', index)}<DropLine />{/if}
-			<div
-				{@attach dnd.draggable(task.id, 'inbox')}
-				class="flex min-h-11 touch-manipulation items-center gap-2 rounded-lg bg-surface-2 py-1.5 pr-1.5 pl-3 select-none"
-			>
-				<button
-					data-drag-handle
-					class="min-w-0 flex-1 cursor-grab truncate text-left text-base hover:underline"
-					onclick={() => overlays.openTask(task.id)}
-				>
-					{task.title}
-				</button>
-				{#if assignee}<Avatar name={assignee.name} color={assignee.color} size="xs" />{/if}
-				<div class="flex gap-1" role="group" aria-label="Ranger « {task.title} »">
-					{#each QUADRANTS as quadrant (quadrant)}
-						{@const box = BOXES[quadrant]}
+	<div {@attach dnd.dropzone('inbox', ondrop)} class="relative flex flex-col gap-1.5">
+		{#each rows as row (row.key)}
+			<div animate:reflow {@attach row.item && dnd.draggable(row.item.id, 'inbox')}>
+				{#if !row.item}
+					<DropSlot height={dnd.active?.height ?? 0} />
+				{:else}
+					{@const task = row.item}
+					{@const assignee = app.users.get(task.assigneeId)}
+					<div
+						class="flex min-h-11 touch-manipulation items-center gap-2 rounded-lg bg-surface-2 py-1.5 pr-1.5 pl-3 select-none"
+					>
 						<button
-							title={`${box.label} (${box.axes})`}
-							aria-label={`Ranger dans ${box.label}`}
-							onclick={() => onsort(task, quadrant)}
-							class={[
-								'flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors',
-								box.soft,
-								box.text,
-								'hover:brightness-95 dark:hover:brightness-125'
-							]}
+							data-drag-handle
+							class="min-w-0 flex-1 cursor-grab truncate text-left text-base hover:underline"
+							onclick={() => overlays.openTask(task.id)}
 						>
-							<span class={['size-2 rounded-full', box.dot]}></span><span class="hidden xl:inline"
-								>{box.label}</span
-							>
+							{task.title}
 						</button>
-					{/each}
-				</div>
+						{#if assignee}<Avatar name={assignee.name} color={assignee.color} size="xs" />{/if}
+						<div class="flex gap-1" role="group" aria-label="Ranger « {task.title} »">
+							{#each QUADRANTS as quadrant (quadrant)}
+								{@const box = BOXES[quadrant]}
+								<button
+									title={`${box.label} (${box.axes})`}
+									aria-label={`Ranger dans ${box.label}`}
+									onclick={() => onsort(task, quadrant)}
+									class={[
+										'flex h-7 items-center gap-1.5 rounded-md px-2 text-xs font-medium transition-colors',
+										box.soft,
+										box.text,
+										'hover:brightness-95 dark:hover:brightness-125'
+									]}
+								>
+									<span class={['size-2 rounded-full', box.dot]}></span><span
+										class="hidden xl:inline">{box.label}</span
+									>
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
 			</div>
 		{/each}
-		{#if dnd.lineAt('inbox', visible.length)}<DropLine />{/if}
 	</div>
 </section>
