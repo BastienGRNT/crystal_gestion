@@ -94,3 +94,6 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Messages : `asks` / `answeredAt` font les questions suivies, et `app.questions` garde celles encore ouvertes de tous
   mes projets. Côté client, passer par `app.putMessage` / `app.dropMessage`, jamais `app.messages.upsert` seul.
 - Postgres écoute sur 55432. Prod : `ORIGIN` = URL publique, `APP_SECRET` obligatoire (ne plus la changer ensuite).
+- Prod Docker (`docker-compose.prod.yml`) : les migrations passent par `migrate.js` (pas de `drizzle-kit` dans l'image),
+  d'où `drizzle-orm` et `postgres` en `dependencies`. Tout paquet requis à l'exécution hors `build/` va aussi là.
+  `.env.example` sert de modèle à Forge : garder `POSTGRES_PASSWORD` **avant** `DATABASE_URL`.

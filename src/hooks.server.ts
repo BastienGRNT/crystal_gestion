@@ -3,7 +3,7 @@ import { container } from '$lib/server/container';
 import { clearSessionCookie, SESSION_COOKIE } from '$lib/server/http/session-cookie';
 import { createConnectionHandler } from '$lib/server/realtime/connection';
 
-const PUBLIC_PATHS = ['/login', '/inscription', '/invite/'];
+const PUBLIC_PATHS = ['/login', '/inscription', '/invite/', '/health'];
 
 export const init: ServerInit = () => {
 	// realtime-attach.js (dev plugin and production server) picks the handler up from here.

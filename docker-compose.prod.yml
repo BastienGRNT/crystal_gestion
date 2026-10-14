@@ -1,0 +1,58 @@
+# Production (Forge): docker compose -f docker-compose.prod.yml up -d --build
+# compose.yaml stays the development database (npm run db:start).
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crystal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is missing from .env}
+      POSTGRES_DB: ${POSTGRES_DB:-crystal}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Applies drizzle/ migrations then exits: the app only starts once the database is up to date.
+  migrate:
+    build: .
+    env_file: .env
+    command: ['node', 'migrate.js']
+    restart: 'no'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    restart: unless-stopped
+    # tini as PID 1: SIGTERM stops Node right away instead of after the 10 s timeout.
+    init: true
+    env_file: .env
+    environment:
+      # Must match the volume below.
+      STORAGE_DIR: /app/data/storage
+    ports:
+      - '${PORT:-3000}:${PORT:-3000}'
+    volumes:
+      - storage:/app/data/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO /dev/null "http://127.0.0.1:$${PORT:-3000}/health" || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  db-data:
+  storage:
