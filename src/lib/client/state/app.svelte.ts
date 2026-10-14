@@ -107,6 +107,11 @@ export class AppState {
 		else this.questions.remove(message.id);
 	}
 
+	/** Loaded in its channel, or waiting as an open question. */
+	knowsMessage(id: string) {
+		return !!this.messages.find(id) || !!this.questions.get(id);
+	}
+
 	dropMessage(id: string) {
 		this.messages.remove(id);
 		this.questions.remove(id);
@@ -126,11 +131,7 @@ export class AppState {
 	}
 
 	private messageSaved(message: Message) {
-		const isNew =
-			!message.editedAt &&
-			!message.answeredAt &&
-			!this.messages.find(message.id) &&
-			!this.questions.get(message.id);
+		const isNew = !message.editedAt && !message.answeredAt && !this.knowsMessage(message.id);
 		this.putMessage(message);
 		this.typing.delete(`${message.channelId}:${message.authorId}`);
 		const state = this.channelStates.get(message.channelId);

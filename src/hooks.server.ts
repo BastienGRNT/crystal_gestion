@@ -23,5 +23,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const back = path === '/' ? '' : path + event.url.search;
 		redirect(303, back ? `${entry}?redirect=${encodeURIComponent(back)}` : entry);
 	}
-	return resolve(event);
+	return withoutPreloadHeader(await resolve(event));
 };
+
+/**
+ * SvelteKit lists every preloaded chunk in a `Link` header (≈ 4 KB on project pages). Past
+ * Nginx's default 4 KB header buffer, the proxy answers 502. The <head> already has them.
+ */
+function withoutPreloadHeader(response: Response) {
+	if (response.headers.get('content-type')?.startsWith('text/html'))
+		response.headers.delete('link');
+	return response;
+}

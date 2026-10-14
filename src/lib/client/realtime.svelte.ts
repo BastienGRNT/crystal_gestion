@@ -12,6 +12,7 @@ export class Realtime {
 	#attempts = 0;
 	#closed = false;
 	#heartbeat: ReturnType<typeof setInterval> | undefined;
+	#retry: ReturnType<typeof setTimeout> | undefined;
 
 	constructor(
 		private onEvent: (event: ServerEvent) => void,
@@ -22,6 +23,8 @@ export class Realtime {
 		this.#closed = false;
 		this.#open();
 		this.#heartbeat = setInterval(() => this.send({ type: 'ping' }), 25_000);
+		addEventListener('online', this.#reconnectNow);
+		document.addEventListener('visibilitychange', this.#reconnectNow);
 	}
 
 	send(event: ClientEvent) {
@@ -31,6 +34,9 @@ export class Realtime {
 	close() {
 		this.#closed = true;
 		clearInterval(this.#heartbeat);
+		clearTimeout(this.#retry);
+		removeEventListener('online', this.#reconnectNow);
+		document.removeEventListener('visibilitychange', this.#reconnectNow);
 		this.#socket?.close();
 	}
 
@@ -49,7 +55,15 @@ export class Realtime {
 			if (event.code === 4401) return void location.assign('/login');
 			this.status = 'offline';
 			const delay = Math.min(15_000, 500 * 2 ** this.#attempts++);
-			setTimeout(() => this.#open(), delay);
+			this.#retry = setTimeout(() => this.#open(), delay);
 		};
 	}
+
+	/** Back on the network or on the tab (laptop waking up): no need to wait for the backoff. */
+	#reconnectNow = () => {
+		if (this.status !== 'offline' || document.visibilityState !== 'visible') return;
+		if (this.#socket?.readyState === WebSocket.CONNECTING) return;
+		clearTimeout(this.#retry);
+		this.#open();
+	};
 }

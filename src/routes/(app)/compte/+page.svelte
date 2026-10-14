@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { Monitor, Moon, Sun } from '@lucide/svelte';
+	import { Bell, BellOff, Monitor, Moon, Sun, Users } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
+	import { desktopAlerts } from '$lib/client/desktop-alerts.svelte';
 	import { applyTheme, storedTheme, type ThemeChoice } from '$lib/client/theme';
+	import type { AlertLevel } from '$lib/client/views/alerts';
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import ColorPicker from '$lib/ui/atoms/ColorPicker.svelte';
@@ -26,6 +28,14 @@
 		{ keys: 'Échap', label: 'Fermer une fenêtre, annuler un glisser' }
 	];
 
+	const ALERT_HINTS: Record<AlertLevel, string> = {
+		off: 'Choisis de quoi être prévenu : le navigateur te demandera ton accord.',
+		mine: 'Tâches qu’on te confie, mentions, relectures demandées et réponses à tes questions.',
+		all: 'Ce qui te concerne, plus les messages et l’avancement de toute l’équipe.'
+	};
+	const chooseAlerts = (level: AlertLevel) =>
+		level === 'off' ? desktopAlerts.choose('off') : desktopAlerts.enable(level);
+
 	async function changePassword(event: SubmitEvent) {
 		event.preventDefault();
 		saving = true;
@@ -36,7 +46,10 @@
 
 <svelte:head><title>Mon compte · Crystal</title></svelte:head>
 
-<PageHeader title="Mon compte" subtitle="Ton profil, ton mot de passe et l’apparence." />
+<PageHeader
+	title="Mon compte"
+	subtitle="Ton profil, ton mot de passe, les notifications et l’apparence."
+/>
 
 <div class="mx-auto max-w-[1000px] px-4 pb-12 sm:px-8">
 	<SettingsSection title="Profil" text="Comment les autres te voient.">
@@ -93,6 +106,34 @@
 			</div>
 			<Button type="submit" class="self-start" loading={saving}>Changer le mot de passe</Button>
 		</form>
+	</SettingsSection>
+
+	<SettingsSection
+		title="Notifications"
+		text="Sur cet appareil, quand Crystal est ouvert dans un onglet que tu ne regardes pas."
+	>
+		{#if desktopAlerts.permission === 'unsupported'}
+			<p class="text-base text-ink-3">Ce navigateur ne sait pas afficher de notifications.</p>
+		{:else if desktopAlerts.permission === 'denied'}
+			<p class="text-base text-ink-3">
+				Le navigateur bloque les notifications de Crystal. Autorise-les dans les réglages du site
+				(le cadenas à gauche de l’adresse), puis recharge la page.
+			</p>
+		{:else}
+			<Segmented
+				label="Notifications"
+				value={desktopAlerts.effective}
+				onchange={chooseAlerts}
+				options={[
+					{ value: 'off', label: 'Aucune', icon: BellOff },
+					{ value: 'mine', label: 'Ce qui me concerne', icon: Bell },
+					{ value: 'all', label: 'Tout le projet', icon: Users }
+				]}
+			/>
+			<p class="mt-3 text-sm text-ink-3">
+				{ALERT_HINTS[desktopAlerts.effective]}
+			</p>
+		{/if}
 	</SettingsSection>
 
 	<SettingsSection title="Apparence" text="Mémorisée sur cet appareil.">

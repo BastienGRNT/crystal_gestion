@@ -23,11 +23,13 @@ function parse(raw: unknown): ClientEvent | null {
 export function createConnectionHandler({ identity, hub }: Container) {
 	return {
 		async handleConnection(socket: WebSocket, request: IncomingMessage) {
+			// Listened to first: a page refreshed while we authenticate must not stay "online".
+			const closed = new Promise((resolve) => socket.once('close', resolve));
 			const token = readCookie(request, SESSION_COOKIE);
 			const user = token ? await identity.authenticate(decodeURIComponent(token)) : null;
 			if (!user) return socket.close(4401, 'Unauthenticated');
 			await hub.add(socket, user.id);
-			socket.on('close', () => {
+			void closed.then(() => {
 				const offline = hub.remove(socket);
 				if (offline) identity.touch(offline).catch((error) => console.error('[realtime]', error));
 			});

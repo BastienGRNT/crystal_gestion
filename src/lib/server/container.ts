@@ -105,6 +105,8 @@ const chat = createChat({
 });
 
 const memberFeed = feedFor(hub, 'members', byProject);
+// A rejected promise nobody awaits would stop the whole server.
+const logRealtimeError = (error: unknown) => console.error('[realtime]', error);
 
 const projects = createProjects({
 	projects: drizzleProjects(db),
@@ -117,16 +119,19 @@ const projects = createProjects({
 	// Joining or leaving changes who hears what: refresh first, then tell the team (and the person).
 	memberFeed: {
 		saved: (member) =>
-			void hub.refresh([member.userId]).then(async () => {
-				memberFeed.saved(member);
-				const user = await users.findById(member.userId);
-				if (user)
-					hub.toProject(member.projectId, { type: 'saved', collection: 'users', item: user });
-			}),
+			void hub
+				.refresh([member.userId])
+				.then(async () => {
+					memberFeed.saved(member);
+					const user = await users.findById(member.userId);
+					if (user)
+						hub.toProject(member.projectId, { type: 'saved', collection: 'users', item: user });
+				})
+				.catch(logRealtimeError),
 		removed: (member) => {
 			memberFeed.removed(member);
 			hub.toUser(member.userId, { type: 'removed', collection: 'members', item: member });
-			void hub.refresh([member.userId]);
+			hub.refresh([member.userId]).catch(logRealtimeError);
 		}
 	},
 	activity: activity.log,

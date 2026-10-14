@@ -93,6 +93,8 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - `$effect` qui appelle une action lisant le store : l'envelopper dans `untrack` (sinon boucle).
 - Messages : `asks` / `answeredAt` font les questions suivies, et `app.questions` garde celles encore ouvertes de tous
   mes projets. Côté client, passer par `app.putMessage` / `app.dropMessage`, jamais `app.messages.upsert` seul.
+- Derrière Nginx Proxy Manager : `hooks.server.ts` retire l'en-tête `Link` des pages (≈ 4 Ko → 502 sinon), et
+  l'hôte proxy doit avoir « Websockets Support » activé (sinon bandeau « Connexion perdue » permanent).
 - Postgres écoute sur 55432. Prod : `ORIGIN` = URL publique, `APP_SECRET` obligatoire (ne plus la changer ensuite).
 - Prod Docker (`docker-compose.prod.yml`) : les migrations passent par `migrate.js` (pas de `drizzle-kit` dans l'image),
   d'où `drizzle-orm` et `postgres` en `dependencies`. Tout paquet requis à l'exécution hors `build/` va aussi là.
