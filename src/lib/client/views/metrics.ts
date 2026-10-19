@@ -176,3 +176,53 @@ export function teamRhythm(tasks: Task[], now: Date, weeks = 8): TeamRhythm {
 		onTime: withDeadline.length >= MIN_SAMPLES ? onTime / withDeadline.length : null
 	};
 }
+
+// ——— Time spent, read from the planning: a block linked to a task, once past, is time spent ———
+
+/** A working day, to turn hours into the days a client was sold. */
+export const HOURS_PER_DAY = 7;
+const HOUR_MS = 3_600_000;
+
+interface Spent {
+	projectId: string;
+	taskId: string | null;
+	startsAt: string;
+	endsAt: string;
+}
+
+/** The part of a block already behind us, in hours. */
+const pastHours = (block: Spent, now: number) =>
+	Math.max(0, Math.min(Date.parse(block.endsAt), now) - Date.parse(block.startsAt)) / HOUR_MS;
+
+/** Hours spent per kind over four weeks (blocks without a task apart); `null` when none. */
+export function timeByKind(
+	blocks: Spent[],
+	tasks: Task[],
+	now: Date,
+	days = WINDOW_DAYS
+): { hours: Record<TaskKind, number>; untasked: number; total: number } | null {
+	const t = now.getTime();
+	const since = t - days * DAY_MS;
+	const kindOf = new Map(tasks.map((task) => [task.id, task.kind]));
+	const hours = zero();
+	let untasked = 0;
+	for (const block of blocks) {
+		if (Date.parse(block.endsAt) < since) continue;
+		const spent = pastHours(block, t) - Math.max(0, since - Date.parse(block.startsAt)) / HOUR_MS;
+		if (spent <= 0) continue;
+		const kind = block.taskId ? kindOf.get(block.taskId) : undefined;
+		if (kind) hours[kind] += spent;
+		else untasked += spent;
+	}
+	const total = TASK_KINDS.reduce((sum, k) => sum + hours[k], untasked);
+	return total > 0 ? { hours, untasked, total } : null;
+}
+
+/** Days spent on a project so far, from its past blocks: what a fixed price is compared to. */
+export function daysSpent(blocks: Spent[], projectId: string, now: Date): number {
+	const t = now.getTime();
+	const hours = blocks
+		.filter((b) => b.projectId === projectId)
+		.reduce((sum, b) => sum + pastHours(b, t), 0);
+	return Math.round((hours / HOURS_PER_DAY) * 10) / 10;
+}

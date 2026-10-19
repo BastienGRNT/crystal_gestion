@@ -19,7 +19,7 @@
 		now,
 		myLane,
 		hourHeight = 48,
-		fromHour = 7,
+		fromHour = 8,
 		toHour = 21,
 		onmark,
 		ondroptask,
@@ -72,6 +72,7 @@
 					today={day.today}
 					draft={draftIn(drag.draft ?? held, index)}
 					draggingId={drag.draft?.id ?? null}
+					narrow={days.length > 1 && lanes.length > 1}
 					onbegin={(event, mode, item) =>
 						drag.begin(
 							event,

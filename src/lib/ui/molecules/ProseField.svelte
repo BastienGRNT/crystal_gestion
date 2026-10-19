@@ -61,7 +61,7 @@
 			aria-label={label}
 			{maxlength}
 			{placeholder}
-			rows={2}
+			rows={5}
 			maxHeight={520}
 			onblur={save}
 			onkeydown={(e) => {

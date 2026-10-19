@@ -10,7 +10,7 @@
 	class="flex h-full flex-col overflow-hidden rounded-md px-1.5 {compact
 		? 'py-0.5'
 		: 'py-1'} text-xs leading-tight text-ink-2"
-	style="{tint(item.color)};{availabilityFill(item.maybe)}"
+	style="{tint(item.color)};{availabilityFill(item.maybe, item.carried)}"
 >
 	<span class="truncate font-medium text-ink">{item.maybe ? 'Peut-être' : item.label}</span>
 	{#if !compact}

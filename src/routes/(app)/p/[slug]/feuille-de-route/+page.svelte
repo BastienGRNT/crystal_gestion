@@ -86,7 +86,7 @@
 					<div class="rounded-2xl border border-line bg-surface p-3 shadow-card">
 						<StepTimeline
 							steps={roadmap.steps.map((s) =>
-								timelineStep(s, roadmap.forecasts.get(s.id), s.id === roadmap.current?.id)
+								timelineStep(s, roadmap.forecasts.get(s.id), roadmap.currentIds.has(s.id))
 							)}
 						/>
 					</div>
@@ -109,7 +109,7 @@
 										{step}
 										number={numberOf(step)}
 										forecast={roadmap.forecasts.get(step.id)}
-										current={step.id === roadmap.current?.id}
+										current={roadmap.currentIds.has(step.id)}
 										outOfOrder={datedBeforePrevious(roadmap.steps, step.id)}
 										onclose={() => (closing = step)}
 									/>

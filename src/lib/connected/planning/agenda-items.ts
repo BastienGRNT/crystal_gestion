@@ -2,6 +2,8 @@ import { daySegment } from '$lib/modules/planning/domain/calendar';
 import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/availability';
 import { layoutGroups } from '$lib/modules/planning/domain/layout';
 import type { AgendaItem, AgendaLane } from '$lib/ui/organisms/agenda/types';
+import { capitalize, initials } from '$lib/client/format';
+import { carriedLabel, isCarried } from '$lib/client/views/week-plan';
 import { blockInfo, slotInfo } from './agenda-info';
 
 export interface AgendaSource {
@@ -15,6 +17,8 @@ export interface AgendaSource {
 	projectName: (id: string) => string;
 	taskOf: (id: string | null) => { number: number; title: string } | undefined;
 	isDraft: (id: string) => boolean;
+	/** Monday of the week someone's availability is carried from, when it is. */
+	carriedFrom: (userId: string) => Date | undefined;
 }
 
 type Raw = Omit<
@@ -35,18 +39,25 @@ function rawItems(s: AgendaSource): Raw[] {
 	});
 	const person = (id: string) => laneOf.get(id)?.name ?? '';
 	const color = (id: string) => laneOf.get(id)?.color ?? 'var(--accent)';
-	const slots: Raw[] = s.slots.map((slot) => ({
-		...base(slot.id, slot.userId),
-		layer: 'availability',
-		color: color(slot.userId),
-		info: slotInfo(slot, person(slot.userId)),
-		maybe: slot.status === 'maybe',
-		running: false,
-		label: s.lanes.length > 1 ? person(slot.userId) : 'Dispo',
-		ref: null,
-		from: slot.startsAt,
-		to: slot.endsAt
-	}));
+	const slots: Raw[] = s.slots.map((slot) => {
+		const info = slotInfo(slot, person(slot.userId));
+		const from = isCarried(slot.id) ? s.carriedFrom(slot.userId) : undefined;
+		const label = s.lanes.length > 1 ? person(slot.userId) : 'Dispo';
+		return {
+			...base(slot.id, slot.userId),
+			layer: 'availability',
+			color: color(slot.userId),
+			info: from ? { ...info, lines: [...info.lines, capitalize(carriedLabel(from))] } : info,
+			maybe: slot.status === 'maybe',
+			carried: !!from,
+			running: false,
+			label,
+			short: label,
+			ref: null,
+			from: slot.startsAt,
+			to: slot.endsAt
+		};
+	});
 	const blocks: Raw[] = s.blocks.map((block) => {
 		const here = block.projectId === s.projectId;
 		const task = s.taskOf(block.taskId);
@@ -67,8 +78,10 @@ function rawItems(s: AgendaSource): Raw[] {
 						]
 					},
 			maybe: false,
+			carried: false,
 			running: false,
 			label: here ? (task?.title ?? 'Travail') : project,
+			short: task && here ? `#${task.number}` : here ? 'Trav.' : initials(project),
 			ref: here && task ? `#${task.number}` : null,
 			from: block.startsAt,
 			to: block.endsAt

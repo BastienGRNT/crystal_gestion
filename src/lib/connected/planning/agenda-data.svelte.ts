@@ -10,9 +10,15 @@ import { sharedBands } from './agenda-bands';
 import { agendaItems } from './agenda-items';
 import type { AgendaView } from './agenda-view.svelte';
 import { dayMarks } from './day-marks';
+import type { WeekSlots } from './week-slots.svelte';
 
 /** Live agenda content of a project for the current view. */
-export function useAgendaData({ app }: AppContext, project: () => Project, view: () => AgendaView) {
+export function useAgendaData(
+	{ app }: AppContext,
+	project: () => Project,
+	view: () => AgendaView,
+	week: WeekSlots
+) {
 	const team = $derived(view().audience === 'team');
 	const people = $derived(teamOrder(app, project().id));
 	const lanes = $derived<AgendaLane[]>(
@@ -24,7 +30,7 @@ export function useAgendaData({ app }: AppContext, project: () => Project, view:
 		}))
 	);
 	const ids = $derived(new Set(lanes.map((l) => l.id)));
-	const slots = $derived(app.slots.all.filter((s) => ids.has(s.userId)));
+	const slots = $derived(week.all.filter((s) => ids.has(s.userId)));
 	const tasks = $derived(app.tasks.all.filter((t) => t.projectId === project().id));
 	const items = $derived(
 		agendaItems({
@@ -37,7 +43,8 @@ export function useAgendaData({ app }: AppContext, project: () => Project, view:
 			projectId: project().id,
 			projectName: (id) => app.projects.get(id)?.name ?? 'Autre projet',
 			taskOf: (id) => app.tasks.get(id),
-			isDraft: (id) => app.pending.has(id)
+			isDraft: (id) => app.pending.has(id),
+			carriedFrom: week.carriedFrom
 		})
 	);
 	const hours = $derived(hourWindow(items));

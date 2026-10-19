@@ -38,9 +38,13 @@
 >
 	<header class="flex items-baseline gap-2 px-1 pb-2.5">
 		<span class={['size-2.5 shrink-0 translate-y-[-1px] rounded-full', box.dot]}></span>
-		<h2 id="box-{quadrant}" class={['text-lg font-semibold', box.text]}>{box.label}</h2>
+		<h2 id="box-{quadrant}" class={['shrink-0 text-lg font-semibold whitespace-nowrap', box.text]}>
+			{box.label}
+		</h2>
 		<span class="text-sm font-medium text-ink-3 tabular-nums">{tasks.length || ''}</span>
-		<p class="ml-auto hidden truncate text-sm text-ink-3 sm:block" title={box.axes}>{box.hint}</p>
+		<p class="ml-auto hidden min-w-0 truncate text-sm text-ink-3 sm:block" title={box.axes}>
+			{box.hint}
+		</p>
 	</header>
 
 	<div

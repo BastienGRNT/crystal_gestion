@@ -33,10 +33,14 @@ export function boxStyle(box: Box | AgendaDraft, lanes: number, frame: GridFrame
 /** The item color as a CSS variable, so faces can mix it with transparency. */
 export const tint = (color: string | null) => `--tint:${color ?? 'var(--accent)'}`;
 
-export const availabilityFill = (maybe: boolean) =>
-	maybe
-		? 'background:repeating-linear-gradient(135deg,color-mix(in oklab,var(--tint) 26%,transparent) 0 2px,color-mix(in oklab,var(--tint) 6%,transparent) 2px 7px);border:1px dashed color-mix(in oklab,var(--tint) 55%,transparent)'
+/** "Peut-être" is hatched; a week carried over keeps its fill but a dotted edge: not said yet. */
+export function availabilityFill(maybe: boolean, carried = false) {
+	if (maybe)
+		return 'background:repeating-linear-gradient(135deg,color-mix(in oklab,var(--tint) 26%,transparent) 0 2px,color-mix(in oklab,var(--tint) 6%,transparent) 2px 7px);border:1px dashed color-mix(in oklab,var(--tint) 55%,transparent)';
+	return carried
+		? 'background:color-mix(in oklab,var(--tint) 12%,transparent);border:1.5px dotted color-mix(in oklab,var(--tint) 70%,transparent)'
 		: 'background:color-mix(in oklab,var(--tint) 16%,transparent);border-left:2px solid color-mix(in oklab,var(--tint) 75%,transparent)';
+}
 
 /** Day column and (unsnapped) minute under the pointer, scroll included, kept inside the slice. */
 export function pointerAt(surface: HTMLElement, event: MouseEvent, days: number, frame: GridFrame) {

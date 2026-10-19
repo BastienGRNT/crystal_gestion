@@ -23,6 +23,7 @@ const step = (id: string, extra: Partial<Milestone> = {}): Milestone => ({
 	doneWhen: '',
 	targetDate: null,
 	position: 0,
+	componentId: null,
 	closedAt: null,
 	closedBy: null,
 	createdBy: 'ana',

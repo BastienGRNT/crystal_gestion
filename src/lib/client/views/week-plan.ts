@@ -1,7 +1,12 @@
 import { toDateKey, type DateKey } from '$lib/modules/kernel/domain/dates';
-import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/availability';
+import {
+	copiedWeek,
+	type AvailabilitySlot,
+	type WorkBlock
+} from '$lib/modules/planning/domain/availability';
+import { addDays } from '$lib/modules/planning/domain/calendar';
 import type { Milestone } from '$lib/modules/roadmap/domain/milestone';
-import type { Task } from '$lib/modules/tasks/domain/task';
+import type { Task, TaskKind } from '$lib/modules/tasks/domain/task';
 
 export interface Range {
 	startsAt: string;
@@ -14,8 +19,16 @@ export interface Week {
 	to: Date;
 }
 
-/** "Poser" books 2 h at most: a task rarely fits in one sitting, the rest stays open to others. */
-export const MAX_PLACE_MINUTES = 120;
+/**
+ * How long a task takes when nobody said so, from its kind alone: no estimate is ever asked.
+ * A call is quick, a fix takes an hour, technical work a half-day, a feature a bit more.
+ */
+export const DEFAULT_MINUTES: Record<TaskKind, number> = {
+	action: 30,
+	bug: 60,
+	tech: 180,
+	feature: 240
+};
 /** Shorter leftovers are not worth starting a task in. */
 export const MIN_PLACE_MINUTES = 30;
 
@@ -84,6 +97,8 @@ export interface PersonWeek {
 	planned: number;
 	/** Available minutes no block takes yet. */
 	free: number;
+	/** The free minutes still ahead of `now`: what can still be used this week. */
+	ahead: number;
 	byProject: { projectId: string; minutes: number }[];
 }
 
@@ -91,7 +106,8 @@ export function personWeek(
 	userId: string,
 	slots: AvailabilitySlot[],
 	blocks: WorkBlock[],
-	week: Week
+	week: Week,
+	now: Date = week.from
 ): PersonWeek {
 	const window = windowOf(week);
 	const sure = merge(clipped(sureOf(userId, slots), window));
@@ -101,10 +117,13 @@ export function personWeek(
 		.map(([projectId, list]) => ({ projectId, minutes: total(merge(clipped(list, window))) }))
 		.filter((p) => p.minutes > 0)
 		.sort((a, b) => b.minutes - a.minutes);
+	const free = subtract(sure, busy);
+	const later = { start: Math.max(window.start, now.getTime()), end: window.end };
 	return {
 		available: total(sure),
 		planned: total(busy),
-		free: total(subtract(sure, busy)),
+		free: total(free),
+		ahead: total(free.flatMap((span) => clip(span, later) ?? [])),
 		byProject
 	};
 }
@@ -133,42 +152,53 @@ export interface Placement extends Range {
 	taskId: string;
 }
 
+const quarterUp = (ms: number) => Math.ceil(ms / QUARTER) * QUARTER;
+
 /**
- * The tasks one after the other in the free time, in order, at most `max` minutes each, starting
- * on a quarter hour. Crumbs too short for a task are skipped; tasks that do not fit are left out.
+ * The tasks one after the other in the free time, in order, each for its default length: the
+ * next free span first, then the following ones until the length is covered (several blocks for
+ * one task). Starts on a quarter hour; crumbs under 30 min are skipped unless they finish a task.
+ * A task the week cannot hold keeps what fitted.
  */
-export function placeTasks(taskIds: string[], free: Range[], max = MAX_PLACE_MINUTES): Placement[] {
+export function placeTasks(tasks: Pick<Task, 'id' | 'kind'>[], free: Range[]): Placement[] {
 	const spans = free.map(spanOf).sort((a, b) => a.start - b.start);
 	const placements: Placement[] = [];
-	for (const taskId of taskIds) {
-		const span = spans.find(
-			(s) => s.end - Math.ceil(s.start / QUARTER) * QUARTER >= MIN_PLACE_MINUTES * MINUTE
-		);
-		if (!span) break;
-		const start = Math.ceil(span.start / QUARTER) * QUARTER;
-		const end = Math.min(span.end, start + max * MINUTE);
-		placements.push({ taskId, ...rangeOf({ start, end }) });
-		span.start = end;
+	for (const task of tasks) {
+		let left = DEFAULT_MINUTES[task.kind] * MINUTE;
+		for (const span of spans) {
+			if (left <= 0) break;
+			const start = quarterUp(span.start);
+			const room = span.end - start;
+			if (room <= 0 || room < Math.min(MIN_PLACE_MINUTES * MINUTE, left)) continue;
+			const end = start + Math.min(room, left);
+			placements.push({ taskId: task.id, ...rangeOf({ start, end }) });
+			left -= end - start;
+			span.start = end;
+		}
 	}
 	return placements;
 }
 
 /**
- * A task dropped at a precise time: up to `max` minutes, stopping before the person's next block.
+ * A task dropped at a precise time: for `minutes`, stopping before the person's next block.
  * Null when the drop lands on one of their blocks.
  */
 export function placeAt(
 	userId: string,
 	blocks: WorkBlock[],
 	start: Date,
-	max = MAX_PLACE_MINUTES
+	minutes: number
 ): Range | null {
 	const at = start.getTime();
 	const own = blocks.filter((b) => b.userId === userId).map(spanOf);
 	if (own.some((b) => b.start <= at && at < b.end)) return null;
 	const next = Math.min(...own.filter((b) => b.start > at).map((b) => b.start));
-	return rangeOf({ start: at, end: Math.min(at + max * MINUTE, next) });
+	return rangeOf({ start: at, end: Math.min(at + minutes * MINUTE, next) });
 }
+
+/** The default length of these tasks, added up. */
+export const workMinutes = (tasks: Pick<Task, 'kind'>[]) =>
+	tasks.reduce((sum, t) => sum + DEFAULT_MINUTES[t.kind], 0);
 
 export interface PlaceContext {
 	meId: string;
@@ -177,6 +207,8 @@ export interface PlaceContext {
 	blocks: WorkBlock[];
 	week: Week;
 	currentStepId: string | null;
+	/** Whether tasks nobody holds count as mine (yes for me, no when sizing a teammate's week). */
+	unassigned?: boolean;
 }
 
 /** Lower comes first: blocking bugs, deadlines, work under way, the matrix, the step under way. */
@@ -190,7 +222,7 @@ function urgency(task: Task, lastDay: DateKey, currentStepId: string | null): nu
 	return task.milestoneId ? 6 : 5;
 }
 
-/** My open tasks of the project (mine or nobody's) that no block of the week covers yet. */
+/** Someone's open tasks of the project (theirs, or nobody's) that no block of the week covers yet. */
 export function tasksToPlace(tasks: Task[], ctx: PlaceContext): Task[] {
 	const window = windowOf(ctx.week);
 	const placed = new Set(
@@ -204,7 +236,7 @@ export function tasksToPlace(tasks: Task[], ctx: PlaceContext): Task[] {
 				t.projectId === ctx.projectId &&
 				(t.status === 'todo' || t.status === 'doing') &&
 				!t.blockedReason &&
-				(t.assigneeId === ctx.meId || t.assigneeId === null) &&
+				(t.assigneeId === ctx.meId || (t.assigneeId === null && ctx.unassigned !== false)) &&
 				!placed.has(t.id)
 		)
 		.sort(
@@ -223,6 +255,55 @@ export const weekBlocks = (userId: string, blocks: WorkBlock[], week: Week) =>
 
 export const hasSlots = (userId: string, slots: AvailabilitySlot[], week: Week) =>
 	slots.some((s) => s.userId === userId && clip(spanOf(s), windowOf(week)));
+
+/** Ids of availability carried over from an earlier week: shown and counted, not stored. */
+export const CARRIED = 'carried:';
+export const isCarried = (id: string) => id.startsWith(CARRIED);
+/** How far back a week without availability looks for one to reuse. */
+export const CARRIED_WEEKS = 6;
+
+export interface CarriedWeek {
+	/** Monday of the week it comes from. */
+	from: Date;
+	slots: AvailabilitySlot[];
+}
+
+/**
+ * A week where someone gave no availability reuses their last week that had some (six weeks
+ * back at most), moved to this week at the same local hours. Most weeks look alike: nobody
+ * should have to say it again.
+ */
+export function carriedWeek(
+	userId: string,
+	slots: AvailabilitySlot[],
+	monday: Date,
+	weeks = CARRIED_WEEKS
+): CarriedWeek | null {
+	const own = slots.filter((s) => s.userId === userId);
+	if (hasSlots(userId, own, { from: monday, to: addDays(monday, 7) })) return null;
+	for (let back = 1; back <= weeks; back++) {
+		const from = addDays(monday, -7 * back);
+		const copies = copiedWeek(own, from, monday);
+		if (copies.length)
+			return { from, slots: copies.map((s, i) => ({ ...s, id: `${CARRIED}${userId}:${i}` })) };
+	}
+	return null;
+}
+
+const dayMonth = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
+
+/** "reconduit de la semaine du 12 oct.". */
+export const carriedLabel = (from: Date) => `reconduit de la semaine du ${dayMonth.format(from)}`;
+
+/** Everyone's availability as the week reads it: what is stored, plus what is carried over. */
+export function withCarried(slots: AvailabilitySlot[], userIds: string[], monday: Date) {
+	const carried = new Map<string, CarriedWeek>();
+	for (const userId of userIds) {
+		const week = carriedWeek(userId, slots, monday);
+		if (week) carried.set(userId, week);
+	}
+	return { slots: [...slots, ...[...carried.values()].flatMap((w) => w.slots)], carried };
+}
 
 /** A usual week to start from: Monday to Friday, 9 h–12 h and 14 h–18 h. */
 export function typicalWeek(monday: Date): Range[] {
@@ -289,8 +370,8 @@ export function weekDeadlines(
 	);
 }
 
-/** The agenda shows 7 h–21 h, widened only to show what lies outside (minutes of the day). */
-export function hourWindow(items: { start: number; end: number }[], from = 7, to = 21) {
+/** The agenda shows 8 h–21 h at least, widened to the earliest and latest item (minutes of the day). */
+export function hourWindow(items: { start: number; end: number }[], from = 8, to = 21) {
 	if (!items.length) return { from, to };
 	return {
 		from: Math.min(from, Math.floor(Math.min(...items.map((i) => i.start)) / 60)),

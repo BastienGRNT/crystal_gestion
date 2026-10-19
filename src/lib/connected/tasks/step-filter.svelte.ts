@@ -1,6 +1,7 @@
 import { SvelteMap } from 'svelte/reactivity';
 import type { AppState } from '$lib/client/state/app.svelte';
 import {
+	currentStepIds,
 	currentStepOf,
 	inScope,
 	scopeStep,
@@ -22,12 +23,14 @@ function read(): Record<string, StepScope> {
 /**
  * Which step the board and the matrix show, per project and remembered on this device. By
  * default, the step under way: the steps to come wait their turn without cluttering the board.
+ * A product with several modules moves on several fronts at once: it shows everything instead.
  */
 class StepFilter {
 	#scopes = new SvelteMap<string, StepScope>(Object.entries(read()));
 
 	scope(app: AppState, projectId: string): StepScope {
-		const scope = this.#scopes.get(projectId) ?? 'current';
+		const modules = app.components.all.filter((c) => c.projectId === projectId && !c.archivedAt);
+		const scope = this.#scopes.get(projectId) ?? (modules.length > 1 ? 'all' : 'current');
 		// A step deleted or closed since then would hide everything: back to the one under way.
 		if (scope === 'current' || scope === 'all') return scope;
 		const step = app.milestones.get(scope);
@@ -47,10 +50,11 @@ class StepFilter {
 	view(app: AppState, projectId: string) {
 		const scope = this.scope(app, projectId);
 		const currentId = currentStepOf(app.milestones.all, projectId)?.id ?? null;
+		const current = currentStepIds(app.milestones.all, projectId);
 		const shown = scopeStep(scope, currentId);
 		return {
 			scope,
-			apply: (tasks: Task[]) => tasks.filter((t) => inScope(t, scope, currentId)),
+			apply: (tasks: Task[]) => tasks.filter((t) => inScope(t, scope, current)),
 			newTaskStep: stepForScope(scope, currentId),
 			/** Same, for a task created with that status (an idea stays out of the step under way). */
 			stepFor: (status: Task['status']) => stepForScope(scope, currentId, status),

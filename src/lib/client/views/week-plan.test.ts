@@ -3,7 +3,10 @@ import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/a
 import type { Milestone } from '$lib/modules/roadmap/domain/milestone';
 import { newTask, type Task } from '$lib/modules/tasks/domain/task';
 import {
+	carriedWeek,
+	DEFAULT_MINUTES,
 	freeRanges,
+	isCarried,
 	hourWindow,
 	hoursLabel,
 	personWeek,
@@ -12,7 +15,9 @@ import {
 	spanLabel,
 	tasksToPlace,
 	typicalWeek,
-	weekDeadlines
+	weekDeadlines,
+	withCarried,
+	workMinutes
 } from './week-plan';
 
 // Week of Monday 12 October 2026.
@@ -59,15 +64,22 @@ describe('hours of the week', () => {
 	it('counts sure availability, planned work of every project and what is left', () => {
 		const slots = [slot(13, 9, 12), slot(14, 14, 18), slot(15, 9, 12, 'maybe')];
 		const blocks = [block(13, 9, 11), block(14, 14, 15, { projectId: 'client' }), block(16, 9, 10)];
-		expect(personWeek('me', slots, blocks, week)).toEqual({
+		// Tuesday noon: Tuesday's free hour is behind, Wednesday's three are ahead.
+		expect(personWeek('me', slots, blocks, week, new Date(2026, 9, 13, 12))).toEqual({
 			available: 7 * 60,
 			planned: 4 * 60,
 			free: 4 * 60,
+			ahead: 3 * 60,
 			byProject: [
 				{ projectId: 'saas', minutes: 180 },
 				{ projectId: 'client', minutes: 60 }
 			]
 		});
+	});
+
+	it('sizes the work left from the kind of each task', () => {
+		expect(DEFAULT_MINUTES).toEqual({ action: 30, bug: 60, tech: 180, feature: 240 });
+		expect(workMinutes([task('a', { kind: 'feature' }), task('b', { kind: 'action' })])).toBe(270);
 	});
 });
 
@@ -96,12 +108,20 @@ describe('placing tasks', () => {
 		{ startsAt: at(13, 9), endsAt: at(13, 10, 30) },
 		{ startsAt: at(14, 14), endsAt: at(14, 18) }
 	];
+	const of = (id: string, kind: Task['kind']) => ({ id, kind });
 
-	it('takes 2 h at most, the room left when the slot ends sooner', () => {
-		expect(placeTasks(['a', 'b', 'c'], free)).toEqual([
-			{ taskId: 'a', startsAt: at(13, 9), endsAt: at(13, 10, 30) },
-			{ taskId: 'b', startsAt: at(14, 14), endsAt: at(14, 16) },
-			{ taskId: 'c', startsAt: at(14, 16), endsAt: at(14, 18) }
+	it('gives each task its default length, in the next free spans', () => {
+		expect(placeTasks([of('bug', 'bug'), of('call', 'action'), of('tech', 'tech')], free)).toEqual([
+			{ taskId: 'bug', startsAt: at(13, 9), endsAt: at(13, 10) },
+			{ taskId: 'call', startsAt: at(13, 10), endsAt: at(13, 10, 30) },
+			{ taskId: 'tech', startsAt: at(14, 14), endsAt: at(14, 17) }
+		]);
+	});
+
+	it('spreads a long task over the following spans when the first is too short', () => {
+		expect(placeTasks([of('feature', 'feature')], free)).toEqual([
+			{ taskId: 'feature', startsAt: at(13, 9), endsAt: at(13, 10, 30) },
+			{ taskId: 'feature', startsAt: at(14, 14), endsAt: at(14, 16, 30) }
 		]);
 	});
 
@@ -110,23 +130,61 @@ describe('placing tasks', () => {
 			{ startsAt: at(13, 9, 50), endsAt: at(13, 10, 10) },
 			{ startsAt: at(13, 14, 5), endsAt: at(13, 15) }
 		];
-		expect(placeTasks(['a'], odd)).toEqual([
+		expect(placeTasks([of('a', 'bug')], odd)).toEqual([
 			{ taskId: 'a', startsAt: at(13, 14, 15), endsAt: at(13, 15) }
 		]);
 	});
 
-	it('places nothing when nothing is free', () => {
-		expect(placeTasks(['a'], [])).toEqual([]);
-		expect(placeTasks(['a', 'b'], free.slice(0, 1))).toHaveLength(1);
+	it('places nothing when nothing is free, and keeps what fitted', () => {
+		expect(placeTasks([of('a', 'bug')], [])).toEqual([]);
+		const short = placeTasks([of('a', 'feature'), of('b', 'bug')], free.slice(0, 1));
+		expect(short).toEqual([{ taskId: 'a', startsAt: at(13, 9), endsAt: at(13, 10, 30) }]);
 	});
 
 	it('fits a dropped task before the next block', () => {
 		const blocks = [block(13, 11, 12)];
-		expect(placeAt('me', blocks, new Date(2026, 9, 13, 10))).toEqual({
+		expect(placeAt('me', blocks, new Date(2026, 9, 13, 10), 240)).toEqual({
 			startsAt: at(13, 10),
 			endsAt: at(13, 11)
 		});
-		expect(placeAt('me', blocks, new Date(2026, 9, 13, 11, 30))).toBeNull();
+		expect(placeAt('me', blocks, new Date(2026, 9, 13, 12), 60)).toEqual({
+			startsAt: at(13, 12),
+			endsAt: at(13, 13)
+		});
+		expect(placeAt('me', blocks, new Date(2026, 9, 13, 11, 30), 60)).toBeNull();
+	});
+});
+
+describe('a week carried over', () => {
+	const old = (weeksBack: number, day: number, from: number, to: number, userId = 'me') =>
+		slot(day - 7 * weeksBack, from, to, 'available', userId);
+
+	it('reuses the last week that had availability, at the same hours', () => {
+		const slots = [
+			old(3, 13, 9, 12),
+			old(2, 14, 14, 18),
+			{ ...old(2, 15, 9, 12), status: 'maybe' as const }
+		];
+		const carried = carriedWeek('me', slots, week.from);
+		expect(carried?.from).toEqual(new Date(2026, 8, 28));
+		expect(carried?.slots.map((s) => [s.startsAt, s.endsAt, s.status])).toEqual([
+			[at(14, 14), at(14, 18), 'available'],
+			[at(15, 9), at(15, 12), 'maybe']
+		]);
+		expect(carried?.slots.every((s) => isCarried(s.id))).toBe(true);
+	});
+
+	it('is not needed once the week has its own, nor looks further than six weeks', () => {
+		expect(carriedWeek('me', [old(1, 13, 9, 12), slot(16, 9, 10)], week.from)).toBeNull();
+		expect(carriedWeek('me', [old(7, 13, 9, 12)], week.from)).toBeNull();
+	});
+
+	it('counts for everyone in the team, nothing stored', () => {
+		const stored = [slot(13, 9, 12), old(1, 13, 10, 12, 'cam')];
+		const { slots, carried } = withCarried(stored, ['me', 'cam'], week.from);
+		expect([...carried.keys()]).toEqual(['cam']);
+		expect(slots).toHaveLength(3);
+		expect(personWeek('cam', slots, [], week).available).toBe(120);
 	});
 });
 
@@ -201,10 +259,11 @@ describe('the week at a glance', () => {
 		expect(slots[1]).toEqual({ startsAt: at(12, 14), endsAt: at(12, 18) });
 	});
 
-	it('opens the agenda at 7 h–21 h, wider only for what lies outside', () => {
-		expect(hourWindow([])).toEqual({ from: 7, to: 21 });
-		expect(hourWindow([{ start: 9 * 60, end: 12 * 60 }])).toEqual({ from: 7, to: 21 });
-		expect(hourWindow([{ start: 6 * 60 + 30, end: 22 * 60 + 15 }])).toEqual({ from: 6, to: 23 });
+	it('opens the agenda at 8 h–21 h, wider for what lies outside, evenings included', () => {
+		expect(hourWindow([])).toEqual({ from: 8, to: 21 });
+		expect(hourWindow([{ start: 9 * 60, end: 12 * 60 }])).toEqual({ from: 8, to: 21 });
+		expect(hourWindow([{ start: 20 * 60, end: 23 * 60 }])).toEqual({ from: 8, to: 23 });
+		expect(hourWindow([{ start: 6 * 60 + 30, end: 24 * 60 }])).toEqual({ from: 6, to: 24 });
 	});
 
 	it('says hours and spans the French way', () => {

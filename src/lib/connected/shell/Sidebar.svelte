@@ -3,7 +3,6 @@
 		CalendarDays,
 		ChartLine,
 		Compass,
-		Rocket,
 		Sun,
 		FolderOpen,
 		House,
@@ -18,8 +17,7 @@
 	import { page } from '$app/state';
 	import { useApp } from '$lib/client/context';
 	import { tint } from '$lib/client/labels';
-	import { currentStepOf, waitsForLaterStep } from '$lib/client/views/roadmap';
-	import { shippable } from '$lib/modules/roadmap/domain/release';
+	import { currentStepIds, waitsForLaterStep } from '$lib/client/views/roadmap';
 	import { activeProjects, channelsOf, projectCounts, unreadIn } from '$lib/client/views/workspace';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
 	import Kbd from '$lib/ui/atoms/Kbd.svelte';
@@ -39,8 +37,8 @@
 	// Tasks of steps to come wait their turn: they are not "à trier" yet.
 	const counts = $derived.by(() => {
 		if (!project) return null;
-		const currentId = currentStepOf(app.milestones.all, project.id)?.id ?? null;
-		const tasks = app.tasks.all.filter((t) => !waitsForLaterStep(t, currentId));
+		const current = currentStepIds(app.milestones.all, project.id);
+		const tasks = app.tasks.all.filter((t) => !waitsForLaterStep(t, current));
 		return projectCounts(tasks, project.id);
 	});
 	const unread = $derived(
@@ -50,12 +48,6 @@
 		project ? teamOrder(app, project.id).filter((u) => u.id !== app.meId) : []
 	);
 	const projects = $derived(activeProjects(app.projects.all));
-	// Only once the team ships versions: before that, nothing waits for production.
-	const readyToShip = $derived(
-		project && app.releases.all.some((r) => r.projectId === project.id)
-			? app.tasks.all.filter((t) => t.projectId === project.id && shippable(t)).length
-			: 0
-	);
 	const at = (suffix: string) => (suffix ? path.startsWith(base + suffix) : path === base);
 </script>
 
@@ -104,14 +96,6 @@
 				label="Indicateurs"
 				icon={ChartLine}
 				active={at('/indicateurs')}
-				onclick={onnavigate}
-			/>
-			<NavItem
-				href="{base}/versions"
-				label="Mises en prod"
-				icon={Rocket}
-				active={at('/versions')}
-				badge={readyToShip}
 				onclick={onnavigate}
 			/>
 			<NavItem

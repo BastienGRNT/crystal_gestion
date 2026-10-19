@@ -25,7 +25,7 @@
 				>
 					{day.date}
 				</p>
-				<DayMarks marks={day.marks} {onmark} />
+				<DayMarks marks={day.marks} day="{day.weekday} {day.date}" {onmark} />
 				{#if lanes.length > 1}
 					<div class="mt-1.5 flex justify-around">
 						{#each lanes as lane (lane.id)}

@@ -13,6 +13,8 @@
 	import InlineAdd from '$lib/ui/molecules/InlineAdd.svelte';
 	import ProseField from '$lib/ui/molecules/ProseField.svelte';
 	import TaskRow from '$lib/ui/organisms/TaskRow.svelte';
+	import ComponentPicker from '$lib/ui/molecules/ComponentPicker.svelte';
+	import { componentOptions } from '../tasks/components-of';
 	import { QUICK_HINT, quickAdd } from '../tasks/quick-add';
 	import { paceText } from './step-text';
 
@@ -47,6 +49,8 @@
 	const pace = $derived(paceText(forecast));
 	const late = $derived(forecast?.state === 'late');
 	const closed = $derived(!!step.closedAt);
+	const modules = $derived(componentOptions(app, step.projectId));
+	const module = $derived(modules.find((m) => m.id === step.componentId));
 </script>
 
 {#snippet row(task: Task)}
@@ -101,6 +105,10 @@
 					class={['text-lg font-semibold tracking-tight', closed && 'text-ink-2'].join(' ')}
 					onsave={(title) => actions.roadmap.updateStep(step.id, { title })}
 				/>
+				{#if module}<span class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2"
+						><span class="size-2.5 rounded-[3px]" style:background-color={module.color}
+						></span>{module.name}</span
+					>{/if}
 				{#if current}<span class="text-sm font-medium text-accent-text">en cours</span>{/if}
 			</div>
 			<div class="flex flex-wrap items-center gap-2 text-sm text-ink-3">
@@ -199,12 +207,28 @@
 					{#if showDone}{#each done as task (task.id)}{@render row(task)}{/each}{/if}
 				{/if}
 			</div>
+			{#if modules.length && !closed}
+				<div class="flex flex-col gap-1">
+					<span class="text-xs font-semibold tracking-wide text-ink-3 uppercase"
+						>Module · chaque module avance en parallèle</span
+					>
+					<ComponentPicker
+						options={modules}
+						value={step.componentId}
+						onchange={(componentId) => actions.roadmap.updateStep(step.id, { componentId })}
+					/>
+				</div>
+			{/if}
 			{#if !closed}
 				<InlineAdd
 					label="Ajouter une tâche"
 					hint={QUICK_HINT}
 					onadd={(text) =>
-						quickAdd(context, text, { projectId: step.projectId, milestoneId: step.id })}
+						quickAdd(context, text, {
+							projectId: step.projectId,
+							milestoneId: step.id,
+							componentId: step.componentId
+						})}
 				/>
 			{/if}
 			<div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">

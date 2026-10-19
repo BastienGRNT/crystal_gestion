@@ -3,6 +3,9 @@ import { memberId } from '../domain/membership';
 import {
 	uniqueSlug,
 	validBrief,
+	validShipChecklist,
+	validSoldDays,
+	DEFAULT_SHIP_CHECKLIST,
 	validDeadline,
 	validDescription,
 	validProjectColor,
@@ -37,6 +40,8 @@ export const createProject = (deps: ProjectDeps) => async (input: NewProject, ac
 		deadline: validDeadline(input.deadline ?? null),
 		weekGoal: '',
 		brief: '',
+		soldDays: null,
+		shipChecklist: DEFAULT_SHIP_CHECKLIST,
 		archivedAt: null,
 		createdBy: actorId,
 		createdAt: now
@@ -85,7 +90,11 @@ export const updateProject =
 			...(patch.color !== undefined && { color: validProjectColor(patch.color) }),
 			...(patch.deadline !== undefined && { deadline: validDeadline(patch.deadline) }),
 			...(patch.weekGoal !== undefined && { weekGoal: validWeekGoal(patch.weekGoal) }),
-			...(patch.brief !== undefined && { brief: validBrief(patch.brief) })
+			...(patch.brief !== undefined && { brief: validBrief(patch.brief) }),
+			...(patch.soldDays !== undefined && { soldDays: validSoldDays(patch.soldDays) }),
+			...(patch.shipChecklist !== undefined && {
+				shipChecklist: validShipChecklist(patch.shipChecklist)
+			})
 		}));
 
 export const setArchived =

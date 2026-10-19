@@ -2,7 +2,7 @@ import type { AppState } from '$lib/client/state/app.svelte';
 import { projectMilestones, stepForecasts } from '$lib/client/views/roadmap';
 import { missingThisWeek } from '$lib/client/views/metrics';
 import type { DateKey } from '$lib/modules/kernel/domain/dates';
-import { currentMilestone } from '$lib/modules/roadmap/domain/milestone';
+import { currentMilestone, currentMilestones } from '$lib/modules/roadmap/domain/milestone';
 import { projectTasks } from '../projects/current.svelte';
 
 /** A project's steps, the one under way and where each stands, read from the live store. */
@@ -10,10 +10,14 @@ export function roadmapOf(app: AppState, projectId: string, today: DateKey, now:
 	const steps = projectMilestones(app.milestones.all, projectId);
 	const forecasts = stepForecasts(steps, projectTasks(app, projectId), today, now);
 	const current = currentMilestone(steps);
+	/** One per module, plus the project's own line. */
+	const currents = currentMilestones(steps);
 	return {
 		steps,
 		forecasts,
 		current,
+		currents,
+		currentIds: new Set(currents.map((m) => m.id)),
 		currentForecast: current ? forecasts.get(current.id) : undefined
 	};
 }

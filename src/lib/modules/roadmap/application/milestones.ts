@@ -24,6 +24,12 @@ export interface NewMilestone {
 	title: string;
 	doneWhen?: string;
 	targetDate?: DateKey | null;
+	componentId?: string | null;
+}
+
+/** A step moves a module of its own project forward, or the project's own line. */
+async function checkComponent(deps: RoadmapDeps, projectId: string, id: string | null | undefined) {
+	if (id && !(await deps.tasks.componentNames(projectId)).has(id)) throw invalid('Module inconnu.');
 }
 
 /** What happens to unfinished work when a step closes. */
@@ -50,6 +56,7 @@ function build(input: NewMilestone, position: number, actorId: string, now: Date
 		doneWhen: validDoneWhen(input.doneWhen ?? ''),
 		targetDate: validTargetDate(input.targetDate ?? null),
 		position,
+		componentId: input.componentId ?? null,
 		closedAt: null,
 		closedBy: null,
 		createdBy: actorId,
@@ -60,6 +67,7 @@ function build(input: NewMilestone, position: number, actorId: string, now: Date
 export const createMilestone =
 	(deps: RoadmapDeps) => async (input: NewMilestone, actorId: string) => {
 		await deps.access.assertMember(input.projectId, actorId);
+		await checkComponent(deps, input.projectId, input.componentId);
 		const position = positionForNew(
 			await deps.milestones.ofProject(input.projectId),
 			input.targetDate ?? null
@@ -72,6 +80,7 @@ export const updateMilestone =
 	(deps: RoadmapDeps) =>
 	async (id: string, patch: MilestonePatch, reason: string, actorId: string) => {
 		const current = await existing(deps, id, actorId);
+		await checkComponent(deps, current.projectId, patch.componentId);
 		const milestone = await save(deps, { ...current, ...cleanMilestonePatch(patch) });
 		const moved = patch.targetDate !== undefined && milestone.targetDate !== current.targetDate;
 		if (moved && current.targetDate)

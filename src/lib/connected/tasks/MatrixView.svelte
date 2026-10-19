@@ -44,7 +44,10 @@
 		/>
 	{/if}
 
-	<div data-drop-gaps class="grid gap-3 md:grid-cols-[auto_1fr_1fr] md:grid-rows-[auto_1fr_1fr]">
+	<div
+		data-drop-gaps
+		class="grid gap-3 md:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] md:grid-rows-[auto_1fr_1fr]"
+	>
 		<div class="hidden md:block"></div>
 		<p class="hidden text-center text-sm font-semibold tracking-wide text-ink-3 uppercase md:block">
 			Urgent

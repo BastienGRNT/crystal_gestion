@@ -21,7 +21,9 @@ export const projectCommands = (projects: Projects) => ({
 			color: z.number().int().optional(),
 			deadline: dateKey.nullable().optional(),
 			weekGoal: z.string().optional(),
-			brief: z.string().max(50_000).optional()
+			brief: z.string().max(50_000).optional(),
+			soldDays: z.number().finite().nullable().optional(),
+			shipChecklist: z.array(z.string().max(500)).max(50).optional()
 		}),
 		({ userId }, { id, ...patch }) => projects.update(id, patch, userId)
 	),

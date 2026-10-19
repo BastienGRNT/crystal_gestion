@@ -16,11 +16,24 @@ export interface QuickEntry {
 	kindSaid: boolean;
 	critical: boolean;
 	componentId: string | null;
+	/** `~martin`: who reported it, completed from the names already used. */
+	reportedBy: string | null;
 }
 
 export interface Named {
 	id: string;
 	name: string;
+}
+
+/** `~mart` → "Pharmacie Martin" when a known reporter has a word starting that way. */
+export function findReporter(query: string, known: string[]): string {
+	const wanted = fold(query.replace(/_/g, ' '));
+	const match = known.find((name) =>
+		fold(name)
+			.split(/\s+/)
+			.some((w) => w.startsWith(wanted))
+	);
+	return match ?? query.replace(/_/g, ' ');
 }
 
 /** `+rdv` picks the module whose name starts that way. */
@@ -58,16 +71,17 @@ export function parseDay(word: string, today: DateKey): DateKey | null {
 }
 
 /**
- * Reads "fix: login cassé @ana +site demain": a prefix says the kind (`bug!:` for a blocking
- * one; otherwise it is guessed), `@prénom` who does it, `+module` where, and a day at the end
- * the deadline. Dates are only read at the end so a title can still say "demain".
+ * Reads "fix: login cassé @ana +site ~martin demain": a prefix says the kind (`bug!:` for a
+ * blocking one; otherwise it is guessed), `@prénom` who does it, `+module` where, `~nom` who
+ * reported it, and a day at the end the deadline. Dates are only read at the end so a title can still say "demain".
  */
 export function parseQuickEntry(
 	text: string,
 	people: Person[],
 	today: DateKey,
 	meId?: string,
-	components: Named[] = []
+	components: Named[] = [],
+	reporters: string[] = []
 ): QuickEntry {
 	let assigneeId: string | null = null;
 	let dueDate: DateKey | null = null;
@@ -78,6 +92,12 @@ export function parseQuickEntry(
 	if (plus >= 0) {
 		componentId = findComponent(words[plus].slice(1), components)!.id;
 		words.splice(plus, 1);
+	}
+	let reportedBy: string | null = null;
+	const tilde = words.findIndex((w) => w.startsWith('~') && w.length > 1);
+	if (tilde >= 0) {
+		reportedBy = findReporter(words[tilde].slice(1), reporters);
+		words.splice(tilde, 1);
 	}
 	const mention = words.findIndex((w) => w.startsWith('@') && findPerson(w.slice(1), people, meId));
 	if (mention >= 0) {
@@ -98,6 +118,7 @@ export function parseQuickEntry(
 		kind: prefix?.kind ?? guessKind(title),
 		kindSaid: !!prefix,
 		critical: prefix?.critical ?? false,
-		componentId
+		componentId,
+		reportedBy
 	};
 }

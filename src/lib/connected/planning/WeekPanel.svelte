@@ -8,9 +8,12 @@
 		hoursLabel,
 		personWeek,
 		spanLabel,
+		tasksToPlace,
 		weekBlocks,
-		weekDeadlines
+		weekDeadlines,
+		workMinutes
 	} from '$lib/client/views/week-plan';
+	import type { AvailabilitySlot } from '$lib/modules/planning/domain/availability';
 	import { addDays, atMinutes, dayKey } from '$lib/modules/planning/domain/calendar';
 	import { parseDateKey } from '$lib/modules/kernel/domain/dates';
 	import type { Project } from '$lib/modules/projects/domain/project';
@@ -27,9 +30,11 @@
 		/** The seven days of the week shown. */
 		days: Date[];
 		placing: ReturnType<typeof usePlacing>;
+		/** Everyone's availability as the week reads it, carried-over weeks included. */
+		slots: AvailabilitySlot[];
 	}
 
-	let { project, days, placing }: Props = $props();
+	let { project, days, placing, slots }: Props = $props();
 	const { app, overlays } = useApp();
 	const SHOWN = 8;
 
@@ -45,14 +50,25 @@
 
 	const loads = $derived(
 		people.map((person) => {
-			const load = personWeek(person.id, app.slots.all, app.blocks.all, week);
+			const load = personWeek(person.id, slots, app.blocks.all, week, now.value);
+			const left =
+				person.id === app.meId
+					? placing.toPlace
+					: tasksToPlace(app.tasks.all, {
+							meId: person.id,
+							projectId: project.id,
+							blocks: app.blocks.all,
+							week,
+							currentStepId: null,
+							unassigned: false
+						});
 			const detail =
 				load.byProject.length > 1 || load.byProject[0]?.projectId !== project.id
 					? load.byProject
 							.map((p) => `${projectName(p.projectId)} ${hoursLabel(p.minutes)}`)
 							.join(', ')
 					: '';
-			return { person, load, detail };
+			return { person, load, detail, left: workMinutes(left) };
 		})
 	);
 
@@ -60,7 +76,7 @@
 		people.length > 1
 			? sharedBands(
 					days,
-					app.slots.all.filter((s) => ids.has(s.userId)),
+					slots.filter((s) => ids.has(s.userId)),
 					firstName
 				)
 					.map((band) => ({
@@ -111,7 +127,7 @@
 >
 	<section class={section}>
 		<h2 class={heading}>Par personne</h2>
-		{#each loads as { person, load, detail } (person.id)}
+		{#each loads as { person, load, detail, left } (person.id)}
 			<PersonLoad
 				name={person.name}
 				suffix={person.id === app.meId ? 'toi' : ''}
@@ -120,6 +136,9 @@
 				available={load.available}
 				planned={load.planned}
 				free={load.free}
+				ahead={load.ahead}
+				{left}
+				overflowHref="/p/{project.slug}/priorites"
 				label={hoursLabel}
 				{detail}
 			/>
@@ -161,8 +180,9 @@
 		</div>
 		{#if toPlace.length}
 			<p class="text-sm text-ink-3">
-				Tes tâches sans créneau cette semaine. « Poser » les met dans ta prochaine dispo libre (2 h
-				au plus) ; tu peux aussi les glisser sur la grille.
+				Tes tâches sans créneau cette semaine. « Poser » les met dans tes prochaines dispos libres
+				(30 min pour une action, 1 h un bug, 3 h du technique, 4 h une fonctionnalité) ; tu peux
+				aussi les glisser sur la grille.
 			</p>
 			<ul class="-mx-2 flex flex-col">
 				{#each toPlace.slice(0, SHOWN) as task (task.id)}

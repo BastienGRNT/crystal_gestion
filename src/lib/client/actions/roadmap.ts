@@ -60,7 +60,12 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 
 	function createStep(
 		projectId: string,
-		fields: { title: string; doneWhen?: string; targetDate?: DateKey | null }
+		fields: {
+			title: string;
+			doneWhen?: string;
+			targetDate?: DateKey | null;
+			componentId?: string | null;
+		}
 	) {
 		const now = new Date();
 		const step = attempt<Milestone>(() => ({
@@ -70,6 +75,7 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 			doneWhen: validDoneWhen(fields.doneWhen ?? ''),
 			targetDate: validTargetDate(fields.targetDate ?? null),
 			position: positionForNew(stepsOf(projectId), fields.targetDate ?? null),
+			componentId: fields.componentId ?? null,
 			closedAt: null,
 			closedBy: null,
 			createdBy: app.meId,
@@ -77,11 +83,11 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 		}));
 		if (!step) return null;
 		app.milestones.upsert(step);
-		const { id, title, doneWhen, targetDate } = step;
+		const { id, title, doneWhen, targetDate, componentId } = step;
 		settle(
 			app,
 			id,
-			send('roadmap.createMilestone', { id, projectId, title, doneWhen, targetDate }),
+			send('roadmap.createMilestone', { id, projectId, title, doneWhen, targetDate, componentId }),
 			(saved) => app.milestones.upsert(saved),
 			() => app.milestones.remove(id)
 		);

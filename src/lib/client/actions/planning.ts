@@ -68,10 +68,13 @@ export function planningActions(app: AppState) {
 			);
 		},
 
-		/** Several slots at once, said in one toast. */
-		async createSlots(ranges: (Range & { status?: AvailabilityStatus })[], done: string) {
+		/** Several slots at once, said in one toast (none when `done` is empty). True once saved. */
+		async createSlots(
+			ranges: (Range & { id?: string; status?: AvailabilityStatus })[],
+			done: string
+		): Promise<boolean> {
 			const slots: AvailabilitySlot[] = ranges.map((range) => ({
-				id: crypto.randomUUID(),
+				id: range.id ?? crypto.randomUUID(),
 				userId: app.meId,
 				startsAt: range.startsAt,
 				endsAt: range.endsAt,
@@ -82,10 +85,12 @@ export function planningActions(app: AppState) {
 				await send('slots.createMany', {
 					slots: slots.map(({ id, startsAt, endsAt, status }) => ({ id, startsAt, endsAt, status }))
 				});
-				toasts.show(done, { tone: 'success' });
+				if (done) toasts.show(done, { tone: 'success' });
+				return true;
 			} catch (error) {
 				slots.forEach((s) => app.slots.remove(s.id));
 				toasts.error(errorMessage(error));
+				return false;
 			}
 		},
 

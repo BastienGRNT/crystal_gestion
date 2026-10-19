@@ -9,10 +9,12 @@
 		lanes: number;
 		frame: GridFrame;
 		dragging: boolean;
+		/** Week view with several people: blocks only have room for a short label. */
+		narrow: boolean;
 		onbegin: (event: PointerEvent, mode: DragMode, item: AgendaItem) => void;
 	}
 
-	let { item, lanes, frame, dragging, onbegin }: Props = $props();
+	let { item, lanes, frame, dragging, narrow, onbegin }: Props = $props();
 	const compact = $derived(item.end - item.start < 45);
 	const block = $derived(item.layer === 'block');
 	const resizable = $derived(item.editable && !item.running);
@@ -25,7 +27,7 @@
 <div
 	role="button"
 	tabindex="-1"
-	aria-label={item.label}
+	aria-label={narrow ? item.info.title : item.label}
 	class="group absolute select-none {block ? 'z-10' : 'z-5'} {movable
 		? 'cursor-grab touch-none'
 		: block
@@ -35,7 +37,10 @@
 	onpointerdown={begin(mode)}
 	data-agenda-item={item.id}
 >
-	{#if block}<BlockFace {item} {compact} />{:else}<AvailabilityFace {item} {compact} />{/if}
+	{#if block}<BlockFace {item} {compact} {narrow} />{:else}<AvailabilityFace
+			{item}
+			{compact}
+		/>{/if}
 	{#if resizable}
 		{#if !item.clippedStart}<span
 				class="absolute inset-x-0 -top-1 h-2.5 cursor-ns-resize"

@@ -16,13 +16,20 @@ export interface Milestone {
 	targetDate: DateKey | null;
 	/** Order of the steps, chosen by hand (dragging). The date is a budget, not a sort key. */
 	position: number;
+	/**
+	 * The module it moves forward, when the product has several: steps follow each other within
+	 * a module, and modules move in parallel. `null`: the project's own line.
+	 */
+	componentId: string | null;
 	closedAt: string | null;
 	closedBy: string | null;
 	createdBy: string;
 	createdAt: string;
 }
 
-export type MilestonePatch = Partial<Pick<Milestone, 'title' | 'doneWhen' | 'targetDate'>>;
+export type MilestonePatch = Partial<
+	Pick<Milestone, 'title' | 'doneWhen' | 'targetDate' | 'componentId'>
+>;
 
 export const validMilestoneTitle = (title: string) => requiredText(title, 'Le nom de l’étape', 80);
 
@@ -40,7 +47,8 @@ export function cleanMilestonePatch(patch: MilestonePatch): MilestonePatch {
 	return {
 		...(patch.title !== undefined && { title: validMilestoneTitle(patch.title) }),
 		...(patch.doneWhen !== undefined && { doneWhen: validDoneWhen(patch.doneWhen) }),
-		...(patch.targetDate !== undefined && { targetDate: validTargetDate(patch.targetDate) })
+		...(patch.targetDate !== undefined && { targetDate: validTargetDate(patch.targetDate) }),
+		...(patch.componentId !== undefined && { componentId: patch.componentId })
 	};
 }
 
@@ -58,25 +66,43 @@ export function datedBeforePrevious(milestones: Milestone[], id: string): boolea
 	return ordered.slice(0, at).some((m) => !m.closedAt && m.targetDate && m.targetDate > date);
 }
 
-/** The step under way: the first one not closed yet. */
+/** The line a step belongs to: its module, or the project's own line. */
+export const laneOf = (milestone: Pick<Milestone, 'componentId'>) => milestone.componentId ?? '';
+
+const sameLane = <M extends Milestone>(milestones: M[], id: string) => {
+	const lane = milestones.find((m) => m.id === id);
+	return lane ? orderMilestones(milestones.filter((m) => laneOf(m) === laneOf(lane))) : [];
+};
+
+/** The steps under way: the first open one of each line (one per module, in parallel). */
+export function currentMilestones<M extends Milestone>(milestones: M[]): M[] {
+	const seen = new Set<string>();
+	return orderMilestones(milestones).filter((m) => {
+		if (m.closedAt || seen.has(laneOf(m))) return false;
+		seen.add(laneOf(m));
+		return true;
+	});
+}
+
+/** The first step under way, whatever its line: where work without a module goes. */
 export const currentMilestone = <M extends Milestone>(milestones: M[]): M | null =>
 	orderMilestones(milestones).find((m) => !m.closedAt) ?? null;
 
-/** The open step that comes after this one, if any. */
+/** The open step that comes after this one in its line, if any. */
 export function nextMilestone<M extends Milestone>(milestones: M[], id: string): M | null {
-	const ordered = orderMilestones(milestones);
-	const at = ordered.findIndex((m) => m.id === id);
-	return ordered.slice(at + 1).find((m) => !m.closedAt) ?? null;
+	const lane = sameLane(milestones, id);
+	const at = lane.findIndex((m) => m.id === id);
+	return lane.slice(at + 1).find((m) => !m.closedAt) ?? null;
 }
 
-/** When it became the step under way: the previous step's closing, else its creation. */
+/** When it became a step under way: the closing of the step before it in its line, else its creation. */
 export function startedAt(milestones: Milestone[], id: string): string | null {
-	const ordered = orderMilestones(milestones);
-	const at = ordered.findIndex((m) => m.id === id);
+	const lane = sameLane(milestones, id);
+	const at = lane.findIndex((m) => m.id === id);
 	if (at < 0) return null;
-	const previous = ordered[at - 1];
+	const previous = lane[at - 1];
 	if (previous && !previous.closedAt) return null;
-	return previous?.closedAt ?? ordered[at].createdAt;
+	return previous?.closedAt ?? lane[at].createdAt;
 }
 
 /** Ideas ("pistes") are what could fit: they never count in progress nor in forecasts. */

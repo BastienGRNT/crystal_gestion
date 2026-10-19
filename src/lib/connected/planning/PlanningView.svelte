@@ -22,21 +22,29 @@
 	import { AgendaView } from './agenda-view.svelte';
 	import { agendaDays, periodLabel } from './period-label';
 	import { usePlacing } from './placing.svelte';
+	import { useWeekSlots } from './week-slots.svelte';
 
 	let { project }: { project: Project } = $props();
 	const context = useApp();
 	// `actions` is also the name of a header snippet below.
 	const { app, actions: act, overlays } = context;
 	const view = new AgendaView();
-	const data = useAgendaData(
+	const weekSlots = useWeekSlots(
 		context,
 		() => project,
 		() => view
 	);
+	const data = useAgendaData(
+		context,
+		() => project,
+		() => view,
+		weekSlots
+	);
 	const placing = usePlacing(
 		context,
 		() => project,
-		() => view
+		() => view,
+		weekSlots
 	);
 	let selection = $state<{ item: AgendaItem; point: Point } | null>(null);
 	/** A range just drawn, waiting for "dispo", "peut-être" or a task. */
@@ -52,7 +60,7 @@
 	const monday = $derived(view.week[0]);
 	const week = $derived({ from: monday, to: addDays(monday, 7) });
 	const empty = $derived(
-		!hasSlots(app.meId, app.slots.all, week) && !drawing.includes(dayKey(monday))
+		!hasSlots(app.meId, weekSlots.all, week) && !drawing.includes(dayKey(monday))
 	);
 	const myLane = $derived(
 		Math.max(
@@ -76,14 +84,17 @@
 	}
 
 	function change(item: AgendaItem, startShift: number, endShift: number) {
-		const target = item.layer === 'availability' ? app.slots.get(item.id) : app.blocks.get(item.id);
+		const target =
+			item.layer === 'availability' ? weekSlots.slot(item.id) : app.blocks.get(item.id);
 		if (!target) return;
 		const patch = {
 			startsAt: shiftIso(target.startsAt, startShift),
 			endsAt: shiftIso(target.endsAt, endShift)
 		};
-		if (item.layer === 'availability') act.planning.updateSlot(item.id, patch);
-		else act.planning.updateBlock(item.id, patch);
+		void weekSlots.edit((real) => {
+			if (item.layer === 'availability') act.planning.updateSlot(real(item.id), patch);
+			else act.planning.updateBlock(item.id, patch);
+		});
 	}
 
 	function openMark(mark: DayMark) {
@@ -200,7 +211,7 @@
 		</div>
 	</div>
 
-	<WeekPanel {project} days={view.week} {placing} />
+	<WeekPanel {project} days={view.week} {placing} slots={weekSlots.all} />
 </div>
 
 {#if held && heldRange}
@@ -209,6 +220,7 @@
 		point={held.point}
 		projectId={project.id}
 		suggestions={placing.toPlace}
+		edit={weekSlots.edit}
 		onclose={close}
 	/>
 {/if}
@@ -216,6 +228,7 @@
 		{selection}
 		projectId={project.id}
 		suggestions={placing.toPlace}
+		{weekSlots}
 		onplace={placing.placeIn}
 		onclose={close}
 	/>{/if}

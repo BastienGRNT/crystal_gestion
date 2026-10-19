@@ -19,6 +19,7 @@ const step = (id: string, extra: Partial<Milestone> = {}): Milestone => ({
 	doneWhen: '',
 	targetDate: null,
 	position: 0,
+	componentId: null,
 	closedAt: null,
 	closedBy: null,
 	createdBy: 'ana',
@@ -75,6 +76,27 @@ describe('step forecasts', () => {
 			state: 'late'
 		});
 		expect(forecasts.get('life')?.state).toBe('undated');
+	});
+
+	it('lets modules move in parallel, and leaves "Plus tard" out of the load', () => {
+		const lanes = [
+			step('site-1', { targetDate: '2026-10-30', componentId: 'site', position: 1 }),
+			step('rdv-1', { targetDate: '2026-10-30', componentId: 'rdv', position: 2 }),
+			step('site-2', { targetDate: '2026-11-20', componentId: 'site', position: 3 })
+		];
+		const tasks = [
+			...pace,
+			task({ milestoneId: 'site-1' }),
+			task({ milestoneId: 'site-1' }),
+			task({ milestoneId: 'rdv-1' }),
+			task({ milestoneId: 'site-2' }),
+			task({ quadrant: 'later' })
+		];
+		const forecasts = stepForecasts(lanes, tasks, today, now);
+		// The appointments' first step does not wait for the site's: 1 task at 0.25 a day.
+		expect(forecasts.get('rdv-1')?.predicted).toBe('2026-10-23');
+		// The site's second step waits for its first one, and for the other module due before.
+		expect(forecasts.get('site-2')?.predicted).toBe('2026-11-04');
 	});
 
 	it('says nothing about dates without enough finished work', () => {

@@ -77,8 +77,16 @@ describe('kind of work', () => {
 			kind: 'bug',
 			kindSaid: true,
 			critical: true,
-			componentId: 'c-site'
+			componentId: 'c-site',
+			reportedBy: null
 		});
+		expect(
+			parseQuickEntry('fix: horaires ~mart', people, today, undefined, [], ['Pharmacie Martin'])
+				.reportedBy
+		).toBe('Pharmacie Martin');
+		expect(parseQuickEntry('fix: horaires ~Dr_Lemoine', people, today).reportedBy).toBe(
+			'Dr Lemoine'
+		);
 		expect(parseQuickEntry('feat: export PDF', people, today)).toMatchObject({
 			title: 'export PDF',
 			kind: 'feature',

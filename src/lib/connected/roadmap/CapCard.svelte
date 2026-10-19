@@ -2,8 +2,12 @@
 	import { ChevronDown, Crosshair } from '@lucide/svelte';
 	import { untrack } from 'svelte';
 	import { useApp } from '$lib/client/context';
-	import { BRIEF_TEMPLATE, isFramed, type Project } from '$lib/modules/projects/domain/project';
-	import Button from '$lib/ui/atoms/Button.svelte';
+	import {
+		BRIEF_HEADINGS,
+		briefSections,
+		joinBrief,
+		type Project
+	} from '$lib/modules/projects/domain/project';
 	import EditableText from '$lib/ui/molecules/EditableText.svelte';
 	import ProseField from '$lib/ui/molecules/ProseField.svelte';
 
@@ -29,8 +33,17 @@
 		}
 	}
 
-	const framed = $derived(isFramed(project));
-	let started = $state(false);
+	const sections = $derived(briefSections(project.brief));
+	const HINTS: Record<string, string> = {
+		'Pour qui':
+			'Qui utilise le produit, précisément. Ex. : pharmacies indépendantes de 3 à 10 personnes',
+		'Leur problème': 'Ce qui leur coûte du temps ou de l’argent aujourd’hui',
+		'Notre réponse': 'Ce qu’on leur apporte, et pourquoi nous plutôt qu’un autre',
+		'Qui paie, combien': 'Qui signe, quel prix, quel modèle',
+		'Ce qu’on ne fait pas': 'Ce qu’on refuse, pour couper court aux débats'
+	};
+	const save = (heading: string, text: string) =>
+		actions.projects.update(project.id, { brief: joinBrief({ ...sections, [heading]: text }) });
 </script>
 
 <section
@@ -68,34 +81,21 @@
 
 	{#if !folded}
 		<div class="px-4 pb-4 pl-[3.25rem]">
-			{#if project.brief || framed}
-				<ProseField
-					label="Le cap"
-					value={project.brief}
-					maxlength={20000}
-					size="md"
-					startEditing={started}
-					placeholder="Pour qui, leur problème, qui paie, ce qu’on ne fait pas."
-					onsave={(brief) => actions.projects.update(project.id, { brief })}
-				/>
-			{:else}
-				<div
-					class="flex flex-col items-start gap-3 rounded-xl border border-dashed border-line-strong px-4 py-4"
-				>
-					<p class="text-base text-ink-2">
-						Pour qui, leur problème, qui paie, ce qu’on ne fait pas. Dix minutes, une fois : ça
-						tranche les débats plus tard. Pour un projet client, écris-y le brief.
-					</p>
-					<Button
-						size="sm"
-						variant="primary"
-						onclick={() => {
-							started = true;
-							actions.projects.update(project.id, { brief: BRIEF_TEMPLATE });
-						}}>Écrire le cap</Button
-					>
-				</div>
-			{/if}
+			<div class="flex flex-col gap-4">
+				{#each BRIEF_HEADINGS as heading (heading)}
+					<div class="flex flex-col gap-0.5">
+						<h3 class="text-xs font-semibold tracking-wide text-ink-3 uppercase">{heading}</h3>
+						<ProseField
+							label={heading}
+							value={sections[heading]}
+							maxlength={4000}
+							size="md"
+							placeholder={HINTS[heading]}
+							onsave={(text) => save(heading, text)}
+						/>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </section>

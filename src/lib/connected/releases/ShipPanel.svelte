@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Copy, Rocket, TriangleAlert } from '@lucide/svelte';
+	import { Copy, ListChecks, Rocket, TriangleAlert, X } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { KINDS } from '$lib/client/labels';
 	import { toasts } from '$lib/client/toasts.svelte';
@@ -13,6 +13,7 @@
 	import type { Task, TaskKind } from '$lib/modules/tasks/domain/task';
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import TextArea from '$lib/ui/atoms/TextArea.svelte';
+	import InlineAdd from '$lib/ui/molecules/InlineAdd.svelte';
 
 	let { project }: { project: Project } = $props();
 	const { app, actions, overlays } = useApp();
@@ -51,6 +52,21 @@
 	const shownNotes = $derived(notesTouched ? notes : draftNote);
 	const tell = $derived(toTell(chosen));
 	let shipping = $state(false);
+	// Ticked for this release only: the list starts over every time.
+	let checked = $state(new Set<number>());
+	const unchecked = $derived(project.shipChecklist.length - checked.size);
+
+	function check(i: number) {
+		const next = new Set(checked);
+		if (next.has(i)) next.delete(i);
+		else next.add(i);
+		checked = next;
+	}
+
+	const setChecklist = (shipChecklist: string[]) => {
+		checked = new Set();
+		actions.projects.update(project.id, { shipChecklist });
+	};
 
 	const GROUPS: TaskKind[] = ['feature', 'bug', 'tech'];
 
@@ -77,6 +93,7 @@
 		shipping = false;
 		if (!release) return;
 		skipped = new Set();
+		checked = new Set();
 		name = notes = '';
 		nameTouched = notesTouched = false;
 	}
@@ -186,6 +203,37 @@
 			</label>
 		</div>
 
+		<div class="flex flex-col gap-1 border-t border-line pt-4">
+			<p class="flex items-center gap-1.5 text-sm font-semibold text-ink-2">
+				<ListChecks size={15} aria-hidden="true" />Avant de partir
+				<span class="font-normal text-ink-3">· la liste repart à zéro à chaque version</span>
+			</p>
+			{#each project.shipChecklist as item, i (`${i}-${item}`)}
+				<div class="group flex min-h-10 items-center gap-2.5 rounded-lg px-1 hover:bg-hover">
+					<label class="flex flex-1 items-center gap-2.5 py-1.5 text-base">
+						<input
+							type="checkbox"
+							checked={checked.has(i)}
+							onchange={() => check(i)}
+							class="size-4 shrink-0"
+						/>
+						<span class={checked.has(i) ? 'text-ink-3 line-through' : ''}>{item}</span>
+					</label>
+					<button
+						class="flex size-9 items-center justify-center rounded-lg text-ink-3 hover:bg-danger-soft hover:text-danger-text"
+						aria-label="Retirer « {item} » de la liste"
+						onclick={() => setChecklist(project.shipChecklist.filter((_, j) => j !== i))}
+						><X size={15} /></button
+					>
+				</div>
+			{/each}
+			<InlineAdd
+				label="Ajouter un point à vérifier"
+				placeholder="Ex. : prévenir le support, puis Entrée"
+				onadd={(text) => setChecklist([...project.shipChecklist, text])}
+			/>
+		</div>
+
 		{#if tell.length}
 			<p class="rounded-xl bg-plan-soft px-4 py-3 text-base">
 				<span class="font-semibold">À prévenir :</span>
@@ -194,6 +242,11 @@
 		{/if}
 
 		<div class="flex flex-wrap items-center justify-end gap-2">
+			{#if unchecked > 0}
+				<p class="mr-auto text-sm text-warn-text">
+					{unchecked} point{unchecked > 1 ? 's' : ''} pas encore coché{unchecked > 1 ? 's' : ''}
+				</p>
+			{/if}
 			<Button icon={Copy} onclick={copyNote} disabled={!shownNotes.trim()}>Copier la note</Button>
 			<Button
 				variant="primary"

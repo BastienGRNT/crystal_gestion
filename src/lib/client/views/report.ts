@@ -4,7 +4,7 @@ import type { Decision } from '$lib/modules/roadmap/domain/decision';
 import type { Metric, MetricReading } from '$lib/modules/roadmap/domain/metric';
 import type { Release } from '$lib/modules/roadmap/domain/release';
 import {
-	currentMilestone,
+	currentMilestones,
 	orderMilestones,
 	shortDate,
 	type Milestone
@@ -26,6 +26,10 @@ export interface ReportRoadmap {
 	metrics?: Metric[];
 	readings: MetricReading[];
 	releases?: Release[];
+	/** Days spent so far (from the planning), compared to the days sold. */
+	spentDays?: number;
+	/** The product's modules, to name the steps under way of each. */
+	components?: { id: string; name: string }[];
 }
 
 const NO_ROADMAP: ReportRoadmap = { milestones: [], decisions: [], readings: [] };
@@ -58,7 +62,7 @@ export function weekReport(
 	const all = tasks.filter((t) => t.projectId === project.id);
 	const mine = audience === 'client' ? all.filter(FOR_CLIENT) : all;
 	const steps = roadmap.milestones.filter((m) => m.projectId === project.id);
-	const current = currentMilestone(steps);
+	const current = new Set(currentMilestones(steps).map((m) => m.id));
 	const weekAgo = now.getTime() - WEEK_MS;
 	const by = (t: Task) => (nameOf(t.assigneeId) ? ` (${nameOf(t.assigneeId)})` : '');
 	const due = (t: Task) => (t.dueDate ? `, pour ${dayLabel(t.dueDate, today).toLowerCase()}` : '');
@@ -86,7 +90,7 @@ export function weekReport(
 				t.status === 'todo' &&
 				!t.blockedReason &&
 				t.quadrant !== 'later' &&
-				!waitsForLaterStep(t, current?.id ?? null)
+				!waitsForLaterStep(t, current)
 		)
 		.sort(
 			(a, b) =>
@@ -100,7 +104,7 @@ export function weekReport(
 	return [
 		`${project.name} : le point du ${longDate(today)}`,
 		'',
-		...stepLines(steps, all, today, now),
+		...stepLines(steps, all, today, now, roadmap.components ?? []),
 		...section('Terminé cette semaine', done),
 		...section(
 			'En cours',
@@ -124,36 +128,59 @@ export function weekReport(
 		),
 		...metricLines(project, roadmap, today),
 		...(audience === 'team' ? rhythmLines(all, weekAgo) : []),
+		...(audience === 'team' && project.soldDays && roadmap.spentDays !== undefined
+			? [
+					`Budget : ${roadmap.spentDays.toLocaleString('fr')} j passés sur ${project.soldDays.toLocaleString('fr')} vendus (${Math.round((roadmap.spentDays / project.soldDays) * 100)} %)`,
+					''
+				]
+			: []),
 		...deliveryLine(project, all, steps, today, now)
 	]
 		.join('\n')
 		.trim();
 }
 
-function stepLines(steps: Milestone[], tasks: Task[], today: DateKey, now: Date): string[] {
+function stepLines(
+	steps: Milestone[],
+	tasks: Task[],
+	today: DateKey,
+	now: Date,
+	components: { id: string; name: string }[]
+): string[] {
 	const ordered = orderMilestones(steps);
-	const current = currentMilestone(steps);
-	if (!current) return [];
-	const forecast = stepForecasts(steps, tasks, today, now).get(current.id)!;
+	const under = currentMilestones(steps);
+	if (!under.length) return [];
+	const forecasts = stepForecasts(steps, tasks, today, now);
+	const describe = (current: Milestone) => {
+		const forecast = forecasts.get(current.id)!;
+		const date = current.targetDate ? `, prévue le ${shortDate(current.targetDate)}` : '';
+		const pace =
+			forecast.state === 'late'
+				? ` : au rythme actuel, ${forecast.lateDays} j de retard`
+				: forecast.state === 'fits'
+					? ' : au rythme actuel, ça tient'
+					: '';
+		return `${current.title}, ${forecast.done}/${forecast.total} tâches${date}${pace}`;
+	};
+	// Several modules move at once: one line each.
+	if (under.length > 1) {
+		const nameOf = (m: Milestone) =>
+			components.find((c) => c.id === m.componentId)?.name ?? 'Projet';
+		return [
+			`Étapes en cours (${under.length})`,
+			...under.map((m) => `- ${nameOf(m)} : ${describe(m)}`),
+			''
+		];
+	}
+	const [current] = under;
 	const rank = `${ordered.indexOf(current) + 1}/${ordered.length}`;
-	const date = current.targetDate ? `, prévue le ${shortDate(current.targetDate)}` : '';
-	const pace =
-		forecast.state === 'late'
-			? ` : au rythme actuel, ${forecast.lateDays} j de retard`
-			: forecast.state === 'fits'
-				? ' : au rythme actuel, ça tient'
-				: '';
 	const next = ordered[ordered.indexOf(current) + 1];
 	const after = next
 		? [
 				`Prochaine étape : ${next.title}${next.targetDate ? `, prévue le ${shortDate(next.targetDate)}` : ''}.`
 			]
 		: [];
-	return [
-		`Étape en cours (${rank}) : ${current.title}, ${forecast.done}/${forecast.total} tâches${date}${pace}.`,
-		...after,
-		''
-	];
+	return [`Étape en cours (${rank}) : ${describe(current)}.`, ...after, ''];
 }
 
 function metricLines(project: Project, roadmap: ReportRoadmap, today: DateKey): string[] {

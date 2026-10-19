@@ -11,7 +11,7 @@ import { createdAt, timestamptz } from '../../../server/db/columns';
 import { messages } from '../../chat/infrastructure/schema';
 import { users } from '../../identity/infrastructure/schema';
 import { projects } from '../../projects/infrastructure/schema';
-import { tasks } from '../../tasks/infrastructure/schema';
+import { components, tasks } from '../../tasks/infrastructure/schema';
 import { DECISION_SOURCES } from '../domain/decision';
 import { DIRECTIONS } from '../domain/metric';
 import { VERDICTS } from '../domain/hypothesis';
@@ -30,6 +30,7 @@ export const milestones = pgTable(
 		doneWhen: text().notNull().default(''),
 		targetDate: date(),
 		position: doublePrecision().notNull(),
+		componentId: uuid().references(() => components.id, { onDelete: 'set null' }),
 		closedAt: timestamptz(),
 		closedBy: uuid().references(() => users.id, { onDelete: 'set null' }),
 		createdBy: uuid()

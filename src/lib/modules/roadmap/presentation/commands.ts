@@ -11,7 +11,8 @@ export const roadmapCommands = (roadmap: Roadmap) => ({
 			projectId: id,
 			title: z.string(),
 			doneWhen: z.string().optional(),
-			targetDate: dateKey.nullable().optional()
+			targetDate: dateKey.nullable().optional(),
+			componentId: id.nullable().optional()
 		}),
 		({ userId }, input) => roadmap.createMilestone(input, userId)
 	),
@@ -22,6 +23,7 @@ export const roadmapCommands = (roadmap: Roadmap) => ({
 			title: z.string().optional(),
 			doneWhen: z.string().optional(),
 			targetDate: dateKey.nullable().optional(),
+			componentId: id.nullable().optional(),
 			/** Why the date moves, kept with the decision written for it. */
 			reason: z.string().optional()
 		}),

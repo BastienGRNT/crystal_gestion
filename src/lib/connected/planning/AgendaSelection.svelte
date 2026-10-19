@@ -3,11 +3,12 @@
 	import { useApp } from '$lib/client/context';
 	import { rangeLabel } from '$lib/client/format';
 	import AgendaPopover from '$lib/ui/organisms/agenda/AgendaPopover.svelte';
-	import type { Range } from '$lib/client/views/week-plan';
+	import { carriedLabel, isCarried, type Range } from '$lib/client/views/week-plan';
 	import type { Task } from '$lib/modules/tasks/domain/task';
 	import KindIcon from '$lib/ui/organisms/agenda/KindIcon.svelte';
 	import TaskSearch from '$lib/ui/organisms/agenda/TaskSearch.svelte';
 	import type { AgendaItem, Point } from '$lib/ui/organisms/agenda/types';
+	import type { WeekSlots } from './week-slots.svelte';
 
 	interface Props {
 		selection: { item: AgendaItem; point: Point };
@@ -16,13 +17,18 @@
 		suggestions: Task[];
 		/** Lays the task in the free part of the slot. */
 		onplace: (taskId: string, slot: Range) => void;
+		/** My week as shown, carried-over availability included. */
+		weekSlots: WeekSlots;
 		onclose: () => void;
 	}
 
-	let { selection, projectId, suggestions, onplace, onclose }: Props = $props();
+	let { selection, projectId, suggestions, onplace, weekSlots, onclose }: Props = $props();
 	const { app, actions } = useApp();
 	const item = $derived(selection.item);
-	const slot = $derived(app.slots.get(item.id));
+	const slot = $derived(weekSlots.slot(item.id));
+	const carriedFrom = $derived(
+		slot && isCarried(slot.id) ? weekSlots.carriedFrom(slot.userId) : undefined
+	);
 	const block = $derived(app.blocks.get(item.id));
 	const range = $derived(slot ?? block);
 	const owner = $derived(app.users.get(slot?.userId ?? block?.userId)?.name.split(' ')[0] ?? '');
@@ -37,7 +43,16 @@
 		(slot ? (slot.status === 'maybe' ? 'Peut-être dispo' : 'Dispo') : what) +
 			(owner && (slot?.userId ?? block?.userId) !== app.meId ? ` · ${owner}` : '')
 	);
-	const detail = $derived(range ? rangeLabel(range.startsAt, range.endsAt) : '');
+	const detail = $derived(
+		range
+			? `${rangeLabel(range.startsAt, range.endsAt)}${carriedFrom ? ` · ${carriedLabel(carriedFrom)}` : ''}`
+			: ''
+	);
+	/** A change to my carried-over week stores it first, then applies to the stored slot. */
+	const mine = (run: (id: string) => unknown) => () => {
+		const id = slot?.id;
+		if (id) void weekSlots.edit((real) => run(real(id)));
+	};
 	const options = $derived(
 		app.tasks.all
 			.filter((t) => t.projectId === projectId && t.status !== 'done' && t.id !== block?.taskId)
@@ -61,7 +76,7 @@
 							? 'border-accent bg-accent-soft text-accent-text'
 							: 'border-line hover:bg-hover'
 					]}
-					onclick={then(() => actions.planning.updateSlot(slot.id, { status: 'available' }))}
+					onclick={then(mine((id) => actions.planning.updateSlot(id, { status: 'available' })))}
 				>
 					<Check size={16} /> Dispo
 				</button>
@@ -72,7 +87,7 @@
 							? 'border-accent bg-accent-soft text-accent-text'
 							: 'border-line hover:bg-hover'
 					]}
-					onclick={then(() => actions.planning.updateSlot(slot.id, { status: 'maybe' }))}
+					onclick={then(mine((id) => actions.planning.updateSlot(id, { status: 'maybe' })))}
 				>
 					<CircleDashed size={16} /> Peut-être
 				</button>
@@ -92,7 +107,7 @@
 			<div class="mt-1 border-t border-line pt-1">
 				<button
 					class={[row, 'text-danger-text hover:bg-danger-soft']}
-					onclick={then(() => actions.planning.removeSlot(slot.id))}
+					onclick={then(mine((id) => actions.planning.removeSlot(id)))}
 				>
 					<Trash2 size={16} /> Supprimer
 				</button>

@@ -2,10 +2,10 @@ import type { AppContext } from '$lib/client/context';
 import type { TaskDraft } from '$lib/client/actions/tasks';
 import { parseQuickEntry } from '$lib/modules/tasks/domain/quick-entry';
 import { now } from '$lib/client/now.svelte';
-import { componentOptions } from './components-of';
+import { componentOptions, reporters } from './components-of';
 
 export const QUICK_HINT =
-	'« bug: » au début pour un bug (« bug!: » s’il bloque) · @prénom pour la confier · +module · demain ou 15/11 à la fin.';
+	'« bug: » au début pour un bug (« bug!: » s’il bloque) · @prénom pour la confier · +module · ~nom de qui l’a signalé · demain ou 15/11 à la fin.';
 
 /** Inline "add" fields read "@ana vendredi" the same way the full dialog does. */
 export function quickAdd(
@@ -20,7 +20,8 @@ export function quickAdd(
 		app.users.all,
 		now.today,
 		app.meId,
-		componentOptions(app, seed.projectId)
+		componentOptions(app, seed.projectId),
+		reporters(app, seed.projectId)
 	);
 	const kind = seed.kind ?? entry.kind;
 	return (
@@ -30,6 +31,7 @@ export function quickAdd(
 			title: entry.title,
 			kind,
 			critical: entry.critical,
+			reportedBy: entry.reportedBy,
 			componentId: entry.componentId ?? seed.componentId ?? null,
 			assigneeId: entry.assigneeId ?? seed.assigneeId ?? null,
 			dueDate: entry.dueDate ?? seed.dueDate ?? null

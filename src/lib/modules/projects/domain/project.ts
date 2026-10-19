@@ -17,13 +17,27 @@ export interface Project {
 	 * (or, for a client project, the brief). Written once, read when in doubt.
 	 */
 	brief: string;
+	/** Days sold to the client, for a fixed-price project: what the time spent is compared to. */
+	soldDays: number | null;
+	/** What to check before each release (backups, migrations…), unticked again every time. */
+	shipChecklist: string[];
 	archivedAt: string | null;
 	createdBy: string;
 	createdAt: string;
 }
 
 export type ProjectPatch = Partial<
-	Pick<Project, 'name' | 'description' | 'color' | 'deadline' | 'weekGoal' | 'brief'>
+	Pick<
+		Project,
+		| 'name'
+		| 'description'
+		| 'color'
+		| 'deadline'
+		| 'weekGoal'
+		| 'brief'
+		| 'soldDays'
+		| 'shipChecklist'
+	>
 >;
 
 export const PROJECT_COLORS = 8;
@@ -45,6 +59,23 @@ export function validBrief(text: string): string {
 	return text.trim();
 }
 
+export function validSoldDays(days: number | null): number | null {
+	ensure(days === null || (Number.isFinite(days) && days > 0 && days < 10_000), 'Budget invalide.');
+	return days;
+}
+
+export const DEFAULT_SHIP_CHECKLIST = [
+	'Sauvegarde de la base faite',
+	'Migrations testées sur une copie',
+	'Testé sur un téléphone',
+	'Le suivi des erreurs est ouvert'
+];
+
+export function validShipChecklist(items: string[]): string[] {
+	ensure(items.length <= 20, '20 points au plus.');
+	return items.map((i) => i.trim().slice(0, 120)).filter(Boolean);
+}
+
 /** The headings offered for an empty Cap: a frame to fill in ten minutes, not a form. */
 export const BRIEF_HEADINGS = [
 	'Pour qui',
@@ -55,6 +86,23 @@ export const BRIEF_HEADINGS = [
 ];
 
 export const BRIEF_TEMPLATE = BRIEF_HEADINGS.map((h) => `## ${h}\n\n`).join('\n');
+
+/** The Cap's fixed sections: each one its own text, none can be dropped. */
+export function briefSections(brief: string): Record<string, string> {
+	const out: Record<string, string> = Object.fromEntries(BRIEF_HEADINGS.map((h) => [h, '']));
+	let current = BRIEF_HEADINGS[0];
+	for (const line of brief.split('\n')) {
+		const heading = line.match(/^##\s+(.*)$/)?.[1].trim();
+		// Text before any known heading (an older free Cap) lands in the first section.
+		if (heading && heading in out) current = heading;
+		else out[current] += `${line}\n`;
+	}
+	for (const h of BRIEF_HEADINGS) out[h] = out[h].trim();
+	return out;
+}
+
+export const joinBrief = (sections: Record<string, string>) =>
+	BRIEF_HEADINGS.map((h) => `## ${h}\n\n${(sections[h] ?? '').trim()}`).join('\n\n');
 
 /** Framed enough not to be asked again: some words under the headings. */
 export const isFramed = (project: Pick<Project, 'brief'>) =>

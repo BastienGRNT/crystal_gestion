@@ -1,4 +1,14 @@
-import { date, index, integer, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
+import {
+	date,
+	doublePrecision,
+	index,
+	integer,
+	jsonb,
+	pgTable,
+	primaryKey,
+	text,
+	uuid
+} from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
 
@@ -11,6 +21,8 @@ export const projects = pgTable('projects', {
 	deadline: date(),
 	weekGoal: text().notNull().default(''),
 	brief: text().notNull().default(''),
+	soldDays: doublePrecision(),
+	shipChecklist: jsonb().$type<string[]>().notNull().default([]),
 	archivedAt: timestamptz(),
 	createdBy: uuid()
 		.notNull()

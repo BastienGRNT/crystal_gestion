@@ -1,6 +1,7 @@
 import { addDays, daysBetween, type DateKey } from '$lib/modules/kernel/domain/dates';
 import {
-	currentMilestone,
+	currentMilestones,
+	laneOf,
 	orderMilestones,
 	progressOf,
 	type Milestone
@@ -22,8 +23,9 @@ export interface StepForecast {
 
 /**
  * Where each step stands and when it should be done, without anyone entering a percentage or
- * an estimate. Step N waits for the open work of steps 1 to N and of the tasks without a step
- * (they take time too), finished at the pace of the last four weeks.
+ * an estimate, at the pace of the last four weeks. A step waits for its own open work, the steps
+ * before it in its line (its module), the steps of other modules due earlier (the team does those
+ * first), and the tasks without a step (they take time too, except those parked "Plus tard").
  */
 export function stepForecasts(
 	milestones: Milestone[],
@@ -33,9 +35,19 @@ export function stepForecasts(
 ): Map<string, StepForecast> {
 	const perWeek = pacePerWeek(tasks, now);
 	const perDay = perWeek === null ? null : perWeek / 7;
-	let load = tasks.filter((t) => isWorkLeft(t) && !t.milestoneId).length;
+	const loose = tasks.filter(
+		(t) => isWorkLeft(t) && !t.milestoneId && t.quadrant !== 'later'
+	).length;
+	const ordered = orderMilestones(milestones);
+	const open = new Map(
+		ordered.map((m) => [m.id, tasks.filter((t) => t.milestoneId === m.id && isWorkLeft(t)).length])
+	);
+	const comesFirst = (other: Milestone, step: Milestone) =>
+		laneOf(other) === laneOf(step)
+			? ordered.indexOf(other) < ordered.indexOf(step)
+			: !!other.targetDate && !!step.targetDate && other.targetDate < step.targetDate;
 	const result = new Map<string, StepForecast>();
-	for (const milestone of orderMilestones(milestones)) {
+	for (const milestone of ordered) {
 		const own = tasks.filter((t) => t.milestoneId === milestone.id);
 		const progress = progressOf(own);
 		const base = { ...progress, predicted: null, lateDays: 0, ready: false };
@@ -43,7 +55,9 @@ export function stepForecasts(
 			result.set(milestone.id, { ...base, state: 'closed' });
 			continue;
 		}
-		load += own.filter(isWorkLeft).length;
+		const load = ordered
+			.filter((m) => !m.closedAt && (m.id === milestone.id || comesFirst(m, milestone)))
+			.reduce((sum, m) => sum + open.get(m.id)!, loose);
 		const ready = progress.total > 0 && progress.done === progress.total;
 		const predicted = perDay ? addDays(today, Math.ceil(load / perDay)) : null;
 		const lateDays =
@@ -63,18 +77,24 @@ export function stepForecasts(
 /** What the board and the matrix show: the step under way, one step, or everything. */
 export type StepScope = 'current' | 'all' | string;
 
+/** The steps under way: one id, or one per module. */
+export type CurrentSteps = string | null | ReadonlySet<string>;
+
+const isCurrent = (id: string, current: CurrentSteps) =>
+	typeof current === 'string' || current === null ? id === current : current.has(id);
+
 /**
  * Tasks to do or ideas of a step that has not started yet: they wait their turn. What is under
  * way, in review or done always shows, whatever its step (nothing in progress is ever hidden).
  */
-export function waitsForLaterStep(task: Task, currentId: string | null): boolean {
+export function waitsForLaterStep(task: Task, current: CurrentSteps): boolean {
 	if (task.status !== 'todo' && task.status !== 'idea') return false;
-	return !!task.milestoneId && task.milestoneId !== currentId;
+	return !!task.milestoneId && !isCurrent(task.milestoneId, current);
 }
 
-export function inScope(task: Task, scope: StepScope, currentId: string | null): boolean {
+export function inScope(task: Task, scope: StepScope, current: CurrentSteps): boolean {
 	if (scope === 'all' || (task.status !== 'todo' && task.status !== 'idea')) return true;
-	if (scope === 'current') return !waitsForLaterStep(task, currentId);
+	if (scope === 'current') return !waitsForLaterStep(task, current);
 	return task.milestoneId === scope;
 }
 
@@ -100,5 +120,10 @@ export function scopeStep(scope: StepScope, currentId: string | null): string | 
 export const projectMilestones = (milestones: Milestone[], projectId: string) =>
 	orderMilestones(milestones.filter((m) => m.projectId === projectId));
 
+/** The first step under way of a project (its own line first, then by order). */
 export const currentStepOf = (milestones: Milestone[], projectId: string) =>
-	currentMilestone(milestones.filter((m) => m.projectId === projectId));
+	currentMilestones(projectMilestones(milestones, projectId))[0] ?? null;
+
+/** Every step under way of a project: one per module, plus the project's own line. */
+export const currentStepIds = (milestones: Milestone[], projectId: string): Set<string> =>
+	new Set(currentMilestones(projectMilestones(milestones, projectId)).map((m) => m.id));

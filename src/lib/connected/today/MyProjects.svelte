@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { Bug, Compass, Flag } from '@lucide/svelte';
+	import { Bug, Compass, Flag, Wallet } from '@lucide/svelte';
 	import { plural } from '$lib/client/format';
 	import { tint } from '$lib/client/labels';
 	import { now } from '$lib/client/now.svelte';
 	import { useApp } from '$lib/client/context';
+	import { daysSpent } from '$lib/client/views/metrics';
 	import { projectGlances } from '$lib/client/views/today';
 	import type { Project } from '$lib/modules/projects/domain/project';
 	import type { Task } from '$lib/modules/tasks/domain/task';
@@ -54,6 +55,18 @@
 								{@const d = delivery(deliveryIn)}
 								<span class={['flex items-center gap-1 font-medium', d.tone]}
 									><Flag size={13} aria-hidden="true" />{d.text}</span
+								>
+							{/if}
+							{#if project.soldDays}
+								{@const spent = daysSpent(app.blocks.all, project.id, now.value)}
+								<span
+									class={[
+										'flex items-center gap-1',
+										spent >= project.soldDays ? 'font-medium text-danger-text' : 'text-ink-3'
+									]}
+									><Wallet size={13} aria-hidden="true" />{spent.toLocaleString('fr')} / {project.soldDays.toLocaleString(
+										'fr'
+									)} j</span
 								>
 							{/if}
 						</span>

@@ -11,6 +11,12 @@
 		available: number;
 		planned: number;
 		free: number;
+		/** Free minutes still ahead this week. */
+		ahead: number;
+		/** Usual length of their tasks with no slot this week. */
+		left: number;
+		/** Where to choose what to push back when it does not fit. */
+		overflowHref: string;
 		label: (minutes: number) => string;
 		/** "SaaS 8 h, Client X 4 h" when the work spreads over several projects. */
 		detail: string;
@@ -24,12 +30,16 @@
 		available,
 		planned,
 		free,
+		ahead,
+		left,
+		overflowHref,
 		label,
 		detail
 	}: Props = $props();
 	const scale = $derived(Math.max(available, planned, 1));
 	const busy = $derived(available - free);
 	const outside = $derived(Math.max(0, planned - busy));
+	const excess = $derived(left - ahead);
 </script>
 
 <div class="flex flex-col gap-1.5">
@@ -62,4 +72,16 @@
 		</div>
 	{/if}
 	{#if detail}<p class="text-sm text-ink-3">{detail}</p>{/if}
+	{#if left}
+		<p class="text-sm text-ink-2">
+			Reste à faire cette semaine : <span class="font-medium text-ink">{label(left)}</span> · Libre
+			:
+			<span class="font-medium text-ink">{label(ahead)}</span>
+		</p>
+		{#if excess > 0}
+			<a href={overflowHref} class="text-sm font-medium text-warn-text hover:underline"
+				>{label(excess)} de trop : repousse ou délègue</a
+			>
+		{/if}
+	{/if}
 </div>

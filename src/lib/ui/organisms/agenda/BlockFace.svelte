@@ -3,7 +3,7 @@
 	import { rangeLabel } from './geometry';
 	import type { AgendaItem } from './types';
 
-	let { item, compact }: { item: AgendaItem; compact: boolean } = $props();
+	let { item, compact, narrow }: { item: AgendaItem; compact: boolean; narrow: boolean } = $props();
 	// Tinted fill + solid edge in the person's color: readable in both themes with a single palette.
 	// Another project's work is hatched grey: the time is taken, but it is not this project's.
 	const fill = $derived(
@@ -23,10 +23,14 @@
 		<span class="flex min-w-0 items-baseline gap-1">
 			{#if item.running}<span class="size-1.5 shrink-0 animate-pulse rounded-full bg-now"
 				></span>{/if}
-			{#if item.ref}<span class="shrink-0 font-mono text-xs text-ink-2">{item.ref}</span>{/if}
-			<span class="truncate {item.muted ? 'font-medium' : 'font-semibold'}">{item.label}</span>
+			{#if narrow}
+				<span class="truncate font-semibold">{item.short}</span>
+			{:else}
+				{#if item.ref}<span class="shrink-0 font-mono text-xs text-ink-2">{item.ref}</span>{/if}
+				<span class="truncate {item.muted ? 'font-medium' : 'font-semibold'}">{item.label}</span>
+			{/if}
 		</span>
-		{#if !compact}
+		{#if !compact && !narrow}
 			<span class="truncate font-mono text-xs text-ink-2"
 				>{item.running ? `${clockLabel(item.start)}–en cours` : rangeLabel(item, clockLabel)}</span
 			>

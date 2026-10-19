@@ -12,10 +12,11 @@
 		today: boolean;
 		draft: AgendaDraft | null;
 		draggingId: string | null;
+		narrow: boolean;
 		onbegin: (event: PointerEvent, mode: DragMode, item?: AgendaItem) => void;
 	}
 
-	let { items, bands, lanes, frame, today, draft, draggingId, onbegin }: Props = $props();
+	let { items, bands, lanes, frame, today, draft, draggingId, narrow, onbegin }: Props = $props();
 </script>
 
 <div
@@ -33,7 +34,7 @@
 	{/each}
 	<SharedBands {bands} {frame} />
 	{#each items as item (`${item.layer}-${item.id}`)}
-		<AgendaEntry {item} {lanes} {frame} dragging={item.id === draggingId} {onbegin} />
+		<AgendaEntry {item} {lanes} {frame} dragging={item.id === draggingId} {narrow} {onbegin} />
 	{/each}
 	{#if draft}<DraftBox {draft} {lanes} {frame} />{/if}
 </div>

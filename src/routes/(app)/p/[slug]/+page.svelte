@@ -4,6 +4,7 @@
 	import { firstName } from '$lib/client/format';
 	import { now } from '$lib/client/now.svelte';
 	import { toasts } from '$lib/client/toasts.svelte';
+	import { daysSpent } from '$lib/client/views/metrics';
 	import { weekReport, type ReportAudience } from '$lib/client/views/report';
 	import ActivityFeed from '$lib/connected/home/ActivityFeed.svelte';
 	import CatchUp from '$lib/connected/home/CatchUp.svelte';
@@ -14,6 +15,7 @@
 	import TeamPanel from '$lib/connected/home/TeamPanel.svelte';
 	import WeekGoal from '$lib/connected/home/WeekGoal.svelte';
 	import WeekNumbers from '$lib/connected/home/WeekNumbers.svelte';
+	import Budget from '$lib/connected/metrics/Budget.svelte';
 	import BlockingBugs from '$lib/connected/today/BlockingBugs.svelte';
 	import Menu from '$lib/ui/molecules/Menu.svelte';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
@@ -42,7 +44,9 @@
 				decisions: app.decisions.all,
 				metrics: app.metrics.all,
 				readings: app.readings.all,
-				releases: app.releases.all
+				releases: app.releases.all,
+				spentDays: daysSpent(app.blocks.all, project.id, now.value),
+				components: app.components.all.filter((c) => c.projectId === project.id)
 			},
 			audience
 		);
@@ -86,7 +90,9 @@
 	<div class="mx-auto flex max-w-[1240px] flex-col gap-8 px-4 pb-12 sm:px-8">
 		<BlockingBugs {tasks} />
 		<div class="flex flex-col gap-3">
-			{#key project.id}<CurrentStep {project} /><WeekNumbers {project} />{/key}
+			{#key project.id}<CurrentStep {project} /><Budget {project} line /><WeekNumbers
+					{project}
+				/>{/key}
 			<WeekGoal {project} />
 		</div>
 		<CatchUp {project} />

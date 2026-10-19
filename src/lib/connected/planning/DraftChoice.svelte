@@ -8,6 +8,7 @@
 	import TaskSearch from '$lib/ui/organisms/agenda/TaskSearch.svelte';
 	import type { Point } from '$lib/ui/organisms/agenda/types';
 	import { duration } from './agenda-info';
+	import type { WeekEdit } from './week-slots.svelte';
 
 	interface Props {
 		range: Range;
@@ -15,10 +16,12 @@
 		projectId: string;
 		/** The first tasks to place, offered without searching. */
 		suggestions: Task[];
+		/** Stores a carried-over week before the change. */
+		edit: WeekEdit;
 		onclose: () => void;
 	}
 
-	let { range, point, projectId, suggestions, onclose }: Props = $props();
+	let { range, point, projectId, suggestions, edit, onclose }: Props = $props();
 	const { app, actions } = useApp();
 	const shown = $derived(suggestions.slice(0, 5));
 	const others = $derived(
@@ -37,9 +40,14 @@
 	const detail = $derived(
 		`${label.format(new Date(range.startsAt))} · ${duration(range.startsAt, range.endsAt)}`
 	);
-	const done = (run: () => unknown) => () => (run(), onclose());
+	// The range is read now: the popover is gone by the time a carried week is stored.
+	const done = (run: (range: Range, projectId: string) => unknown) => () => {
+		const [drawn, project] = [range, projectId];
+		void edit(() => run(drawn, project));
+		onclose();
+	};
 	const work = (taskId: string | null) =>
-		done(() => actions.planning.createBlock(projectId, range, taskId));
+		done((drawn, project) => actions.planning.createBlock(project, drawn, taskId));
 	const big =
 		'flex h-12 flex-1 items-center justify-center gap-2 rounded-xl text-base font-semibold transition-colors';
 	const row =
@@ -51,14 +59,14 @@
 		<button
 			type="button"
 			class="{big} bg-accent text-accent-ink hover:bg-accent-hover"
-			onclick={done(() => actions.planning.createSlot(range, 'available'))}
+			onclick={done((drawn) => actions.planning.createSlot(drawn, 'available'))}
 		>
 			<Check size={18} aria-hidden="true" /> Je suis dispo
 		</button>
 		<button
 			type="button"
 			class="{big} border border-dashed border-accent text-accent-text hover:bg-accent-soft"
-			onclick={done(() => actions.planning.createSlot(range, 'maybe'))}
+			onclick={done((drawn) => actions.planning.createSlot(drawn, 'maybe'))}
 		>
 			<CircleDashed size={18} aria-hidden="true" /> Peut-être
 		</button>

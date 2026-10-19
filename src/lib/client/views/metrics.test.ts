@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Metric, MetricReading } from '$lib/modules/roadmap/domain/metric';
 import { newTask, type Task } from '$lib/modules/tasks/domain/task';
-import { metricViews, missingThisWeek, teamRhythm } from './metrics';
+import { daysSpent, metricViews, missingThisWeek, teamRhythm, timeByKind } from './metrics';
 
 const now = new Date(2026, 9, 21, 12);
 const today = '2026-10-21';
@@ -83,5 +83,36 @@ describe('team rhythm', () => {
 		// Wednesday: this week holds the bug fixed yesterday, last week the three features.
 		expect(rhythm.weeks.at(-1)!.byKind).toMatchObject({ feature: 0, bug: 1 });
 		expect(rhythm.weeks.at(-2)!.byKind).toMatchObject({ feature: 3 });
+	});
+});
+
+describe('time spent', () => {
+	const block = (taskId: string | null, fromHoursAgo: number, toHoursAgo: number) => ({
+		projectId: 'p',
+		taskId,
+		startsAt: new Date(now.getTime() - fromHoursAgo * 3_600_000).toISOString(),
+		endsAt: new Date(now.getTime() - toHoursAgo * 3_600_000).toISOString()
+	});
+
+	it('counts the past part of the blocks, by kind of task', () => {
+		const bug = task({ kind: 'bug' });
+		const feature = task({});
+		const blocks = [
+			block(bug.id, 3, 1),
+			block(feature.id, 5, 1),
+			block(null, 2, 0),
+			block(feature.id, 1, -2)
+		];
+		const time = timeByKind(blocks, [bug, feature], now)!;
+		expect(time.hours).toMatchObject({ bug: 2, feature: 5 });
+		expect(time.untasked).toBe(2);
+		expect(time.total).toBe(9);
+		expect(timeByKind([], [], now)).toBeNull();
+	});
+
+	it('turns the hours of a project into days', () => {
+		expect(
+			daysSpent([block(null, 15, 1), { ...block(null, 9, 2), projectId: 'other' }], 'p', now)
+		).toBe(2);
 	});
 });

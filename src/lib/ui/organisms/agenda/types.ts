@@ -22,6 +22,10 @@ export interface AgendaItem {
 	editable: boolean;
 	/** Work on another project: shown so the time reads as taken, but changed over there. */
 	muted: boolean;
+	/** Availability reused from an earlier week, not stored yet. */
+	carried: boolean;
+	/** What a narrow column still has room for: "#12", or the project's initials. */
+	short: string;
 	column: number;
 	columns: number;
 	/** Full details for the hover card: blocks are often too small to show them. */

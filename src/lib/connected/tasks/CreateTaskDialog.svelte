@@ -71,7 +71,9 @@
 		});
 	});
 
-	const parsed = $derived(parseQuickEntry(text, app.users.all, now.today, app.meId, modules));
+	const parsed = $derived(
+		parseQuickEntry(text, app.users.all, now.today, app.meId, modules, reporters(app, projectId))
+	);
 	const parsedPerson = $derived(app.users.get(parsed.assigneeId));
 	const kind = $derived(parsed.kindSaid ? parsed.kind : (kindChosen ?? parsed.kind));
 	const isBug = $derived(kind === 'bug');
@@ -88,12 +90,13 @@
 			status: seed.status ?? 'todo',
 			kind,
 			critical: isCritical,
-			reportedBy: isBug ? reportedBy.trim() || null : null,
+			reportedBy: isBug ? parsed.reportedBy || reportedBy.trim() || null : null,
 			componentId: parsed.componentId ?? componentId,
 			quadrant: isIdea ? null : quadrant,
 			assigneeId: parsed.assigneeId ?? assigneeId,
 			dueDate: parsed.dueDate ?? dueDate,
-			milestoneId: steps.some((s) => s.id === milestoneId) ? milestoneId : null
+			// A bug is flow, not a deliverable: no step.
+			milestoneId: !isBug && steps.some((s) => s.id === milestoneId) ? milestoneId : null
 		});
 		if (!task) return;
 		open = false;
@@ -127,8 +130,15 @@
 						: 'Que faut-il faire ?'}
 				class="h-12 w-full rounded-xl border border-line bg-surface px-4 text-lg font-medium outline-none placeholder:font-normal focus:border-accent focus:ring-3 focus:ring-accent-soft"
 			/>
-			{#if parsedPerson || parsed.dueDate || parsed.kindSaid || parsedModule}
+			{#if parsedPerson || parsed.dueDate || parsed.kindSaid || parsedModule || parsed.reportedBy}
 				<p class="flex flex-wrap gap-2 text-sm">
+					{#if parsed.reportedBy}
+						<span
+							class="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 font-medium text-accent-text"
+						>
+							Signalé par {parsed.reportedBy}
+						</span>
+					{/if}
 					{#if parsed.kindSaid}
 						{@const meta = KINDS[parsed.kind]}
 						<span
@@ -215,19 +225,19 @@
 					></span
 				>
 			</label>
-			<Field label="Signalé par (facultatif)" for="reported-by">
-				<input
-					id="reported-by"
-					bind:value={reportedBy}
-					list="new-reporters"
-					maxlength={80}
-					placeholder="Ex. : Pharmacie Martin"
-					class="h-11 w-full rounded-xl border border-line-strong/70 bg-surface px-3.5 text-base outline-none placeholder:text-ink-3 focus:border-accent focus:ring-4 focus:ring-accent-soft"
-				/>
-				<datalist id="new-reporters">
-					{#each reporters(app, projectId) as name (name)}<option value={name}></option>{/each}
-				</datalist>
-			</Field>
+			{#if !parsed.reportedBy}<Field label="Signalé par (facultatif)" for="reported-by">
+					<input
+						id="reported-by"
+						bind:value={reportedBy}
+						list="new-reporters"
+						maxlength={80}
+						placeholder="Ex. : Pharmacie Martin"
+						class="h-11 w-full rounded-xl border border-line-strong/70 bg-surface px-3.5 text-base outline-none placeholder:text-ink-3 focus:border-accent focus:ring-4 focus:ring-accent-soft"
+					/>
+					<datalist id="new-reporters">
+						{#each reporters(app, projectId) as name (name)}<option value={name}></option>{/each}
+					</datalist>
+				</Field>{/if}
 		{/if}
 		{#if modules.length && !parsedModule}
 			<Field label="Module">
@@ -239,9 +249,12 @@
 			</Field>
 		{/if}
 		{#if !isIdea && !isCritical}
-			<Field label="Priorité">
-				<QuadrantPicker value={quadrant} onchange={(q) => (quadrant = q)} />
-			</Field>
+			<!-- A bug is sorted later, together: blocking or not is all it needs now. -->
+			{#if !isBug}
+				<Field label="Priorité">
+					<QuadrantPicker value={quadrant} onchange={(q) => (quadrant = q)} />
+				</Field>
+			{/if}
 			{#if !parsed.assigneeId}
 				<Field label="Qui s’en occupe">
 					<PeoplePicker
@@ -258,7 +271,7 @@
 				</Field>
 			{/if}
 		{/if}
-		{#if steps.length}
+		{#if steps.length && !isBug}
 			<Field label="Étape">
 				<StepPicker {steps} value={milestoneId} onchange={(id) => (milestoneId = id)} />
 			</Field>

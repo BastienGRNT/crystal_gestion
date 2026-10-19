@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { useApp } from '$lib/client/context';
+	import Budget from '$lib/connected/metrics/Budget.svelte';
 	import ProductNumbers from '$lib/connected/metrics/ProductNumbers.svelte';
 	import TeamRhythm from '$lib/connected/metrics/TeamRhythm.svelte';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
@@ -20,6 +21,7 @@
 		{#key project.id}
 			<ProductNumbers {project} />
 			<TeamRhythm {project} />
+			<Budget {project} />
 		{/key}
 	</div>
 {/if}
