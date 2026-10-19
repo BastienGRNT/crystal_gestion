@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Metric, MetricReading } from '$lib/modules/roadmap/domain/metric';
 import { newTask, type Task } from '$lib/modules/tasks/domain/task';
-import { daysSpent, metricViews, missingThisWeek, teamRhythm, timeByKind } from './metrics';
+import { daysSpent, goalOf, metricViews, missingThisWeek, teamRhythm, timeByKind } from './metrics';
 
 const now = new Date(2026, 9, 21, 12);
 const today = '2026-10-21';
@@ -50,6 +50,25 @@ describe('project numbers', () => {
 		expect(churn).toMatchObject({ delta: 1, good: false, thisWeek: null });
 		// Only numbers already followed are asked for.
 		expect(missingThisWeek(metrics, readings, today).map((m) => m.id)).toEqual(['churn']);
+	});
+
+	it('measures the way to the target, up or down', () => {
+		expect(goalOf({ target: 50, direction: 'up' }, 42)).toEqual({
+			reached: false,
+			gap: 8,
+			progress: 0.84
+		});
+		expect(goalOf({ target: 50, direction: 'up' }, 60)).toMatchObject({
+			reached: true,
+			progress: 1
+		});
+		expect(goalOf({ target: 3, direction: 'down' }, 5)).toEqual({
+			reached: false,
+			gap: 2,
+			progress: null
+		});
+		expect(goalOf({ target: null, direction: 'up' }, 5)).toBeNull();
+		expect(goalOf({ target: 50, direction: 'up' }, null)).toBeNull();
 	});
 });
 

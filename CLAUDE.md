@@ -78,7 +78,8 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Agenda : `ui/organisms/agenda/*` (grille, gestes) + `connected/planning/*` (données, commandes).
 - Texte : un champ d'une ligne valide à Entrée ; un texte long (cap, notes, « fini quand », pourquoi) va à la ligne à
   Entrée et s'enregistre à Ctrl+Entrée ou en sortant. Édition sur place : `EditableText` (une ligne) et `ProseField`
-  (texte mis en forme, affiché par `RichText` : `##`, listes, `**gras**`, liens). Pas de menu « … → Modifier ».
+  (texte mis en forme, affiché par `RichText` : `#`/`##`, listes, `**gras**`, liens ; barre d’outils au focus,
+  logique pure dans `client/markdown-edit.ts`). Pas de menu « … → Modifier ».
 - Types de tâches : `KINDS` (`client/labels.ts`) ; saisie rapide `quick-entry.ts` (préfixes `bug!:`, `+module`, `@`,
   date) ; filtre type / module `connected/tasks/kind-filter.svelte.ts`. Rythme et prévisions : `isPlanned` (feature + tech).
 - Lectures qui croisent plusieurs modules (rattrapage, questions, prévisions, prochain point, compte rendu, prévision

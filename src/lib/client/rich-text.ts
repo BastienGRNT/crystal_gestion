@@ -13,7 +13,7 @@ export type Inline =
 
 export type Block =
 	| { type: 'paragraph'; inlines: Inline[] }
-	| { type: 'heading'; inlines: Inline[] }
+	| { type: 'heading'; level: 1 | 2 | 3; inlines: Inline[] }
 	| { type: 'list'; ordered: boolean; items: Inline[][] }
 	| { type: 'quote'; inlines: Inline[] }
 	| { type: 'code'; lang: string; text: string };
@@ -51,6 +51,9 @@ const BULLET = /^\s*[-*•]\s+/;
 const NUMBER = /^\s*\d{1,3}[.)]\s+/;
 const HEADING = /^#{1,3}\s+/;
 
+const headingLevel = (line: string) =>
+	Math.min(3, Math.max(1, line.match(/^#*/)![0].length)) as 1 | 2 | 3;
+
 function kindOf(line: string): LineKind {
 	if (!line.trim()) return 'blank';
 	if (line.startsWith('>')) return 'quote';
@@ -76,18 +79,18 @@ const contentOf = (line: string, kind: LineKind) =>
  * `> citation`, `**gras**`. A blank line starts a new paragraph.
  */
 function proseBlocks(text: string): Block[] {
-	const groups: { kind: LineKind; lines: string[] }[] = [];
+	const groups: { kind: LineKind; level: 1 | 2 | 3; lines: string[] }[] = [];
 	for (const line of text.split('\n')) {
 		const kind = kindOf(line);
 		const current = groups.at(-1);
 		if (current && current.kind === kind && kind !== 'heading')
 			current.lines.push(contentOf(line, kind));
-		else groups.push({ kind, lines: [contentOf(line, kind)] });
+		else groups.push({ kind, level: headingLevel(line), lines: [contentOf(line, kind)] });
 	}
 	return groups.flatMap((group): Block[] => {
 		if (group.kind === 'blank') return [];
 		if (group.kind === 'heading')
-			return [{ type: 'heading', inlines: parseInline(group.lines[0]) }];
+			return [{ type: 'heading', level: group.level, inlines: parseInline(group.lines[0]) }];
 		if (group.kind === 'bullet' || group.kind === 'number')
 			return [
 				{ type: 'list', ordered: group.kind === 'number', items: group.lines.map(parseInline) }

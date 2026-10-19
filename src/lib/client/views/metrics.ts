@@ -24,6 +24,31 @@ export interface MetricView {
 	/** The change goes the right way (up for clients, down for churn). */
 	good: boolean | null;
 	thisWeek: number | null;
+	/** Where the last value stands against the target; `null` without both. */
+	goal: Goal | null;
+}
+
+export interface Goal {
+	reached: boolean;
+	/** What is left to gain (or to lose, for a number that should go down). */
+	gap: number;
+	/** How full the bar is (0..1), for a target to climb to; `null` for "stay under". */
+	progress: number | null;
+}
+
+const round = (n: number) => Math.round(n * 100) / 100;
+
+export function goalOf(
+	metric: Pick<Metric, 'target' | 'direction'>,
+	last: number | null
+): Goal | null {
+	if (metric.target === null || last === null) return null;
+	const up = metric.direction === 'up';
+	return {
+		reached: up ? last >= metric.target : last <= metric.target,
+		gap: round(Math.abs(metric.target - last)),
+		progress: up && metric.target > 0 ? Math.min(1, Math.max(0, last / metric.target)) : null
+	};
 }
 
 export function metricViews(
@@ -36,7 +61,7 @@ export function metricViews(
 	return activeMetrics(metrics).map((metric) => {
 		const own = latestReadings(readings.filter((r) => r.metricId === metric.id));
 		const [last, previous] = own;
-		const delta = last && previous ? Math.round((last.value - previous.value) * 100) / 100 : null;
+		const delta = last && previous ? round(last.value - previous.value) : null;
 		return {
 			metric,
 			series: own
@@ -46,7 +71,8 @@ export function metricViews(
 			last: last?.value ?? null,
 			delta,
 			good: delta === null || delta === 0 ? null : delta > 0 === (metric.direction === 'up'),
-			thisWeek: own.find((r) => r.weekOf === monday)?.value ?? null
+			thisWeek: own.find((r) => r.weekOf === monday)?.value ?? null,
+			goal: goalOf(metric, last?.value ?? null)
 		};
 	});
 }

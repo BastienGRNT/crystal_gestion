@@ -60,7 +60,15 @@
 		{#if block.type === 'paragraph'}
 			<p>{@render inline(block.inlines)}</p>
 		{:else if block.type === 'heading'}
-			<p class="mt-1 font-semibold text-ink first:mt-0">{@render inline(block.inlines)}</p>
+			<p
+				class={[
+					'font-semibold tracking-tight first:mt-0',
+					block.level === 1 ? 'mt-2 text-lg text-ink' : 'mt-1 text-ink',
+					block.level === 3 && 'text-ink-2'
+				]}
+			>
+				{@render inline(block.inlines)}
+			</p>
 		{:else if block.type === 'list'}
 			<svelte:element
 				this={block.ordered ? 'ol' : 'ul'}

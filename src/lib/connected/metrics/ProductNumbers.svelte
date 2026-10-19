@@ -38,7 +38,9 @@
 				delta={view.delta}
 				good={view.good}
 				thisWeek={view.thisWeek}
+				goal={view.goal}
 				onrename={(name) => actions.roadmap.updateMetric(metric.id, { name })}
+				onunit={(unit) => actions.roadmap.updateMetric(metric.id, { unit })}
 				ontarget={(target) => actions.roadmap.updateMetric(metric.id, { target })}
 				ondirection={(direction) => actions.roadmap.updateMetric(metric.id, { direction })}
 				onrecord={(value) => actions.roadmap.record(metric, value)}
