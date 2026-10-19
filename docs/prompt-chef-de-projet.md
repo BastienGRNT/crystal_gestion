@@ -33,9 +33,24 @@ But : que le projet contienne assez d'informations pour être piloté, par un hu
      satisfaire, tenir informé, surveiller).
    - Section dans la page Équipe ou Feuille de route, saisie en ligne (`EditableText`).
    - Elle doit remonter ailleurs : le prochain point et le compte rendu disent qui informer cette semaine.
-3. **Risques** : réutiliser les **hypothèses** (une hypothèse non vérifiée est un risque). On n'ajoute une table
+3. **Fiche technique** du projet, distincte du Cap : le Cap dit pourquoi, la fiche dit comment on construit.
+   - Une `ProseField` à sections fixes, comme le Cap :
+     - Stack et hébergement.
+     - Ce qui existe déjà (code, maquettes, contenus).
+     - Services externes et leur coût (SMS, paiement, cartes, données des gardes…).
+     - Environnements (préprod, prod) et façon de livrer.
+     - « Fini » pour une tâche : tests, accessibilité, navigateurs, SEO, perf.
+     - Conventions.
+     - Après la mise en ligne : qui fait le support, l'onboarding et la maintenance.
+   - Coût et marge par client dans « Qui paie, combien » : par exemple, le coût des SMS d'un RDV par rapport au
+     prix vendu.
+   - Équipe : compétences (front, back, design, vente) dans le profil des membres. Disponibilités et rythme
+     existent déjà dans le planning : ne pas les redemander.
+   - Elle doit remonter ailleurs : contexte de l'IA pour « découper l'étape » et « préciser la tâche », checklist
+     « fini » sur les fiches tâches, `framingGaps`.
+4. **Risques** : réutiliser les **hypothèses** (une hypothèse non vérifiée est un risque). On n'ajoute une table
    « risques » que si ça ne suffit vraiment pas : propose-le-moi avant.
-4. **Santé du cadrage, calculée sans IA** : étendre `isFramed` en `framingGaps(project, …)`.
+5. **Santé du cadrage, calculée sans IA** : étendre `isFramed` en `framingGaps(project, …)`.
    - Elle signale : section du Cap vide ou trop courte, chiffre sans cible ni date, étape sans « fini quand »,
      aucune partie prenante qui décide ou paie, hypothèse jamais vérifiée depuis plus de 30 jours, pas de
      `deadline` ni de `soldDays`.
@@ -103,7 +118,7 @@ Module en Clean Architecture comme les autres.
 > (8) Les dates que tu proposes doivent tenir au rythme réel, et tu montres le calcul. Tu réponds uniquement avec
 > l'outil `propose`, en français, en tutoyant, avec des phrases courtes.
 
-Le **contexte du projet** forme une 2ᵉ couche, mise en cache : Cap, parties prenantes, étapes (ordre, « fini
+Le **contexte du projet** forme une 2ᵉ couche, mise en cache : Cap, fiche technique, compétences de l'équipe, parties prenantes, étapes (ordre, « fini
 quand », dates, prévision), hypothèses, chiffres, 10 dernières décisions, modules, rythme, titres des tâches
 ouvertes avec type, case, étape et échéance. La **demande** forme la 3ᵉ couche : l'instruction du bouton et l'objet
 visé.
