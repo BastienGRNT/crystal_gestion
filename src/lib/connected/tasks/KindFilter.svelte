@@ -63,7 +63,8 @@
 	{/each}
 </div>
 
-{#if modules.length > 1}
+<!-- From one module on: "Voir sur le tableau" can set it, so it must always be removable. -->
+{#if modules.length > 0}
 	<div
 		class="inline-flex flex-wrap gap-0.5 rounded-xl bg-sunken p-1"
 		role="radiogroup"
