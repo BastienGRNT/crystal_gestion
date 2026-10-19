@@ -68,7 +68,7 @@ Module en Clean Architecture comme les autres.
   - `Op` = `{ command, input, reason, sources }`. `command` est pris dans une **liste blanche** de commandes
     existantes de `registry.ts` : créer ou modifier une tâche (champs limités : titre, notes, checklist, type,
     module, étape, échéance, case de la matrice, statut idées ↔ à faire uniquement), créer ou modifier une étape,
-    ajouter une décision, modifier le Cap, ajouter une hypothèse, un chiffre ou une partie prenante.
+    ajouter une décision, ajouter un commentaire dans le fil d'une tâche, modifier le Cap, ajouter une hypothèse, un chiffre ou une partie prenante.
   - `input` est validé par le **schéma zod de la commande** elle-même.
   - Interdit : supprimer, toucher au coffre (`vault`), assigner des gens, passer une tâche en cours ou terminée,
     changer une date sans la décision « pourquoi » qui va avec.
@@ -126,7 +126,17 @@ visé.
 ## Lot 3 — Les boutons, un par un (dans cet ordre)
 
 1. **…découper cette étape** (carte d'une étape) : 5 à 15 tâches typées, avec module et checklist.
-2. **…préciser cette tâche** (fiche tâche) : critères d'acceptation, et découpage si la tâche est trop grosse.
+2. **…reformuler et compléter cette tâche** : sur chaque carte du Tableau (surtout en « Idées ») et dans la fiche
+   tâche. C'est le bouton le plus utilisé, donc sur le petit modèle.
+   - Il part d'une note jetée en vrac (« le truc des gardes marche pas sur tel ») et la réécrit au format du
+     tableau : un titre court qui commence par un verbe, le type deviné (`guessKind`) et le module.
+   - Il propose de **remplir tous les champs** : étape, case de la matrice, échéance réalisable au rythme réel,
+     notes (contexte et critères d'acceptation en checklist), découpage si la tâche est trop grosse, et un
+     commentaire dans son fil s'il a une question pour l'équipe.
+   - Affichage : le **formulaire de la tâche pré-rempli**, avec chaque champ proposé surligné. On garde, modifie ou
+     vide chaque champ, puis on valide. On peut aussi faire la reprise « demander une modification ».
+   - Variante en lot : « …reformuler les idées », sur l'en-tête de la colonne Idées. Au plus 15 cartes par appel,
+     même écran avec une ligne par carte.
 3. **…trier les tâches** (Priorités et Tableau) :
    - une case de la matrice pour chaque tâche « à trier », avec son pourquoi ;
    - les tâches à passer d'« idées » à « à faire » et l'inverse ;
