@@ -1,5 +1,6 @@
 import { goto } from '$app/navigation';
 import { page } from '$app/state';
+import type { DecisionSeed } from './actions/roadmap';
 import type { TaskDraft } from './actions/tasks';
 
 export type CreateRequest =
@@ -7,7 +8,8 @@ export type CreateRequest =
 	| { kind: 'project' }
 	| { kind: 'channel'; projectId: string }
 	| { kind: 'invite'; projectId: string }
-	| { kind: 'vault'; projectId: string; entryId?: string };
+	| { kind: 'vault'; projectId: string; entryId?: string }
+	| { kind: 'decision'; seed: DecisionSeed };
 
 export const TASK_PARAM = 'tache';
 
@@ -36,5 +38,10 @@ export class Overlays {
 
 	newTask(seed: Partial<TaskDraft> = {}) {
 		this.create = { kind: 'task', seed };
+	}
+
+	/** "C'est décidé": from a message, a task, a step or the roadmap. */
+	decide(seed: DecisionSeed) {
+		this.create = { kind: 'decision', seed };
 	}
 }

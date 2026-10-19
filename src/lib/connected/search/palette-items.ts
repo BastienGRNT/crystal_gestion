@@ -1,5 +1,7 @@
 import {
 	CalendarDays,
+	Compass,
+	Gavel,
 	FileText,
 	FolderOpen,
 	FolderPlus,
@@ -86,7 +88,11 @@ function projectItems({ app, overlays }: AppContext, project: Project): PaletteI
 			UserPlus,
 			() => (overlays.create = { kind: 'invite', projectId: project.id })
 		),
+		action('new-decision', 'Noter une décision', Gavel, () =>
+			overlays.decide({ projectId: project.id, text: '' })
+		),
 		page('go-home', 'Accueil du projet', House, base),
+		page('go-roadmap', 'Feuille de route', Compass, `${base}/feuille-de-route`),
 		page('go-board', 'Tableau', SquareKanban, `${base}/tableau`),
 		page('go-matrix', 'Priorités', Target, `${base}/priorites`),
 		page('go-planning', 'Planning', CalendarDays, `${base}/planning`),
@@ -103,6 +109,29 @@ function projectItems({ app, overlays }: AppContext, project: Project): PaletteI
 				keywords: `${t.title} #${t.number} ${t.notes.slice(0, 300)}`,
 				icon: t.status === 'idea' ? Lightbulb : SquareCheck,
 				run: () => overlays.openTask(t.id)
+			})),
+		...app.milestones.all
+			.filter((m) => m.projectId === project.id)
+			.map((m) => ({
+				id: `step-${m.id}`,
+				group: 'Étapes',
+				title: m.title,
+				subtitle: m.closedAt ? 'Close' : m.doneWhen || undefined,
+				keywords: `${m.title} ${m.doneWhen}`,
+				icon: Compass,
+				run: () => goto(`${base}/feuille-de-route#etape-${m.id}`)
+			})),
+		...app.decisions.all
+			.filter((d) => d.projectId === project.id)
+			.sort((a, b) => b.decidedAt.localeCompare(a.decidedAt))
+			.map((d) => ({
+				id: `decision-${d.id}`,
+				group: 'Décisions',
+				title: d.text,
+				subtitle: d.why || undefined,
+				keywords: `${d.text} ${d.why}`,
+				icon: Gavel,
+				run: () => goto(`${base}/feuille-de-route#decision-${d.id}`)
 			})),
 		...app.files.all
 			.filter((f) => f.projectId === project.id)

@@ -34,6 +34,8 @@ export interface Task {
 	blockedReason: string | null;
 	checklist: ChecklistItem[];
 	dueDate: DateKey | null;
+	/** The step of the roadmap it belongs to, if any. */
+	milestoneId: string | null;
 	/** Fractional order shared by the board columns and the matrix boxes. */
 	position: number;
 	createdBy: string;
@@ -56,6 +58,7 @@ export type TaskPatch = Partial<
 		| 'blockedReason'
 		| 'checklist'
 		| 'dueDate'
+		| 'milestoneId'
 		| 'position'
 	>
 >;
@@ -129,6 +132,7 @@ export interface NewTaskInput {
 	assigneeId?: string | null;
 	dueDate?: string | null;
 	checklist?: ChecklistItem[];
+	milestoneId?: string | null;
 	position: number;
 }
 
@@ -148,6 +152,7 @@ export function newTask(input: NewTaskInput, actorId: string, now: Date): Task {
 		blockedReason: null,
 		checklist: validChecklist(input.checklist ?? []),
 		dueDate: validDueDate(input.dueDate ?? null),
+		milestoneId: input.milestoneId ?? null,
 		position: input.position,
 		createdBy: actorId,
 		createdAt: at,

@@ -1,4 +1,13 @@
-import { date, index, integer, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
+import {
+	date,
+	doublePrecision,
+	index,
+	integer,
+	pgTable,
+	primaryKey,
+	text,
+	uuid
+} from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
 
@@ -10,6 +19,12 @@ export const projects = pgTable('projects', {
 	color: integer().notNull().default(0),
 	deadline: date(),
 	weekGoal: text().notNull().default(''),
+	audience: text().notNull().default(''),
+	problem: text().notNull().default(''),
+	payer: text().notNull().default(''),
+	outOfScope: text().notNull().default(''),
+	metricName: text().notNull().default(''),
+	metricTarget: doublePrecision(),
 	archivedAt: timestamptz(),
 	createdBy: uuid()
 		.notNull()

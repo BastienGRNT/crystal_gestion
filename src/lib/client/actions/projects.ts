@@ -1,12 +1,10 @@
-import type { Project } from '$lib/modules/projects/domain/project';
+import type { Project, ProjectPatch } from '$lib/modules/projects/domain/project';
 import { errorMessage, send } from '../api';
 import type { AppState } from '../state/app.svelte';
 import { toasts } from '../toasts.svelte';
 import { settle } from './optimistic';
 
-export type ProjectPatch = Partial<
-	Pick<Project, 'name' | 'description' | 'color' | 'deadline' | 'weekGoal'>
->;
+export type { ProjectPatch };
 
 export function projectActions(app: AppState) {
 	function change(id: string, patch: Partial<Project>, request: Promise<Project>) {

@@ -7,6 +7,10 @@ import type { User } from '$lib/modules/identity/domain/user';
 import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/availability';
 import type { Member } from '$lib/modules/projects/domain/membership';
 import type { Project } from '$lib/modules/projects/domain/project';
+import type { Decision } from '$lib/modules/roadmap/domain/decision';
+import type { Hypothesis } from '$lib/modules/roadmap/domain/hypothesis';
+import type { MetricReading } from '$lib/modules/roadmap/domain/metric';
+import type { Milestone } from '$lib/modules/roadmap/domain/milestone';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import type { VaultEntry } from '$lib/modules/vault/domain/entry';
 
@@ -25,6 +29,10 @@ export interface Collections {
 	activities: Activity;
 	notifications: Notification;
 	visits: ProjectVisit;
+	milestones: Milestone;
+	decisions: Decision;
+	hypotheses: Hypothesis;
+	readings: MetricReading;
 }
 
 export type CollectionName = keyof Collections;

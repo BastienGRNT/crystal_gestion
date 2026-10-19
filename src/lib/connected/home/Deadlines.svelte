@@ -4,6 +4,7 @@
 	import { dueLabel, plural } from '$lib/client/format';
 	import { now } from '$lib/client/now.svelte';
 	import { deliveryForecast } from '$lib/client/views/forecast';
+	import { dueByDelivery } from '$lib/client/views/report';
 	import { addDays, daysBetween } from '$lib/modules/kernel/domain/dates';
 	import { dueState } from '$lib/modules/tasks/domain/deadline';
 	import { isOpen } from '$lib/modules/tasks/domain/task';
@@ -25,7 +26,15 @@
 	const atRisk = $derived(due.filter((d) => d.risk).length);
 	const delivery = $derived(project.deadline ? daysBetween(now.today, project.deadline) : null);
 	const forecast = $derived(
-		project.deadline ? deliveryForecast(tasks, project.deadline, now.today, now.value) : null
+		project.deadline
+			? deliveryForecast(
+					tasks,
+					project.deadline,
+					now.today,
+					now.value,
+					dueByDelivery(project, app.milestones.all)
+				)
+			: null
 	);
 	const pace = $derived(
 		forecast?.perWeek.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) ?? ''

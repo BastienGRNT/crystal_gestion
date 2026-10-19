@@ -1,6 +1,9 @@
 <script lang="ts">
 	import {
 		CalendarClock,
+		ChartLine,
+		CircleCheckBig,
+		Scissors,
 		Eye,
 		Hourglass,
 		Inbox,
@@ -24,6 +27,7 @@
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import type { Icon } from '$lib/ui/types';
 	import { projectTasks } from '../projects/current.svelte';
+	import { metricMissing, roadmapHref, roadmapOf } from '../roadmap/roadmap-of';
 	import { riskOf } from '../tasks/risk';
 	import { teamOrder } from '../team/usePresence.svelte';
 
@@ -37,8 +41,15 @@
 	);
 	const moment = $derived(nextMoment(app.slots.all, app.meId, teammates, now.value));
 	const tasks = $derived(projectTasks(app, project.id));
+	const roadmap = $derived(roadmapOf(app, project.id, now.today, now.value));
 	const agenda = $derived(
 		agendaOf({
+			step: roadmap.current && {
+				id: roadmap.current.id,
+				late: roadmap.currentForecast?.state === 'late',
+				ready: !!roadmap.currentForecast?.ready
+			},
+			metricMissing: metricMissing(app, project, now.today),
 			tasks,
 			questions: app.questions.all.filter((q) => q.projectId === project.id),
 			risks: new Map(tasks.map((t) => [t.id, riskOf(app, t)])),
@@ -56,6 +67,9 @@
 	);
 
 	const ICONS: Record<AgendaItem['kind'], Icon> = {
+		'step-late': Scissors,
+		'step-ready': CircleCheckBig,
+		metric: ChartLine,
 		question: MessageCircleQuestion,
 		review: Eye,
 		blocked: OctagonAlert,
@@ -69,6 +83,12 @@
 		const task = item.taskId ? app.tasks.get(item.taskId) : undefined;
 		const title = task ? `« ${task.title} »` : '';
 		switch (item.kind) {
+			case 'step-late':
+				return `Étape « ${roadmap.current?.title} » : ${roadmap.currentForecast?.lateDays ?? 0} j de retard au rythme actuel, décider quoi couper`;
+			case 'step-ready':
+				return `Tout est fait pour « ${roadmap.current?.title} » : on la clôt ?`;
+			case 'metric':
+				return `${project.metricName} : noter le chiffre de la semaine`;
 			case 'question': {
 				const q = item.question!;
 				const text = plainText(toDisplay(q.body, app.users.all));
@@ -90,6 +110,8 @@
 	function open(item: AgendaItem) {
 		if (item.taskId) return overlays.openTask(item.taskId);
 		if (item.kind === 'sort') return void goto(`/p/${project.slug}/priorites`);
+		if (item.milestoneId) return void goto(roadmapHref(project.slug, `etape-${item.milestoneId}`));
+		if (item.kind === 'metric') return void goto(roadmapHref(project.slug, 'cap'));
 		const q = item.question!;
 		const taskId = app.channels.get(q.channelId)?.taskId;
 		if (taskId) overlays.openTask(taskId);

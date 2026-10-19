@@ -7,6 +7,7 @@
 	import { weekReport } from '$lib/client/views/report';
 	import ActivityFeed from '$lib/connected/home/ActivityFeed.svelte';
 	import CatchUp from '$lib/connected/home/CatchUp.svelte';
+	import CurrentStep from '$lib/connected/home/CurrentStep.svelte';
 	import Deadlines from '$lib/connected/home/Deadlines.svelte';
 	import MyWork from '$lib/connected/home/MyWork.svelte';
 	import NextSync from '$lib/connected/home/NextSync.svelte';
@@ -26,7 +27,11 @@
 			const user = app.users.get(id);
 			return user ? firstName(user.name) : null;
 		};
-		const text = weekReport(project, app.tasks.all, nameOf, now.today, now.value);
+		const text = weekReport(project, app.tasks.all, nameOf, now.today, now.value, {
+			milestones: app.milestones.all,
+			decisions: app.decisions.all,
+			readings: app.readings.all
+		});
 		await navigator.clipboard.writeText(text).catch(() => {});
 		toasts.show('Compte rendu de la semaine copié : colle-le dans ton mail ou ton message.', {
 			tone: 'success'
@@ -48,7 +53,10 @@
 	</PageHeader>
 
 	<div class="mx-auto flex max-w-[1240px] flex-col gap-8 px-4 pb-12 sm:px-8">
-		<WeekGoal {project} />
+		<div class="flex flex-col gap-3">
+			{#key project.id}<CurrentStep {project} />{/key}
+			<WeekGoal {project} />
+		</div>
 		<CatchUp {project} />
 		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
 			<div class="flex flex-col gap-10">

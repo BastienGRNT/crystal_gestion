@@ -5,6 +5,7 @@ import { fileCommands } from '$lib/modules/files/presentation/commands';
 import { identityCommands } from '$lib/modules/identity/presentation/commands';
 import { planningCommands } from '$lib/modules/planning/presentation/commands';
 import { projectCommands } from '$lib/modules/projects/presentation/commands';
+import { roadmapCommands } from '$lib/modules/roadmap/presentation/commands';
 import { taskCommands } from '$lib/modules/tasks/presentation/commands';
 import { vaultCommands } from '$lib/modules/vault/presentation/commands';
 import { container } from '../container';
@@ -18,6 +19,7 @@ export const commands = {
 	...fileCommands(container.files),
 	...vaultCommands(container.vault),
 	...planningCommands(container.planning),
+	...roadmapCommands(container.roadmap),
 	...activityCommands(container.activity)
 };
 

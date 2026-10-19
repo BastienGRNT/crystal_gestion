@@ -89,24 +89,33 @@ const PACE_DAYS = 28;
 /** Below that, the pace says nothing yet. */
 const MIN_DONE = 3;
 
+export const isWorkLeft = (t: Task) => ['todo', 'doing', 'review'].includes(t.status);
+
+/** Tasks finished per week over the last four weeks; `null` while there is too little to tell. */
+export function pacePerWeek(tasks: Task[], now: Date): number | null {
+	const since = now.getTime() - PACE_DAYS * 24 * HOUR_MS;
+	const done = tasks.filter(
+		(t) => t.status === 'done' && Date.parse(t.completedAt ?? '') >= since
+	).length;
+	return done < MIN_DONE ? null : done / (PACE_DAYS / 7);
+}
+
 /**
  * Will the open work fit before the delivery date at the pace of the last four weeks?
- * The only estimate that never needs anyone to estimate.
+ * The only estimate that never needs anyone to estimate. `counts` narrows the work that has to
+ * be done by then (the steps due before the delivery); the pace always comes from everything.
  */
 export function deliveryForecast(
 	tasks: Task[],
 	deadline: DateKey,
 	today: DateKey,
-	now: Date
+	now: Date,
+	counts: (task: Task) => boolean = () => true
 ): DeliveryForecast | null {
-	const since = now.getTime() - PACE_DAYS * 24 * HOUR_MS;
-	const done = tasks.filter(
-		(t) => t.status === 'done' && Date.parse(t.completedAt ?? '') >= since
-	).length;
+	const perWeek = pacePerWeek(tasks, now);
 	const daysLeft = daysBetween(today, deadline);
-	if (done < MIN_DONE || daysLeft < 0) return null;
-	const perWeek = done / (PACE_DAYS / 7);
-	const open = tasks.filter((t) => ['todo', 'doing', 'review'].includes(t.status)).length;
+	if (perWeek === null || daysLeft < 0) return null;
+	const open = tasks.filter((t) => isWorkLeft(t) && counts(t)).length;
 	const capacity = Math.floor((perWeek * daysLeft) / 7);
 	return { open, perWeek, fits: open <= capacity, excess: Math.max(0, open - capacity) };
 }

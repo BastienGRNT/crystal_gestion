@@ -99,6 +99,8 @@
 			<p class="text-base font-semibold">{firstName(actor?.name ?? 'Quelqu’un')}</p>
 			<ul class="mt-0.5 flex flex-col gap-0.5 text-base text-ink-2">
 				{#if p.joined}<li>a rejoint le projet</li>{/if}
+				{#if p.closed.length}<li>a clos l’étape{@render subjects(p.closed)}</li>{/if}
+				{#if p.decisions.length}<li>a noté{@render subjects(p.decisions)}</li>{/if}
 				{#each TASK_LINES as line (line.key)}
 					{#if p[line.key].length}<li>{line.verb}{@render subjects(p[line.key])}</li>{/if}
 				{/each}

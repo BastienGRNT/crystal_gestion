@@ -4,6 +4,7 @@
 	import ChannelDialog from '../chat/ChannelDialog.svelte';
 	import FilePreview from '../files/FilePreview.svelte';
 	import ProjectDialog from '../projects/ProjectDialog.svelte';
+	import DecisionDialog from '../roadmap/DecisionDialog.svelte';
 	import CommandPalette from '../search/CommandPalette.svelte';
 	import CreateTaskDialog from '../tasks/CreateTaskDialog.svelte';
 	import TaskDrawer from '../tasks/TaskDrawer.svelte';
@@ -24,6 +25,7 @@
 	const channel = opened('channel');
 	const invite = opened('invite');
 	const vault = opened('vault');
+	const decision = opened('decision');
 	const request = $derived(overlays.create);
 </script>
 
@@ -47,6 +49,9 @@
 		projectId={request.projectId}
 		entryId={request.entryId}
 	/>
+{/if}
+{#if request?.kind === 'decision'}
+	<DecisionDialog bind:open={decision.get, decision.set} seed={request.seed} />
 {/if}
 <FilePreview />
 <CommandPalette />

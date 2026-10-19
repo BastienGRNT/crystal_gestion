@@ -12,6 +12,10 @@ import type { User } from '$lib/modules/identity/domain/user';
 import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/availability';
 import type { Member } from '$lib/modules/projects/domain/membership';
 import type { Project } from '$lib/modules/projects/domain/project';
+import type { Decision } from '$lib/modules/roadmap/domain/decision';
+import type { Hypothesis } from '$lib/modules/roadmap/domain/hypothesis';
+import type { MetricReading } from '$lib/modules/roadmap/domain/metric';
+import type { Milestone } from '$lib/modules/roadmap/domain/milestone';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import type { VaultEntry } from '$lib/modules/vault/domain/entry';
 import type { Snapshot } from '$lib/server/snapshot';
@@ -42,6 +46,10 @@ export class AppState {
 	notifications = new Collection<Notification>();
 	/** My last catch-up per project. */
 	visits = new Collection<ProjectVisit>([], (v) => v.projectId);
+	milestones = new Collection<Milestone>();
+	decisions = new Collection<Decision>();
+	hypotheses = new Collection<Hypothesis>();
+	readings = new Collection<MetricReading>();
 	messages = new MessageStore();
 	/** Open questions of all my projects, loaded or not: they wait on someone. */
 	questions = new Collection<Message>();
@@ -81,6 +89,10 @@ export class AppState {
 		this.notifications.reset(snapshot.notifications);
 		this.visits.reset(snapshot.visits);
 		this.questions.reset(snapshot.questions);
+		this.milestones.reset(snapshot.milestones);
+		this.decisions.reset(snapshot.decisions);
+		this.hypotheses.reset(snapshot.hypotheses);
+		this.readings.reset(snapshot.readings);
 		this.messages.invalidate();
 	}
 

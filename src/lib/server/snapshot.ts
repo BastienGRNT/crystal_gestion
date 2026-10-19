@@ -5,7 +5,8 @@ import { container } from './container';
  * the realtime feed keeps it fresh. Small teams produce little data: navigation never waits.
  */
 export async function loadSnapshot(userId: string) {
-	const { identity, projects, tasks, chat, files, vault, planning, activity, hub } = container;
+	const { identity, projects, tasks, chat, files, vault, planning, roadmap, activity, hub } =
+		container;
 	const { projects: projectList, members } = await projects.of(userId);
 	const ids = projectList.map((p) => p.id);
 	const people = [...new Set([userId, ...members.map((m) => m.userId)])];
@@ -22,7 +23,11 @@ export async function loadSnapshot(userId: string) {
 		activities,
 		notifications,
 		visits,
-		questions
+		questions,
+		milestones,
+		decisions,
+		hypotheses,
+		readings
 	] = await Promise.all([
 		identity.listByIds(people),
 		tasks.ofProjects(ids),
@@ -36,7 +41,11 @@ export async function loadSnapshot(userId: string) {
 		activity.recent(ids),
 		activity.notificationsFor(userId),
 		activity.visitsOf(userId),
-		chat.openQuestions(ids)
+		chat.openQuestions(ids),
+		roadmap.milestonesOf(ids),
+		roadmap.decisionsOf(ids),
+		roadmap.hypothesesOf(ids),
+		roadmap.readingsOf(ids)
 	]);
 	return {
 		meId: userId,
@@ -56,7 +65,11 @@ export async function loadSnapshot(userId: string) {
 		notifications: notifications.filter((n) => ids.includes(n.projectId)),
 		visits: visits.filter((v) => ids.includes(v.projectId)),
 		/** Every open question of my projects: mine to answer, mine waiting, a task waiting. */
-		questions
+		questions,
+		milestones,
+		decisions,
+		hypotheses,
+		readings
 	};
 }
 

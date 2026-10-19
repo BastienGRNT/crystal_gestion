@@ -26,6 +26,8 @@ export const drizzleTasks = (db: Db): TaskRepository => ({
 		ids.length
 			? (await db.select().from(tasks).where(inArray(tasks.projectId, ids))).map(toTask)
 			: [],
+	ofMilestone: async (id) =>
+		(await db.select().from(tasks).where(eq(tasks.milestoneId, id))).map(toTask),
 	async get(id) {
 		const [row] = await db.select().from(tasks).where(eq(tasks.id, id));
 		return row ? toTask(row) : null;

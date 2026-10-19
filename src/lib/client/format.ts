@@ -89,3 +89,6 @@ export const dayHeader = (key: DateKey) => capitalize(weekdayDay.format(parseDat
 
 export const monthRange = (from: DateKey, to: DateKey) =>
 	`${dayMonth.format(parseDateKey(from))} – ${dayMonth.format(parseDateKey(to))}`;
+
+/** "14 nov.": a step's date, short enough for a timeline. */
+export const shortDay = (key: DateKey) => dayMonth.format(parseDateKey(key));

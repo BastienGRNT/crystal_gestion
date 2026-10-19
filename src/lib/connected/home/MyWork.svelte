@@ -14,6 +14,7 @@
 	import { now } from '$lib/client/now.svelte';
 	import { plainText } from '$lib/client/rich-text';
 	import { nextTasks } from '$lib/client/views/next-task';
+	import { currentStepOf } from '$lib/client/views/roadmap';
 	import { askedByMe } from '$lib/client/views/questions';
 	import type { Message } from '$lib/modules/chat/domain/chat';
 	import { doingCount, WIP_PER_PERSON } from '$lib/modules/tasks/domain/views';
@@ -33,7 +34,9 @@
 	const waitingReview = $derived(
 		tasks.filter((t) => t.status === 'review' && t.assigneeId === app.meId)
 	);
-	const next = $derived(nextTasks(tasks, app.meId));
+	const next = $derived(
+		nextTasks(tasks, app.meId, currentStepOf(app.milestones.all, project.id)?.id ?? null)
+	);
 	let skip = $state(0);
 	const suggestion = $derived(next.length ? next[skip % next.length] : null);
 	const full = $derived(doingCount(tasks, app.meId) >= WIP_PER_PERSON);

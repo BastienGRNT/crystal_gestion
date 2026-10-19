@@ -27,7 +27,8 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 
 Modules : `identity` (comptes, sessions, statut), `projects` (projets, membres, invitations, **accès**), `tasks`,
 `chat` (canaux, messages, fils de commentaires des tâches), `files` (documents, dossiers), `vault`, `planning`
-(dispos, blocs de travail, calculs de l'agenda), `activity` (activité, notifications), `kernel` (erreurs, dates, ports).
+(dispos, blocs de travail, calculs de l'agenda), `roadmap` (étapes, décisions, hypothèses, indicateur, modèles),
+`activity` (activité, notifications), `kernel` (erreurs, dates, ports).
 
 - Les dépendances pointent vers l'intérieur. `domain` n'importe que `kernel/domain` (ou le domaine d'un autre module).
 - Un module n'importe jamais l'infrastructure d'un autre (sauf les schémas Drizzle pour les FK).
@@ -59,7 +60,7 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Toute action passe par `actions.*` : optimiste (`settle()` puis la réponse serveur fait foi). Suppressions :
   `deleteWithUndo` (retrait immédiat, « Annuler » 6 s, envoi à l'expiration).
 - Comptes : `/login`, `/inscription` (libre : on ne voit que les projets créés ou rejoints), `/invite/[token]`.
-- Routes : `/p/[slug]` (accueil), `/tableau`, `/priorites`, `/discussion/[channel]`, `/planning`, `/documents`,
+- Routes : `/p/[slug]` (accueil), `/feuille-de-route`, `/tableau`, `/priorites`, `/discussion/[channel]`, `/planning`, `/documents`,
   `/acces`, `/equipe` ; `/projets`, `/compte`. Fiche tâche : `?tache=<id>` sur n'importe quelle page du projet.
 - Mise en page : `PageHeader` (titre, phrase qui dit à quoi sert la page, boutons) puis le contenu.
 - Tailles (lisibilité d'abord) : texte de base 15 px (`text-base`), plancher 13 px (`text-xs`) ; champs `h-11`,
@@ -73,8 +74,11 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
   qui compte (une colonne), `data-drop-gaps` = le conteneur dont les espaces ne renvoient pas la carte chez elle.
   Règle : **rien n'apparaît, ne disparaît ni ne change de taille pendant un glisser** (pas de `{#if dnd.active}`).
 - Agenda : `ui/organisms/agenda/*` (grille, gestes) + `connected/planning/*` (données, commandes).
-- Lectures qui croisent plusieurs modules (rattrapage, questions, prévisions, prochain point, compte rendu) :
-  fonctions pures dans `client/views/*`, testées là.
+- Lectures qui croisent plusieurs modules (rattrapage, questions, prévisions, prochain point, compte rendu, prévision
+  par étape, bilan d'étape) : fonctions pures dans `client/views/*`, testées là.
+- Feuille de route : rien ne s'y saisit qui pourrait se calculer (avancement, date prévue, retard, étape en cours).
+  Tout nouvel élément doit remonter ailleurs (accueil, fiche, compte rendu, prochain point), sinon il est mort.
+  Filtre d'étape du tableau et de la matrice : `connected/tasks/step-filter.svelte.ts` (ne cache jamais en cours / revue).
 
 ## Conventions
 
@@ -85,6 +89,11 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - UI en français (tutoiement, phrases courtes), code en anglais. Commits Conventional Commits, uniquement si `check` + `test` passent.
 
 ## Pièges connus
+
+- `npm test` plante au démarrage (« Tsconfig not found ») quand le dépôt est sous un dossier `.claude/` (worktree) :
+  lancer vitest depuis une copie hors de ce chemin.
+- `tasks.milestone_id` n'a pas de clé étrangère (le module `roadmap` détache les tâches avant de supprimer une étape) :
+  ne jamais supprimer une étape autrement que par `roadmap.deleteMilestone`.
 
 - Commandes de mise à jour : pas de `.default()` zod dans un schéma `.partial()` (un update réinitialiserait des champs).
 - `Collection.reset()` réinitialise **en place** : ne remplace jamais une collection.

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Download, Pencil, Reply, SquarePlus, Trash2 } from '@lucide/svelte';
+	import { Download, Gavel, Pencil, Reply, SquarePlus, Trash2 } from '@lucide/svelte';
 	import { fileUrl } from '$lib/client/api';
 	import { useApp } from '$lib/client/context';
 	import { elapsed, firstName, joinNames, timeOf } from '$lib/client/format';
@@ -47,6 +47,19 @@
 			projectId: channel.projectId,
 			title: text.length > 120 ? `${text.slice(0, 117)}…` : text,
 			notes: `${toDisplay(message.body, app.users.all)}\n\n— ${author?.name ?? 'Quelqu’un'}, dans la discussion`
+		});
+	}
+
+	/** The decision taken from this message, if any: it carries a badge. */
+	const decision = $derived(app.decisions.all.find((d) => d.messageId === message.id));
+
+	function decide() {
+		const text = plainText(toDisplay(message.body, app.users.all));
+		overlays.decide({
+			projectId: channel.projectId,
+			text: text.length > 280 ? `${text.slice(0, 279)}…` : text,
+			messageId: message.id,
+			taskId: channel.taskId
 		});
 	}
 
@@ -120,6 +133,14 @@
 			/>
 			{#if message.editedAt}<span class="text-xs text-ink-3">(modifié)</span>{/if}
 		{/if}
+		{#if decision && !editing}
+			<a
+				href="/p/{app.projects.get(channel.projectId)
+					?.slug}/feuille-de-route#decision-{decision.id}"
+				class="mt-1 inline-flex items-center gap-1.5 rounded-md bg-ok-soft px-2 py-0.5 text-sm font-medium text-ok-text hover:underline"
+				title={decision.text}><Gavel size={13} aria-hidden="true" />Décision notée</a
+			>
+		{/if}
 		{#if message.asks.length && !editing}
 			<QuestionTag
 				names={askedNames}
@@ -178,6 +199,9 @@
 		>
 			<IconButton icon={Reply} label="Répondre" size="sm" onclick={() => onreply(message)} />
 			<IconButton icon={SquarePlus} label="En faire une tâche" size="sm" onclick={toTask} />
+			{#if !decision}
+				<IconButton icon={Gavel} label="C’est décidé" size="sm" onclick={decide} />
+			{/if}
 			{#if mine}
 				<IconButton
 					icon={Pencil}

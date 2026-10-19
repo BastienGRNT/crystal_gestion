@@ -24,6 +24,14 @@ import {
 	drizzleMembers,
 	drizzleProjects
 } from '$lib/modules/projects/infrastructure/project-repository';
+import { createRoadmap } from '$lib/modules/roadmap';
+import { currentMilestone } from '$lib/modules/roadmap/domain/milestone';
+import {
+	drizzleDecisions,
+	drizzleHypotheses,
+	drizzleMilestones,
+	drizzleReadings
+} from '$lib/modules/roadmap/infrastructure/repositories';
 import { createTasks } from '$lib/modules/tasks';
 import { drizzleTasks } from '$lib/modules/tasks/infrastructure/task-repository';
 import { createVault } from '$lib/modules/vault';
@@ -39,6 +47,8 @@ const users = drizzleUsers(db);
 const members = drizzleMembers(db);
 const access = projectAccess(members);
 const taskRepository = drizzleTasks(db);
+const milestoneStore = drizzleMilestones(db);
+const messageRepository = drizzleMessages(db);
 
 // Each socket hears about its person's projects and the people they share them with.
 hub.configure(async (userId) => {
@@ -69,6 +79,11 @@ const identity = createIdentity({
 
 const tasks = createTasks({
 	tasks: taskRepository,
+	milestones: {
+		get: (id) => milestoneStore.get(id),
+		current: async (projectId) =>
+			currentMilestone(await milestoneStore.ofProject(projectId))?.id ?? null
+	},
 	access,
 	clock,
 	feed: feedFor(hub, 'tasks', byProject),
@@ -89,7 +104,7 @@ const files = createFiles({
 
 const chat = createChat({
 	channels: drizzleChannels(db),
-	messages: drizzleMessages(db),
+	messages: messageRepository,
 	reads: drizzleReads(db),
 	attachments: { attach: files.attachToMessage },
 	people: {
@@ -166,6 +181,35 @@ const planning = createPlanning({
 	blockFeed: feedFor(hub, 'blocks', byProject)
 });
 
+const roadmap = createRoadmap({
+	milestones: milestoneStore,
+	decisions: drizzleDecisions(db),
+	hypotheses: drizzleHypotheses(db),
+	readings: drizzleReadings(db),
+	tasks: {
+		ofMilestone: (id) => taskRepository.ofMilestone(id),
+		get: tasks.get,
+		create: tasks.create,
+		move: tasks.update
+	},
+	channels: {
+		async ensure(projectId, name, actorId) {
+			const existing = await chat.channels([projectId]);
+			if (!existing.some((c) => c.kind === 'custom' && c.name === name))
+				await chat.createChannel({ id: crypto.randomUUID(), projectId, name }, actorId);
+		}
+	},
+	messages: { projectOf: async (id) => (await messageRepository.get(id))?.projectId ?? null },
+	access,
+	clock,
+	milestoneFeed: feedFor(hub, 'milestones', byProject),
+	decisionFeed: feedFor(hub, 'decisions', byProject),
+	hypothesisFeed: feedFor(hub, 'hypotheses', byProject),
+	readingFeed: feedFor(hub, 'readings', byProject),
+	activity: activity.log,
+	newId: () => crypto.randomUUID()
+});
+
 export const container = {
 	identity,
 	projects,
@@ -174,6 +218,7 @@ export const container = {
 	files,
 	vault,
 	planning,
+	roadmap,
 	activity,
 	access,
 	hub

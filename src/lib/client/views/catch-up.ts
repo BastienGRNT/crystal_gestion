@@ -13,6 +13,9 @@ export interface Progress {
 	files: number;
 	vault: number;
 	channels: Subject[];
+	/** Steps closed and decisions noted: the moments that change the project's course. */
+	closed: Subject[];
+	decisions: Subject[];
 	joined: boolean;
 }
 
@@ -42,6 +45,8 @@ export function teamProgress(activities: Activity[], since: string, meId: string
 		else if (verb === 'file.uploaded') progress.files++;
 		else if (verb === 'vault.added') progress.vault++;
 		else if (verb === 'channel.created') progress.channels.push(activity.subject);
+		else if (verb === 'milestone.closed') progress.closed.push(activity.subject);
+		else if (verb === 'decision.made') progress.decisions.push(activity.subject);
 		else if (verb === 'member.joined') progress.joined = true;
 	}
 	return [...people.values()];
@@ -57,6 +62,8 @@ const emptyProgress = (actorId: string): Progress => ({
 	files: 0,
 	vault: 0,
 	channels: [],
+	closed: [],
+	decisions: [],
 	joined: false
 });
 

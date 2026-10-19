@@ -10,6 +10,7 @@
 	import TaskRow from '$lib/ui/organisms/TaskRow.svelte';
 	import { personFilter } from './filter.svelte';
 	import { QUICK_HINT, quickAdd } from './quick-add';
+	import { stepFilter } from './step-filter.svelte';
 
 	interface Props {
 		quadrant: Quadrant;
@@ -73,7 +74,8 @@
 				quickAdd(context, text, {
 					projectId: project.id,
 					quadrant,
-					assigneeId: personFilter.value
+					assigneeId: personFilter.value,
+					milestoneId: stepFilter.view(app, project.id).newTaskStep
 				})}
 		/>
 	</div>

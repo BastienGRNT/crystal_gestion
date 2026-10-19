@@ -31,6 +31,8 @@ export const tasks = pgTable(
 		blockedReason: text(),
 		checklist: jsonb().$type<ChecklistItem[]>().notNull().default([]),
 		dueDate: date(),
+		// No foreign key: the roadmap module owns steps and detaches their tasks before deleting one.
+		milestoneId: uuid(),
 		position: doublePrecision().notNull(),
 		createdBy: uuid()
 			.notNull()
@@ -40,7 +42,7 @@ export const tasks = pgTable(
 		statusChangedAt: timestamptz().notNull(),
 		completedAt: timestamptz()
 	},
-	(t) => [unique().on(t.projectId, t.number), index().on(t.projectId)]
+	(t) => [unique().on(t.projectId, t.number), index().on(t.projectId), index().on(t.milestoneId)]
 );
 
 export const taskCounters = pgTable('task_counters', {

@@ -20,7 +20,13 @@ export const projectCommands = (projects: Projects) => ({
 			description: z.string().optional(),
 			color: z.number().int().optional(),
 			deadline: dateKey.nullable().optional(),
-			weekGoal: z.string().optional()
+			weekGoal: z.string().optional(),
+			audience: z.string().optional(),
+			problem: z.string().optional(),
+			payer: z.string().optional(),
+			outOfScope: z.string().optional(),
+			metricName: z.string().optional(),
+			metricTarget: z.number().finite().nullable().optional()
 		}),
 		({ userId }, { id, ...patch }) => projects.update(id, patch, userId)
 	),

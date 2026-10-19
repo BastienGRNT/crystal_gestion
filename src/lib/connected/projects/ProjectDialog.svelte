@@ -9,6 +9,10 @@
 	import TextInput from '$lib/ui/atoms/TextInput.svelte';
 	import Dialog from '$lib/ui/molecules/Dialog.svelte';
 	import Field from '$lib/ui/molecules/Field.svelte';
+	import TemplatePicker from '$lib/ui/molecules/TemplatePicker.svelte';
+	import { now } from '$lib/client/now.svelte';
+	import type { TemplateKey } from '$lib/modules/roadmap/domain/templates';
+	import { suggestedTemplate, templateOptions } from '../roadmap/templates';
 
 	interface Props {
 		open: boolean;
@@ -23,6 +27,9 @@
 	let description = $state('');
 	let color = $state(0);
 	let deadline = $state('');
+	// Suggested from the delivery date until someone picks one.
+	let picked = $state<TemplateKey | null>(null);
+	const template = $derived(picked ?? suggestedTemplate(deadline || null, now.today));
 
 	// Filled when the dialog opens only: live updates must not overwrite what is being typed.
 	$effect(() => {
@@ -32,6 +39,7 @@
 			description = project?.description ?? '';
 			color = project?.color ?? app.projects.size % 8;
 			deadline = project?.deadline ?? '';
+			picked = null;
 		});
 	});
 
@@ -47,6 +55,7 @@
 		}
 		saving = true;
 		const created = await actions.projects.create(fields);
+		if (created) await actions.roadmap.applyTemplate(created.id, template, created.deadline);
 		saving = false;
 		if (!created) return;
 		open = false;
@@ -56,6 +65,7 @@
 
 <Dialog
 	bind:open
+	size={project ? 'md' : 'lg'}
 	title={project ? 'Modifier le projet' : 'Nouveau projet'}
 	description={project
 		? undefined
@@ -83,10 +93,22 @@
 		<Field
 			label="Date de livraison (facultatif)"
 			for="project-deadline"
-			hint="Elle apparaît dans le planning."
+			hint="Les étapes du modèle se datent d’ici là. Elle apparaît dans le planning."
 		>
 			<TextInput id="project-deadline" type="date" bind:value={deadline} class="w-auto" />
 		</Field>
+		{#if !project}
+			<Field
+				label="Type de projet"
+				hint="Il pose les étapes et les tâches qu’on oublie toujours (mise en ligne, RGPD…). Tout reste modifiable."
+			>
+				<TemplatePicker
+					options={templateOptions()}
+					value={template}
+					onchange={(key) => (picked = key)}
+				/>
+			</Field>
+		{/if}
 		<Field label="Couleur">
 			<ColorPicker value={color} onchange={(c) => (color = c)} />
 		</Field>

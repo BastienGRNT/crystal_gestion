@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { Ellipsis, Link, Trash2, TriangleAlert, X } from '@lucide/svelte';
+	import {
+		Check,
+		Ellipsis,
+		FlaskConical,
+		Gavel,
+		Link,
+		Trash2,
+		TriangleAlert,
+		X
+	} from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { relativeTime } from '$lib/client/format';
 	import { tint } from '$lib/client/labels';
@@ -13,6 +22,10 @@
 	import PeoplePicker from '$lib/ui/molecules/PeoplePicker.svelte';
 	import QuadrantPicker from '$lib/ui/molecules/QuadrantPicker.svelte';
 	import StatusSteps from '$lib/ui/molecules/StatusSteps.svelte';
+	import StepPicker from '$lib/ui/molecules/StepPicker.svelte';
+	import Button from '$lib/ui/atoms/Button.svelte';
+	import { stepOptions } from '../roadmap/step-options';
+	import { supersededIds } from '$lib/modules/roadmap/domain/decision';
 	import { teamOrder } from '../team/usePresence.svelte';
 	import BlockButton from './BlockButton.svelte';
 	import Checklist from './Checklist.svelte';
@@ -20,7 +33,7 @@
 	import TaskComments from './TaskComments.svelte';
 
 	let { task, onclose }: { task: Task; onclose: () => void } = $props();
-	const { app, actions } = useApp();
+	const { app, actions, overlays } = useApp();
 
 	const project = $derived(app.projects.get(task.projectId));
 	const author = $derived(app.users.get(task.createdBy));
@@ -28,6 +41,15 @@
 	const active = $derived(task.status === 'todo' || task.status === 'doing');
 	// Said right where the date is chosen: a deadline nobody has time for is visible at once.
 	const risk = $derived(riskOf(app, task));
+	const steps = $derived(stepOptions(app, task.projectId));
+	const step = $derived(app.milestones.get(task.milestoneId));
+	const decisions = $derived(app.decisions.all.filter((d) => d.taskId === task.id));
+	const replaced = $derived(supersededIds(app.decisions.all));
+	// The bet this task checks: once done, the drawer asks how it turned out.
+	const hypothesis = $derived(
+		app.hypotheses.all.find((h) => h.taskId === task.id && h.verdict === 'open')
+	);
+	const decide = () => overlays.decide({ projectId: task.projectId, text: '', taskId: task.id });
 
 	// Drafts: what is being typed is never replaced by a live update.
 	let title = $state('');
@@ -70,6 +92,7 @@
 				label="Plus d’options"
 				items={[
 					{ label: 'Copier le lien', icon: Link, run: copyLink },
+					{ label: 'Noter une décision', icon: Gavel, run: decide },
 					'separator',
 					{
 						label: 'Supprimer la tâche',
@@ -107,6 +130,32 @@
 			Ajoutée par {author?.name ?? 'quelqu’un'}
 			{relativeTime(task.createdAt, now.value)}
 		</p>
+
+		{#if hypothesis}
+			<div
+				class="mt-5 flex flex-col gap-2.5 rounded-xl border border-plan/30 bg-plan-soft px-4 py-3"
+			>
+				<p class="flex items-start gap-2 text-base">
+					<FlaskConical size={17} class="mt-0.5 shrink-0 text-plan-text" aria-hidden="true" />
+					<span
+						>{task.status === 'done' ? 'Alors, c’est vrai ?' : 'Cette tâche vérifie'}
+						<span class="font-semibold">« {hypothesis.text} »</span></span
+					>
+				</p>
+				{#if task.status === 'done'}
+					<div class="flex flex-wrap gap-2">
+						<Button
+							size="sm"
+							icon={Check}
+							onclick={() => actions.roadmap.judge(hypothesis.id, 'true')}>C’est vrai</Button
+						>
+						<Button size="sm" icon={X} onclick={() => actions.roadmap.judge(hypothesis.id, 'false')}
+							>C’est faux</Button
+						>
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<dl class="mt-6 flex flex-col gap-6">
 			<div class="flex flex-col gap-2.5">
@@ -165,6 +214,24 @@
 				</div>
 			{/if}
 
+			{#if step?.closedAt}
+				<div class="flex flex-col gap-2.5">
+					{@render section('Étape')}
+					<dd class="text-base text-ink-2">{step.title} (close)</dd>
+				</div>
+			{:else if steps.length}
+				<div class="flex flex-col gap-2.5">
+					{@render section('Étape')}
+					<dd>
+						<StepPicker
+							{steps}
+							value={task.milestoneId}
+							onchange={(milestoneId) => actions.tasks.update(task.id, { milestoneId })}
+						/>
+					</dd>
+				</div>
+			{/if}
+
 			<div class="flex flex-col gap-2.5">
 				{@render section('Échéance')}
 				<dd class="flex flex-col gap-2">
@@ -205,6 +272,24 @@
 					/>
 				</dd>
 			</div>
+
+			{#if decisions.length}
+				<div class="flex flex-col gap-2.5">
+					{@render section('Décisions')}
+					<dd>
+						<ul class="flex flex-col gap-1.5">
+							{#each decisions as decision (decision.id)}
+								<li class="flex items-start gap-2 text-base">
+									<Gavel size={15} class="mt-1 shrink-0 text-ok-text" aria-hidden="true" />
+									<span class={replaced.has(decision.id) ? 'text-ink-3 line-through' : ''}
+										>{decision.text}</span
+									>
+								</li>
+							{/each}
+						</ul>
+					</dd>
+				</div>
+			{/if}
 
 			<div class="flex flex-col gap-2.5">
 				{@render section('Commentaires')}

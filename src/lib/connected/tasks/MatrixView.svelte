@@ -8,11 +8,16 @@
 	import { personFilter } from './filter.svelte';
 	import InboxStrip from './InboxStrip.svelte';
 	import MatrixBox from './MatrixBox.svelte';
+	import { stepFilter } from './step-filter.svelte';
 
 	let { project }: { project: Project } = $props();
 	const { app, actions } = useApp();
 
-	const matrix = $derived(matrixOf(personFilter.apply(projectTasks(app, project.id))));
+	const matrix = $derived(
+		matrixOf(
+			stepFilter.view(app, project.id).apply(personFilter.apply(projectTasks(app, project.id)))
+		)
+	);
 
 	/** Drops keep the order the person chose, in the box they chose. */
 	const dropInto = (box: Box) => (taskId: string, index: number) => {

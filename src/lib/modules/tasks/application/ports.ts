@@ -9,6 +9,7 @@ import type { Task } from '../domain/task';
 
 export interface TaskRepository {
 	ofProjects(projectIds: string[]): Promise<Task[]>;
+	ofMilestone(milestoneId: string): Promise<Task[]>;
 	get(id: string): Promise<Task | null>;
 	insert(task: Task): Promise<void>;
 	save(task: Task): Promise<void>;
@@ -18,8 +19,16 @@ export interface TaskRepository {
 	lastPosition(projectId: string): Promise<number | null>;
 }
 
+/** The steps of the roadmap, as far as a task needs to know them. */
+export interface MilestoneLookup {
+	get(id: string): Promise<{ projectId: string; closedAt: string | null } | null>;
+	/** The step under way of a project: where reopened work goes. */
+	current(projectId: string): Promise<string | null>;
+}
+
 export interface TaskDeps {
 	tasks: TaskRepository;
+	milestones: MilestoneLookup;
 	access: Access;
 	clock: Clock;
 	feed: ChangeFeed<Task>;

@@ -4,6 +4,7 @@ import { sharedRanges } from '$lib/modules/planning/domain/shared';
 import { daysInColumn, STALE_DAYS } from '$lib/modules/tasks/domain/views';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import type { Risk } from './forecast';
+import { waitsForLaterStep } from './roadmap';
 
 const HOUR_MS = 3_600_000;
 /** Shorter than that, it is a coincidence, not a moment to talk. */
@@ -48,12 +49,22 @@ export function nextMoment(
 	};
 }
 
-export type AgendaKind = 'question' | 'review' | 'blocked' | 'risk' | 'sort' | 'stale';
+export type AgendaKind =
+	| 'step-late'
+	| 'step-ready'
+	| 'question'
+	| 'review'
+	| 'blocked'
+	| 'risk'
+	| 'sort'
+	| 'stale'
+	| 'metric';
 
 export interface AgendaItem {
 	kind: AgendaKind;
 	/** What to open: a task, or the question's message. */
 	taskId?: string;
+	milestoneId?: string;
 	question?: Message;
 	count?: number;
 }
@@ -63,18 +74,36 @@ export interface AgendaInput {
 	questions: Message[];
 	risks: Map<string, Risk | null>;
 	now: Date;
+	/** The step under way: late means deciding what to cut, ready means closing it. */
+	step?: { id: string; late: boolean; ready: boolean } | null;
+	/** The project's number is tracked and nobody wrote this week's value yet. */
+	metricMissing?: boolean;
 	/** At most that many items: a point is five minutes, not a meeting. */
 	max?: number;
 }
 
 /**
- * What only gets solved together, already gathered: questions still open, work waiting for a
+ * What only gets solved together, already gathered: a step running late (what to cut) or done
+ * (close it), questions still open, work waiting for a
  * review, what is stuck, deadlines in danger, tasks nobody sorted and cards that stopped moving.
  */
-export function agendaOf({ tasks, questions, risks, now, max = 6 }: AgendaInput): AgendaItem[] {
+export function agendaOf({
+	tasks,
+	questions,
+	risks,
+	now,
+	step = null,
+	metricMissing = false,
+	max = 6
+}: AgendaInput): AgendaItem[] {
 	const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'idea');
-	const unsorted = open.filter((t) => t.status === 'todo' && t.quadrant === null).length;
+	const unsorted = open.filter(
+		(t) => t.status === 'todo' && t.quadrant === null && !waitsForLaterStep(t, step?.id ?? null)
+	).length;
 	const items: AgendaItem[] = [
+		...(step?.late ? [{ kind: 'step-late' as const, milestoneId: step.id }] : []),
+		...(step?.ready ? [{ kind: 'step-ready' as const, milestoneId: step.id }] : []),
+		...(metricMissing ? [{ kind: 'metric' as const }] : []),
 		...questions.map((question) => ({ kind: 'question' as const, question })),
 		...open
 			.filter((t) => t.status === 'review')

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		ArrowRight,
+		Compass,
 		Hourglass,
 		ListChecks,
 		MessageCircleQuestion,
@@ -28,6 +29,8 @@
 		waitingOn?: string;
 		/** Label of the one-click move to the next column ("Commencer", "À relire"…). */
 		next?: string | null;
+		/** The step it belongs to, when not the one on screen. */
+		step?: string;
 		onopen: () => void;
 		oncomplete: () => void;
 		onreopen: () => void;
@@ -44,6 +47,7 @@
 		staleDays = null,
 		waitingOn,
 		next = null,
+		step,
 		onopen,
 		oncomplete,
 		onreopen,
@@ -111,6 +115,11 @@
 	{/if}
 
 	<div class="flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3">
+		{#if step}<span
+				class="inline-flex max-w-40 items-center gap-1 rounded-md bg-sunken px-1.5 text-xs font-medium text-ink-2"
+				title="Étape : {step}"
+				><Compass size={12} class="shrink-0" /><span class="truncate">{step}</span></span
+			>{/if}
 		{#if task.dueDate}<DueDate date={task.dueDate} {today} {done} />{/if}
 		{#if task.checklist.length}
 			<span

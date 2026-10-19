@@ -11,7 +11,9 @@ const VERBS: Record<ActivityVerb, string> = {
 	'task.blocked': 'est bloqué sur',
 	'file.uploaded': 'a déposé',
 	'vault.added': 'a ajouté l’accès',
-	'channel.created': 'a ouvert le canal'
+	'channel.created': 'a ouvert le canal',
+	'milestone.closed': 'a clos l’étape',
+	'decision.made': 'a noté la décision'
 };
 
 export const activityVerb = (activity: Activity) => VERBS[activity.verb] ?? 'a modifié';
@@ -43,5 +45,9 @@ export function subjectHref(subject: Subject, slug: string | undefined): string 
 			return `${base}/discussion/${subject.id}`;
 		case 'message':
 			return `${base}/discussion/${subject.channelId}?message=${subject.id}`;
+		case 'milestone':
+			return `${base}/feuille-de-route#etape-${subject.id}`;
+		case 'decision':
+			return `${base}/feuille-de-route#decision-${subject.id}`;
 	}
 }

@@ -16,6 +16,8 @@
 	import CardZone from './CardZone.svelte';
 	import { personFilter } from './filter.svelte';
 	import PersonFilter from './PersonFilter.svelte';
+	import { stepFilter } from './step-filter.svelte';
+	import StepFilter from './StepFilter.svelte';
 	import { QUICK_HINT, quickAdd } from './quick-add';
 
 	let { project }: { project: Project } = $props();
@@ -26,7 +28,10 @@
 	let query = $state('');
 
 	const matches = (t: Task) => score(`${t.title} #${t.number}`, query) !== null;
-	const tasks = $derived(personFilter.apply(projectTasks(app, project.id)).filter(matches));
+	const steps = $derived(stepFilter.view(app, project.id));
+	const tasks = $derived(
+		steps.apply(personFilter.apply(projectTasks(app, project.id))).filter(matches)
+	);
 	const board = $derived(boardOf(tasks, now.value, showAllDone));
 	const limit = $derived(Math.max(1, teamOf(app.members.all, project.id).length) * WIP_PER_PERSON);
 	const groupKey = (q: Quadrant | null) => q ?? 'inbox';
@@ -57,7 +62,8 @@
 		quickAdd(context, text, {
 			projectId: project.id,
 			status,
-			assigneeId: status === 'doing' ? app.meId : personFilter.value
+			assigneeId: status === 'doing' ? app.meId : personFilter.value,
+			milestoneId: steps.stepFor(status)
 		});
 </script>
 
@@ -75,6 +81,7 @@
 			class="h-11 w-full rounded-xl border border-line-strong/70 bg-surface pr-3 pl-10 text-base shadow-card outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
 		/>
 	</label>
+	<StepFilter projectId={project.id} />
 	<PersonFilter projectId={project.id} />
 </div>
 

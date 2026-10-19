@@ -10,6 +10,7 @@
 	import type { Task, TaskStatus } from '$lib/modules/tasks/domain/task';
 	import DropSlot from '$lib/ui/atoms/DropSlot.svelte';
 	import TaskCard from '$lib/ui/organisms/TaskCard.svelte';
+	import { stepFilter } from './step-filter.svelte';
 
 	interface Props {
 		zone: string;
@@ -35,6 +36,7 @@
 	}: Props = $props();
 	const { app, actions, overlays } = useApp();
 	const rows = $derived(dnd.rows(zone, tasks));
+	const tagOf = (task: Task) => stepFilter.view(app, task.projectId).tagOf(task);
 	const empty = $derived(
 		!rows.some((r) => r.item && r.item.id !== dnd.active?.id) && !dnd.isOver(zone)
 	);
@@ -86,6 +88,7 @@
 					staleDays={stale(task)}
 					waitingOn={waiting(task.id)}
 					next={next?.label}
+					step={tagOf(task)}
 					onnext={() => next?.run(task.id)}
 					onopen={() => overlays.openTask(task.id)}
 					oncomplete={() => actions.tasks.complete(task.id)}

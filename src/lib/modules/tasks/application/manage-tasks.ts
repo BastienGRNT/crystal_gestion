@@ -47,9 +47,26 @@ function verbOf(before: Task, after: Task): ActivityVerb | null {
 	return null;
 }
 
+/** A task joins a step of its own project that is still open. */
+async function checkMilestone(deps: TaskDeps, projectId: string, id: string | null | undefined) {
+	if (!id) return;
+	const milestone = await deps.milestones.get(id);
+	if (!milestone || milestone.projectId !== projectId) throw invalid('Étape inconnue.');
+	if (milestone.closedAt) throw invalid('Cette étape est close : choisis-en une autre.');
+}
+
+/** Work reopened in a closed step goes to the step under way: a closed step holds only done work. */
+async function keepClosedStepsDone(deps: TaskDeps, task: Task): Promise<Task> {
+	if (!task.milestoneId || task.status === 'done') return task;
+	const milestone = await deps.milestones.get(task.milestoneId);
+	if (!milestone?.closedAt) return task;
+	return { ...task, milestoneId: await deps.milestones.current(task.projectId) };
+}
+
 export const createTask = (deps: TaskDeps) => async (input: CreateTaskInput, actorId: string) => {
 	await deps.access.assertMember(input.projectId, actorId);
 	await checkPeople(deps, input.projectId, [input.assigneeId]);
+	await checkMilestone(deps, input.projectId, input.milestoneId);
 	const number = await deps.tasks.nextNumber(input.projectId);
 	const position = input.position ?? ((await deps.tasks.lastPosition(input.projectId)) ?? 0) + 1;
 	const task = newTask({ ...input, number, position }, actorId, deps.clock.now());
@@ -71,7 +88,11 @@ export const updateTask =
 	(deps: TaskDeps) => async (id: string, patch: TaskPatch, actorId: string) => {
 		const current = await existing(deps, id, actorId);
 		await checkPeople(deps, current.projectId, [patch.assigneeId, patch.reviewerId]);
+		if (patch.milestoneId !== current.milestoneId)
+			await checkMilestone(deps, current.projectId, patch.milestoneId);
 		let task = applyPatch(current, patch, actorId, deps.clock.now());
+		if (current.status === 'done' && task.status !== 'done')
+			task = await keepClosedStepsDone(deps, task);
 		if (task.status === 'review' && current.status !== 'review' && !task.reviewerId)
 			task = {
 				...task,

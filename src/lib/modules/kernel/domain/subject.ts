@@ -1,5 +1,6 @@
 /** What an activity line or a notification points at, with enough to display and open it. */
-export type SubjectKind = 'task' | 'file' | 'vault' | 'project' | 'channel' | 'message';
+export type SubjectKind =
+	'task' | 'file' | 'vault' | 'project' | 'channel' | 'message' | 'milestone' | 'decision';
 
 export interface Subject {
 	kind: SubjectKind;
@@ -19,7 +20,9 @@ export type ActivityVerb =
 	| 'task.blocked'
 	| 'file.uploaded'
 	| 'vault.added'
-	| 'channel.created';
+	| 'channel.created'
+	| 'milestone.closed'
+	| 'decision.made';
 
 /** `review`: someone asks you to check their work. `answer`: someone answered your question. */
 export type NotificationKind = 'assigned' | 'mention' | 'review' | 'answer';

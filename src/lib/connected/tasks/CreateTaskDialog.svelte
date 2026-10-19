@@ -17,8 +17,11 @@
 	import Field from '$lib/ui/molecules/Field.svelte';
 	import PeoplePicker from '$lib/ui/molecules/PeoplePicker.svelte';
 	import QuadrantPicker from '$lib/ui/molecules/QuadrantPicker.svelte';
+	import StepPicker from '$lib/ui/molecules/StepPicker.svelte';
+	import { stepOptions } from '../roadmap/step-options';
 	import { teamOrder } from '../team/usePresence.svelte';
 	import { QUICK_HINT } from './quick-add';
+	import { stepFilter } from './step-filter.svelte';
 
 	let { open = $bindable(), seed }: { open: boolean; seed: Partial<TaskDraft> } = $props();
 	const { app, actions, overlays } = useApp();
@@ -32,7 +35,9 @@
 	let assigneeId = $state<string | null>(null);
 	let dueDate = $state<string | null>(null);
 	let notes = $state('');
+	let milestoneId = $state<string | null>(null);
 	const people = $derived(teamOrder(app, projectId));
+	const steps = $derived(stepOptions(app, projectId));
 
 	$effect(() => {
 		if (!open) return;
@@ -43,6 +48,10 @@
 			quadrant = seed.quadrant ?? null;
 			assigneeId = seed.assigneeId ?? null;
 			dueDate = seed.dueDate ?? null;
+			milestoneId =
+				seed.milestoneId !== undefined
+					? seed.milestoneId
+					: stepFilter.view(app, projectId).stepFor(seed.status ?? 'todo');
 		});
 	});
 
@@ -59,7 +68,8 @@
 			status: seed.status ?? 'todo',
 			quadrant: isIdea ? null : quadrant,
 			assigneeId: parsed.assigneeId ?? assigneeId,
-			dueDate: parsed.dueDate ?? dueDate
+			dueDate: parsed.dueDate ?? dueDate,
+			milestoneId: steps.some((s) => s.id === milestoneId) ? milestoneId : null
 		});
 		if (!task) return;
 		open = false;
@@ -160,6 +170,11 @@
 					<DuePicker value={dueDate} today={now.today} onchange={(d) => (dueDate = d)} />
 				</Field>
 			{/if}
+		{/if}
+		{#if steps.length}
+			<Field label="Étape">
+				<StepPicker {steps} value={milestoneId} onchange={(id) => (milestoneId = id)} />
+			</Field>
 		{/if}
 		<Field label="Notes (facultatif)">
 			<TextArea bind:value={notes} placeholder="Détails, liens…" class="min-h-16" />

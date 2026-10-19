@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		CalendarDays,
+		Compass,
 		FolderOpen,
 		House,
 		KeyRound,
@@ -14,6 +15,7 @@
 	import { page } from '$app/state';
 	import { useApp } from '$lib/client/context';
 	import { tint } from '$lib/client/labels';
+	import { currentStepOf, waitsForLaterStep } from '$lib/client/views/roadmap';
 	import { activeProjects, channelsOf, projectCounts, unreadIn } from '$lib/client/views/workspace';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
 	import Kbd from '$lib/ui/atoms/Kbd.svelte';
@@ -30,7 +32,13 @@
 	const project = $derived(currentProject(app));
 	const path = $derived(page.url.pathname);
 	const base = $derived(project ? `/p/${project.slug}` : '');
-	const counts = $derived(project ? projectCounts(app.tasks.all, project.id) : null);
+	// Tasks of steps to come wait their turn: they are not "à trier" yet.
+	const counts = $derived.by(() => {
+		if (!project) return null;
+		const currentId = currentStepOf(app.milestones.all, project.id)?.id ?? null;
+		const tasks = app.tasks.all.filter((t) => !waitsForLaterStep(t, currentId));
+		return projectCounts(tasks, project.id);
+	});
 	const unread = $derived(
 		project ? unreadIn(channelsOf(app.channels.all, project.id), app.channelStates.all) : null
 	);
@@ -56,6 +64,13 @@
 	{#if project && counts && unread}
 		<nav aria-label="Le projet" class="flex flex-col gap-0.5">
 			<NavItem href={base} label="Accueil" icon={House} active={at('')} onclick={onnavigate} />
+			<NavItem
+				href="{base}/feuille-de-route"
+				label="Feuille de route"
+				icon={Compass}
+				active={at('/feuille-de-route')}
+				onclick={onnavigate}
+			/>
 			<NavItem
 				href="{base}/tableau"
 				label="Tableau"

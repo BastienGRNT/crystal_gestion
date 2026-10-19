@@ -100,7 +100,7 @@ async function main() {
 	});
 	await update(camille, webp, { status: 'doing' });
 	await update(camille, webp, { status: 'review' });
-	await task(camille, atelier.id, 'Préparer la mise en production', {
+	const prod = await task(camille, atelier.id, 'Préparer la mise en production', {
 		quadrant: 'plan',
 		assigneeId: B,
 		dueDate: day(16)
@@ -115,13 +115,13 @@ async function main() {
 	await update(camille, carrier, {
 		blockedReason: 'En attente de la grille tarifaire de La Poste'
 	});
-	await task(camille, atelier.id, 'Renouveler le nom de domaine', {
+	const domain = await task(camille, atelier.id, 'Renouveler le nom de domaine', {
 		quadrant: 'delegate',
 		dueDate: day(5)
 	});
 	await task(bastien, atelier.id, 'Mode sombre pour l’admin', { quadrant: 'later' });
 	await task(camille, atelier.id, 'Ajouter des stats de visite (Plausible)');
-	await task(bastien, atelier.id, 'Relire les mentions légales et les CGV');
+	const legal = await task(bastien, atelier.id, 'Relire les mentions légales et les CGV');
 	for (const idea of [
 		'Programme fidélité : une tasse offerte toutes les dix',
 		'Newsletter mensuelle avec les nouvelles pièces',
@@ -259,7 +259,7 @@ async function main() {
 		null,
 		true
 	);
-	await post(
+	const cream = await post(
 		camille,
 		general.id,
 		`Voilà la maquette de la page produit. <@${B}> on garde le fond crème ?`,
@@ -270,6 +270,63 @@ async function main() {
 		release.id,
 		'Checklist avant la mise en ligne : DNS, emails transactionnels, sauvegardes. Je la complète au fil de l’eau.'
 	);
+
+	// Feuille de route: the cap, the steps (the first one closed) and a decision from the chat
+	await bastien.command('projects.update', {
+		id: atelier.id,
+		audience: 'Les clients de l’atelier de Léa, souvent sur leur téléphone',
+		problem: 'Léa ne vend que sur les marchés et par messages Instagram',
+		payer: 'Léa : 4 800 € HT, devis signé',
+		outOfScope: 'Application mobile\nGestion des stocks en temps réel',
+		metricName: 'Commandes en ligne',
+		metricTarget: 20
+	});
+	const milestone = (title: string, doneWhen: string, targetDate: string) =>
+		bastien.command<Entity>('roadmap.createMilestone', {
+			id: crypto.randomUUID(),
+			projectId: atelier.id,
+			title,
+			doneWhen,
+			targetDate
+		});
+	const mockupsStep = await milestone(
+		'Maquettes validées',
+		'Léa a validé l’accueil et la page produit',
+		day(-4)
+	);
+	const shop = await milestone(
+		'Boutique en ligne',
+		'On commande et on paie une tasse de bout en bout, sur téléphone',
+		day(10)
+	);
+	const live = await milestone(
+		'Mise en ligne',
+		'Le site est en ligne sur atelierpixel.fr',
+		day(18)
+	);
+	for (const t of [stripe, about, safari, cart, webp, carrier])
+		await update(bastien, t, { milestoneId: shop.id });
+	for (const t of [prod, domain, legal]) await update(bastien, t, { milestoneId: live.id });
+	await camille.command('roadmap.closeMilestone', { id: mockupsStep.id, carry: 'next' });
+	await bastien.command('roadmap.createDecision', {
+		id: crypto.randomUUID(),
+		projectId: atelier.id,
+		text: 'On garde le fond crème sur tout le site',
+		why: 'C’est la couleur des emballages de l’atelier',
+		messageId: cream.id
+	});
+	await bastien.command('roadmap.applyTemplate', {
+		projectId: recolte.id,
+		template: 'product',
+		today: day(0),
+		deadline: day(120)
+	});
+	const bet = await camille.command<Entity>('roadmap.createHypothesis', {
+		id: crypto.randomUUID(),
+		projectId: recolte.id,
+		text: 'Les jardiniers amateurs paieront 3 € par mois'
+	});
+	await camille.command('roadmap.verifyHypothesis', { id: bet.id });
 
 	// Planning: this week and last week, plus planned work
 	const at = (offset: number, hour: number, minute = 0) => {

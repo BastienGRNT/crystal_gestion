@@ -17,7 +17,13 @@ function setup() {
 	const feed = new RecordingFeed<Task>();
 	const activity = new RecordingActivity();
 	const notifier = new RecordingNotifier();
+	const steps = new Map<string, { projectId: string; closedAt: string | null }>([
+		['m1', { projectId: 'p1', closedAt: '2026-10-01T10:00:00Z' }],
+		['m2', { projectId: 'p1', closedAt: null }],
+		['other', { projectId: 'p2', closedAt: null }]
+	]);
 	const tasks = createTasks({
+		milestones: { get: async (id) => steps.get(id) ?? null, current: async () => 'm2' },
 		clock: new FixedClock(),
 		feed,
 		activity,
@@ -25,6 +31,7 @@ function setup() {
 		access: new FakeAccess({ p1: ['bastien', 'ana'] }),
 		tasks: {
 			ofProjects: async () => table.all(),
+			ofMilestone: async (id) => table.all().filter((t) => t.milestoneId === id),
 			get: async (id: string) => table.get(id),
 			insert: async (task) => table.put(task),
 			save: async (task) => table.put(task),
@@ -39,7 +46,7 @@ function setup() {
 			}
 		}
 	});
-	return { tasks, feed, activity, notifier };
+	return { tasks, feed, activity, notifier, table };
 }
 
 describe('tasks', () => {
@@ -91,5 +98,17 @@ describe('tasks', () => {
 		const task = await create('Jeter');
 		await ctx.tasks.delete(task.id, 'ana');
 		expect(ctx.feed.removals).toEqual([task.id]);
+	});
+
+	it('only joins an open step of the same project', async () => {
+		expect((await create('Maquettes', { milestoneId: 'm2' })).milestoneId).toBe('m2');
+		await expect(create('X', { milestoneId: 'other' })).rejects.toThrow(/inconnue/);
+		await expect(create('X', { milestoneId: 'm1' })).rejects.toThrow(/close/);
+	});
+
+	it('sends work reopened in a closed step to the step under way', async () => {
+		const task = await create('Fini', { status: 'done' });
+		ctx.table.put({ ...task, milestoneId: 'm1' });
+		expect((await ctx.tasks.update(task.id, { status: 'todo' }, 'bastien')).milestoneId).toBe('m2');
 	});
 });

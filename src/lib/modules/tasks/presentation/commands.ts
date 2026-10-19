@@ -16,6 +16,7 @@ const editable = {
 	blockedReason: z.string().nullable(),
 	checklist,
 	dueDate: dateKey.nullable(),
+	milestoneId: id.nullable(),
 	position: z.number().finite()
 };
 
@@ -32,6 +33,7 @@ export const taskCommands = (tasks: Tasks) => ({
 				assigneeId: id.nullable(),
 				checklist,
 				dueDate: dateKey.nullable(),
+				milestoneId: id.nullable(),
 				position: z.number().finite()
 			})
 			.partial({
@@ -41,6 +43,7 @@ export const taskCommands = (tasks: Tasks) => ({
 				assigneeId: true,
 				checklist: true,
 				dueDate: true,
+				milestoneId: true,
 				position: true
 			}),
 		({ userId }, input) => tasks.create(input, userId)
