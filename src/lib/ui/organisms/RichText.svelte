@@ -3,14 +3,23 @@
 
 	interface Props {
 		body: string;
-		meId: string;
-		nameOf: (userId: string) => string;
+		meId?: string;
+		nameOf?: (userId: string) => string;
 		/** Resolves `#12` inside the channel's project, when it has one. */
-		taskOf: (number: number) => { id: string; title: string } | undefined;
-		onopentask: (id: string) => void;
+		taskOf?: (number: number) => { id: string; title: string } | undefined;
+		onopentask?: (id: string) => void;
+		/** Smaller text, for a note under a title. */
+		size?: 'md' | 'base';
 	}
 
-	let { body, meId, nameOf, taskOf, onopentask }: Props = $props();
+	let {
+		body,
+		meId = '',
+		nameOf = () => 'quelqu’un',
+		taskOf = () => undefined,
+		onopentask = () => {},
+		size = 'md'
+	}: Props = $props();
 	const blocks = $derived(parseMessage(body));
 </script>
 
@@ -41,10 +50,26 @@
 	{/each}
 {/snippet}
 
-<div class="flex flex-col gap-1.5 text-md leading-relaxed break-words text-ink">
+<div
+	class={[
+		'flex flex-col gap-1.5 leading-relaxed break-words text-ink',
+		size === 'md' ? 'text-md' : 'text-base'
+	]}
+>
 	{#each blocks as block, i (i)}
 		{#if block.type === 'paragraph'}
 			<p>{@render inline(block.inlines)}</p>
+		{:else if block.type === 'heading'}
+			<p class="mt-1 font-semibold text-ink first:mt-0">{@render inline(block.inlines)}</p>
+		{:else if block.type === 'list'}
+			<svelte:element
+				this={block.ordered ? 'ol' : 'ul'}
+				class={['flex flex-col gap-0.5 pl-5', block.ordered ? 'list-decimal' : 'list-disc']}
+			>
+				{#each block.items as item, j (j)}<li class="pl-0.5 marker:text-ink-3">
+						{@render inline(item)}
+					</li>{/each}
+			</svelte:element>
 		{:else if block.type === 'quote'}
 			<blockquote class="border-l-[3px] border-line-strong pl-3 text-ink-2">
 				{@render inline(block.inlines)}

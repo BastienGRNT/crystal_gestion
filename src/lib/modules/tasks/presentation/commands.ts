@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { command, dateKey, id, quadrant, status } from '$lib/server/commands/define';
+import { command, dateKey, id, kind, quadrant, status } from '$lib/server/commands/define';
 import type { Tasks } from '../index';
 
 const checklist = z
@@ -10,6 +10,9 @@ const editable = {
 	title: z.string(),
 	notes: z.string(),
 	status,
+	kind,
+	critical: z.boolean(),
+	reportedBy: z.string().max(200).nullable(),
 	quadrant,
 	assigneeId: id.nullable(),
 	reviewerId: id.nullable(),
@@ -17,6 +20,7 @@ const editable = {
 	checklist,
 	dueDate: dateKey.nullable(),
 	milestoneId: id.nullable(),
+	componentId: id.nullable(),
 	position: z.number().finite()
 };
 
@@ -29,16 +33,24 @@ export const taskCommands = (tasks: Tasks) => ({
 				title: z.string(),
 				notes: z.string(),
 				status,
+				kind,
+				critical: z.boolean(),
+				reportedBy: z.string().max(200).nullable(),
 				quadrant,
 				assigneeId: id.nullable(),
 				checklist,
 				dueDate: dateKey.nullable(),
 				milestoneId: id.nullable(),
+				componentId: id.nullable(),
 				position: z.number().finite()
 			})
 			.partial({
 				notes: true,
 				status: true,
+				kind: true,
+				critical: true,
+				reportedBy: true,
+				componentId: true,
 				quadrant: true,
 				assigneeId: true,
 				checklist: true,
@@ -56,5 +68,25 @@ export const taskCommands = (tasks: Tasks) => ({
 			.required({ id: true }),
 		({ userId }, { id, ...patch }) => tasks.update(id, patch, userId)
 	),
-	'tasks.delete': command(z.object({ id }), ({ userId }, input) => tasks.delete(input.id, userId))
+	'tasks.delete': command(z.object({ id }), ({ userId }, input) => tasks.delete(input.id, userId)),
+	'components.create': command(
+		z.object({ id, projectId: id, name: z.string(), color: z.number().int().optional() }),
+		({ userId }, input) => tasks.createComponent(input, userId)
+	),
+	'components.update': command(
+		z
+			.object({
+				id,
+				name: z.string(),
+				color: z.number().int(),
+				position: z.number().finite(),
+				archived: z.boolean()
+			})
+			.partial()
+			.required({ id: true }),
+		({ userId }, { id, ...patch }) => tasks.updateComponent(id, patch, userId)
+	),
+	'components.delete': command(z.object({ id }), ({ userId }, input) =>
+		tasks.deleteComponent(input.id, userId)
+	)
 });

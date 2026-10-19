@@ -9,7 +9,10 @@ export interface AgendaSource {
 	lanes: AgendaLane[];
 	meId: string;
 	slots: AvailabilitySlot[];
+	/** Every block of these people: other projects' too, since that time is taken. */
 	blocks: WorkBlock[];
+	projectId: string;
+	projectName: (id: string) => string;
 	taskOf: (id: string | null) => { number: number; title: string } | undefined;
 	isDraft: (id: string) => boolean;
 }
@@ -24,10 +27,11 @@ type Raw = Omit<
 
 function rawItems(s: AgendaSource): Raw[] {
 	const laneOf = new Map(s.lanes.map((lane, index) => [lane.id, { ...lane, index }]));
-	const base = (id: string, userId: string) => ({
+	const base = (id: string, userId: string, here = true) => ({
 		id,
 		lane: laneOf.get(userId)?.index ?? -1,
-		editable: userId === s.meId && !s.isDraft(id)
+		editable: here && userId === s.meId && !s.isDraft(id),
+		muted: !here
 	});
 	const person = (id: string) => laneOf.get(id)?.name ?? '';
 	const color = (id: string) => laneOf.get(id)?.color ?? 'var(--accent)';
@@ -44,16 +48,28 @@ function rawItems(s: AgendaSource): Raw[] {
 		to: slot.endsAt
 	}));
 	const blocks: Raw[] = s.blocks.map((block) => {
+		const here = block.projectId === s.projectId;
 		const task = s.taskOf(block.taskId);
+		const project = s.projectName(block.projectId);
+		const info = blockInfo(block, task, person(block.userId), s.slots);
 		return {
-			...base(block.id, block.userId),
+			...base(block.id, block.userId, here),
 			layer: 'block',
 			color: color(block.userId),
-			info: blockInfo(block, task, person(block.userId), s.slots),
+			info: here
+				? info
+				: {
+						title: project,
+						lines: [
+							...(task ? [`#${task.number} · ${task.title}`] : []),
+							...info.lines,
+							'À changer depuis le planning de ce projet'
+						]
+					},
 			maybe: false,
 			running: false,
-			label: task?.title ?? 'Travail',
-			ref: task ? `#${task.number}` : null,
+			label: here ? (task?.title ?? 'Travail') : project,
+			ref: here && task ? `#${task.number}` : null,
 			from: block.startsAt,
 			to: block.endsAt
 		};

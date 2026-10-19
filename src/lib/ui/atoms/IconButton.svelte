@@ -29,7 +29,7 @@
 	title={label}
 	class={[
 		'inline-flex shrink-0 items-center justify-center rounded-xl transition-colors disabled:opacity-40',
-		size === 'sm' ? 'size-8' : 'size-10',
+		size === 'sm' ? 'size-9' : 'size-10',
 		active ? 'bg-active text-ink' : 'text-ink-3 hover:bg-hover hover:text-ink',
 		tone === 'danger' && 'hover:bg-danger-soft hover:text-danger-text',
 		extra

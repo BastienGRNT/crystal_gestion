@@ -3,6 +3,7 @@
 	import { useApp } from '$lib/client/context';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
 	import MatrixView from '$lib/connected/tasks/MatrixView.svelte';
+	import KindFilter from '$lib/connected/tasks/KindFilter.svelte';
 	import PersonFilter from '$lib/connected/tasks/PersonFilter.svelte';
 	import StepFilter from '$lib/connected/tasks/StepFilter.svelte';
 	import Button from '$lib/ui/atoms/Button.svelte';
@@ -20,6 +21,7 @@
 		subtitle="Que faire maintenant ? Range chaque tâche selon son urgence et son importance : le tableau suit cet ordre."
 	>
 		{#snippet actions()}
+			<KindFilter projectId={project.id} />
 			<StepFilter projectId={project.id} />
 			<PersonFilter projectId={project.id} />
 			<Button

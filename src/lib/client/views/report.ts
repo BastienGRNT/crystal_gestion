@@ -1,7 +1,8 @@
 import { daysBetween, type DateKey } from '$lib/modules/kernel/domain/dates';
 import type { Project } from '$lib/modules/projects/domain/project';
 import type { Decision } from '$lib/modules/roadmap/domain/decision';
-import { latestReadings, type MetricReading } from '$lib/modules/roadmap/domain/metric';
+import type { Metric, MetricReading } from '$lib/modules/roadmap/domain/metric';
+import type { Release } from '$lib/modules/roadmap/domain/release';
 import {
 	currentMilestone,
 	orderMilestones,
@@ -12,19 +13,33 @@ import { PRIORITY_ORDER } from '$lib/modules/tasks/domain/views';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import { dayLabel, longDate } from '../format';
 import { deliveryForecast } from './forecast';
+import { metricViews } from './metrics';
 import { stepForecasts, waitsForLaterStep } from './roadmap';
 
 const WEEK_MS = 7 * 86_400_000;
 const UPCOMING = 5;
 
-/** The roadmap of the project, when it has one: steps, decisions and its one number. */
+/** The roadmap of the project, when it has one: steps, decisions, numbers and versions. */
 export interface ReportRoadmap {
 	milestones: Milestone[];
 	decisions: Decision[];
+	metrics?: Metric[];
 	readings: MetricReading[];
+	releases?: Release[];
 }
 
 const NO_ROADMAP: ReportRoadmap = { milestones: [], decisions: [], readings: [] };
+
+/**
+ * `client`: what they care about (new features and fixes, what we wait for from them).
+ * `team`: everything, with the rhythm.
+ */
+export type ReportAudience = 'client' | 'team';
+
+const FOR_CLIENT = (t: Task) => t.kind === 'feature' || t.kind === 'bug';
+const KIND_WORD: Partial<Record<Task['kind'], string>> = { bug: 'Correction : ' };
+/** A blocking reason that says the ball is in the client's court. */
+const WAITS_ON_CLIENT = /client|vous|validation|retour/i;
 
 /**
  * The week of a project in plain text, ready to paste in an email to the client or a message:
@@ -37,9 +52,11 @@ export function weekReport(
 	nameOf: (userId: string | null) => string | null,
 	today: DateKey,
 	now: Date,
-	roadmap: ReportRoadmap = NO_ROADMAP
+	roadmap: ReportRoadmap = NO_ROADMAP,
+	audience: ReportAudience = 'team'
 ): string {
-	const mine = tasks.filter((t) => t.projectId === project.id);
+	const all = tasks.filter((t) => t.projectId === project.id);
+	const mine = audience === 'client' ? all.filter(FOR_CLIENT) : all;
 	const steps = roadmap.milestones.filter((m) => m.projectId === project.id);
 	const current = currentMilestone(steps);
 	const weekAgo = now.getTime() - WEEK_MS;
@@ -49,8 +66,16 @@ export function weekReport(
 		lines.length ? [`${title} (${lines.length})`, ...lines.map((l) => `- ${l}`), ''] : [];
 	const done = mine
 		.filter((t) => t.status === 'done' && Date.parse(t.completedAt ?? '') >= weekAgo)
-		.map((t) => t.title);
-	const blocked = mine.filter((t) => t.blockedReason && t.status !== 'done');
+		.map((t) => `${KIND_WORD[t.kind] ?? ''}${t.title}`);
+	const stuck = all.filter((t) => t.blockedReason && t.status !== 'done');
+	const waitingForClient = stuck.filter((t) => WAITS_ON_CLIENT.test(t.blockedReason!));
+	const blocked =
+		audience === 'client'
+			? stuck.filter((t) => FOR_CLIENT(t) && !waitingForClient.includes(t))
+			: stuck;
+	const shipped = (roadmap.releases ?? [])
+		.filter((r) => r.projectId === project.id && Date.parse(r.shippedAt) >= weekAgo)
+		.map((r) => `${r.name}, le ${shortDate(r.shippedAt.slice(0, 10))}`);
 	const doing = mine.filter(
 		(t) => (t.status === 'doing' || t.status === 'review') && !t.blockedReason
 	);
@@ -75,7 +100,7 @@ export function weekReport(
 	return [
 		`${project.name} : le point du ${longDate(today)}`,
 		'',
-		...stepLines(steps, mine, today, now),
+		...stepLines(steps, all, today, now),
 		...section('Terminé cette semaine', done),
 		...section(
 			'En cours',
@@ -85,13 +110,21 @@ export function weekReport(
 			'Bloqué',
 			blocked.map((t) => `${t.title} : ${t.blockedReason}`)
 		),
-		...section('Décidé cette semaine', decided),
+		...section('Mis en prod', shipped),
+		...(audience === 'client'
+			? section(
+					'Ce qu’on attend de vous',
+					waitingForClient.map((t) => `${t.title} : ${t.blockedReason}`)
+				)
+			: []),
+		...(audience === 'team' ? section('Décidé cette semaine', decided) : []),
 		...section(
 			'Ensuite',
 			upcoming.map((t) => `${t.title}${due(t)}`)
 		),
-		...metricLines(project, roadmap.readings),
-		...deliveryLine(project, mine, steps, today, now)
+		...metricLines(project, roadmap, today),
+		...(audience === 'team' ? rhythmLines(all, weekAgo) : []),
+		...deliveryLine(project, all, steps, today, now)
 	]
 		.join('\n')
 		.trim();
@@ -123,15 +156,46 @@ function stepLines(steps: Milestone[], tasks: Task[], today: DateKey, now: Date)
 	];
 }
 
-function metricLines(project: Project, readings: MetricReading[]): string[] {
-	const [last, previous] = latestReadings(readings.filter((r) => r.projectId === project.id));
-	if (!project.metricName || !last) return [];
-	const target = project.metricTarget !== null ? ` / ${project.metricTarget}` : '';
-	// Rounded: 0.1 + 0.2 must not read 0.30000000000000004 in a mail to the client.
-	const diff = previous ? Math.round((last.value - previous.value) * 100) / 100 : 0;
-	const trend = diff ? ` (${diff > 0 ? '+' : ''}${diff} sur la semaine)` : '';
-	return [`${project.metricName} : ${last.value}${target}${trend}`, ''];
+function metricLines(project: Project, roadmap: ReportRoadmap, today: DateKey): string[] {
+	const views = metricViews(
+		(roadmap.metrics ?? []).filter((m) => m.projectId === project.id),
+		roadmap.readings.filter((r) => r.projectId === project.id),
+		today
+	).filter((v) => v.last !== null);
+	return views.length
+		? [
+				...views.map(({ metric, last, delta }) => {
+					const unit = metric.unit ? ` ${metric.unit}` : '';
+					const target = metric.target !== null ? ` / ${metric.target}${unit}` : '';
+					const trend = delta ? ` (${delta > 0 ? '+' : ''}${delta} sur la semaine)` : '';
+					return `${metric.name} : ${last}${metric.target !== null ? '' : unit}${target}${trend}`;
+				}),
+				''
+			]
+		: [];
 }
+
+/** For the team only: how the week went, by kind, and the bugs left. */
+function rhythmLines(tasks: Task[], since: number): string[] {
+	const done = tasks.filter((t) => t.status === 'done' && Date.parse(t.completedAt ?? '') >= since);
+	const count = (kind: Task['kind']) => done.filter((t) => t.kind === kind).length;
+	const parts = [
+		[count('feature'), 'fonctionnalité'],
+		[count('bug'), 'correction'],
+		[count('tech'), 'technique', 'technique'],
+		[count('action'), 'action']
+	]
+		.filter(([n]) => n)
+		.map(([n, one, many]) => `${n} ${Number(n) > 1 ? (many ?? `${one}s`) : one}`);
+	const openBugs = tasks.filter((t) => t.kind === 'bug' && isOpenWork(t)).length;
+	if (!done.length && !openBugs) return [];
+	return [
+		`Rythme : ${done.length} terminée${done.length > 1 ? 's' : ''}${parts.length ? ` (${parts.join(', ')})` : ''}, ${openBugs} bug${openBugs > 1 ? 's' : ''} ouvert${openBugs > 1 ? 's' : ''}`,
+		''
+	];
+}
+
+const isOpenWork = (t: Task) => ['todo', 'doing', 'review'].includes(t.status);
 
 function deliveryLine(
 	project: Project,

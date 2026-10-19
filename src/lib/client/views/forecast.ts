@@ -89,13 +89,20 @@ const PACE_DAYS = 28;
 /** Below that, the pace says nothing yet. */
 const MIN_DONE = 3;
 
-export const isWorkLeft = (t: Task) => ['todo', 'doing', 'review'].includes(t.status);
+/**
+ * Features and technical work are what a plan is made of. Bugs and actions take time too, but
+ * as a tax: they slow the pace of the rest instead of inflating it, so they count in neither.
+ */
+export const isPlanned = (t: Pick<Task, 'kind'>) => t.kind === 'feature' || t.kind === 'tech';
 
-/** Tasks finished per week over the last four weeks; `null` while there is too little to tell. */
+export const isWorkLeft = (t: Task) =>
+	['todo', 'doing', 'review'].includes(t.status) && isPlanned(t);
+
+/** Planned tasks finished per week over the last four weeks; `null` while too few to tell. */
 export function pacePerWeek(tasks: Task[], now: Date): number | null {
 	const since = now.getTime() - PACE_DAYS * 24 * HOUR_MS;
 	const done = tasks.filter(
-		(t) => t.status === 'done' && Date.parse(t.completedAt ?? '') >= since
+		(t) => t.status === 'done' && isPlanned(t) && Date.parse(t.completedAt ?? '') >= since
 	).length;
 	return done < MIN_DONE ? null : done / (PACE_DAYS / 7);
 }

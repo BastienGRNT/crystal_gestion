@@ -5,11 +5,13 @@ import type {
 	Clock,
 	Notifier
 } from '../../kernel/application/ports';
+import type { Component } from '../domain/component';
 import type { Task } from '../domain/task';
 
 export interface TaskRepository {
 	ofProjects(projectIds: string[]): Promise<Task[]>;
 	ofMilestone(milestoneId: string): Promise<Task[]>;
+	ofRelease(releaseId: string): Promise<Task[]>;
 	get(id: string): Promise<Task | null>;
 	insert(task: Task): Promise<void>;
 	save(task: Task): Promise<void>;
@@ -26,8 +28,18 @@ export interface MilestoneLookup {
 	current(projectId: string): Promise<string | null>;
 }
 
+export interface ComponentRepository {
+	ofProjects(projectIds: string[]): Promise<Component[]>;
+	ofProject(projectId: string): Promise<Component[]>;
+	get(id: string): Promise<Component | null>;
+	put(component: Component): Promise<void>;
+	delete(id: string): Promise<void>;
+}
+
 export interface TaskDeps {
 	tasks: TaskRepository;
+	components: ComponentRepository;
+	componentFeed: ChangeFeed<Component>;
 	milestones: MilestoneLookup;
 	access: Access;
 	clock: Clock;

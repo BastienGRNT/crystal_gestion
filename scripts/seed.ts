@@ -74,6 +74,9 @@ async function main() {
 	});
 	await update(camille, about, { status: 'done' });
 	const safari = await task(bastien, atelier.id, 'Corriger le paiement qui échoue sur Safari', {
+		kind: 'bug',
+		critical: true,
+		reportedBy: 'Léa (atelier)',
 		quadrant: 'now',
 		dueDate: day(1),
 		notes:
@@ -86,21 +89,25 @@ async function main() {
 	});
 	await update(bastien, safari, { status: 'doing' });
 	await task(bastien, atelier.id, 'Envoyer la maquette de la page produit à Léa', {
+		kind: 'action',
 		quadrant: 'now',
 		assigneeId: C,
 		dueDate: day(0)
 	});
 	const cart = await task(camille, atelier.id, 'Écrire les tests du panier', {
+		kind: 'tech',
 		quadrant: 'plan',
 		assigneeId: B
 	});
 	const webp = await task(camille, atelier.id, 'Optimiser les images du catalogue (WebP)', {
+		kind: 'tech',
 		quadrant: 'plan',
 		assigneeId: C
 	});
 	await update(camille, webp, { status: 'doing' });
 	await update(camille, webp, { status: 'review' });
 	const prod = await task(camille, atelier.id, 'Préparer la mise en production', {
+		kind: 'tech',
 		quadrant: 'plan',
 		assigneeId: B,
 		dueDate: day(16)
@@ -109,19 +116,26 @@ async function main() {
 		bastien,
 		atelier.id,
 		'Répondre au mail du transporteur (tarifs Colissimo)',
-		{ quadrant: 'delegate', assigneeId: C, dueDate: day(2) }
+		{ kind: 'action', quadrant: 'delegate', assigneeId: C, dueDate: day(2) }
 	);
 	await update(camille, carrier, { status: 'doing' });
 	await update(camille, carrier, {
 		blockedReason: 'En attente de la grille tarifaire de La Poste'
 	});
 	const domain = await task(camille, atelier.id, 'Renouveler le nom de domaine', {
+		kind: 'action',
 		quadrant: 'delegate',
 		dueDate: day(5)
 	});
 	await task(bastien, atelier.id, 'Mode sombre pour l’admin', { quadrant: 'later' });
 	await task(camille, atelier.id, 'Ajouter des stats de visite (Plausible)');
-	const legal = await task(bastien, atelier.id, 'Relire les mentions légales et les CGV');
+	const legal = await task(bastien, atelier.id, 'Relire les mentions légales et les CGV', {
+		kind: 'action'
+	});
+	await task(camille, atelier.id, 'Le zoom des photos ne marche pas sur Android', {
+		kind: 'bug',
+		reportedBy: 'Une cliente (Instagram)'
+	});
 	for (const idea of [
 		'Programme fidélité : une tasse offerte toutes les dix',
 		'Newsletter mensuelle avec les nouvelles pièces',
@@ -274,12 +288,65 @@ async function main() {
 	// Feuille de route: the cap, the steps (the first one closed) and a decision from the chat
 	await bastien.command('projects.update', {
 		id: atelier.id,
-		audience: 'Les clients de l’atelier de Léa, souvent sur leur téléphone',
-		problem: 'Léa ne vend que sur les marchés et par messages Instagram',
-		payer: 'Léa : 4 800 € HT, devis signé',
-		outOfScope: 'Application mobile\nGestion des stocks en temps réel',
-		metricName: 'Commandes en ligne',
-		metricTarget: 20
+		brief: [
+			'## Pour qui',
+			'Les clients de l’atelier de Léa, souvent **sur leur téléphone**',
+			'',
+			'## Leur problème',
+			'Léa ne vend que sur les marchés et par messages Instagram',
+			'',
+			'## Qui paie, combien',
+			'Léa : 4 800 € HT, devis signé',
+			'',
+			'## Ce qu’on ne fait pas',
+			'- Application mobile',
+			'- Gestion des stocks en temps réel'
+		].join('\n')
+	});
+	// Its numbers, noted each week for a month.
+	const metric = (name: string, target: number, unit = '') =>
+		bastien.command<Entity>('roadmap.createMetric', {
+			id: crypto.randomUUID(),
+			projectId: atelier.id,
+			name,
+			target,
+			unit
+		});
+	const orders = await metric('Commandes en ligne', 20);
+	const basket = await metric('Panier moyen', 45, '€');
+	for (const [weeks, o, b] of [
+		[3, 2, 31],
+		[2, 5, 34],
+		[1, 7, 38],
+		[0, 9, 36]
+	])
+		for (const [m, value] of [
+			[orders, o],
+			[basket, b]
+		] as const)
+			await bastien.command('roadmap.recordReading', {
+				metricId: m.id,
+				day: day(-7 * weeks),
+				value
+			});
+	// Two parts of the shop, so the board can be filtered by module.
+	const module = (name: string) =>
+		bastien.command<Entity>('components.create', {
+			id: crypto.randomUUID(),
+			projectId: atelier.id,
+			name
+		});
+	const boutique = await module('Boutique');
+	const vitrine = await module('Vitrine');
+	for (const t of [stripe, safari, cart]) await update(bastien, t, { componentId: boutique.id });
+	for (const t of [about, webp]) await update(bastien, t, { componentId: vitrine.id });
+	// What already went to production.
+	await bastien.command('roadmap.shipRelease', {
+		id: crypto.randomUUID(),
+		projectId: atelier.id,
+		name: 'v1.0',
+		taskIds: [stripe.id, about.id],
+		notes: '## Nouveautés\n- Paiement par carte\n- Page « À propos » avec les photos de l’atelier'
 	});
 	const milestone = (title: string, doneWhen: string, targetDate: string) =>
 		bastien.command<Entity>('roadmap.createMilestone', {

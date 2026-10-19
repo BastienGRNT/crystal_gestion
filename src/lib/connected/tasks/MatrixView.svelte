@@ -6,6 +6,7 @@
 	import { matrixOf, type MatrixBox as Box } from '$lib/modules/tasks/domain/views';
 	import { projectTasks } from '../projects/current.svelte';
 	import { personFilter } from './filter.svelte';
+	import { workFilter } from './kind-filter.svelte';
 	import InboxStrip from './InboxStrip.svelte';
 	import MatrixBox from './MatrixBox.svelte';
 	import { stepFilter } from './step-filter.svelte';
@@ -15,7 +16,9 @@
 
 	const matrix = $derived(
 		matrixOf(
-			stepFilter.view(app, project.id).apply(personFilter.apply(projectTasks(app, project.id)))
+			stepFilter
+				.view(app, project.id)
+				.apply(workFilter.apply(personFilter.apply(projectTasks(app, project.id))))
 		)
 	);
 

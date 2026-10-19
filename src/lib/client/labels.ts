@@ -1,6 +1,8 @@
 import type { WorkStatus } from '$lib/modules/identity/domain/user';
 import type { MatrixBox } from '$lib/modules/tasks/domain/views';
-import type { TaskStatus } from '$lib/modules/tasks/domain/task';
+import { Bug, Megaphone, Sparkles, Wrench } from '@lucide/svelte';
+import type { TaskKind, TaskStatus } from '$lib/modules/tasks/domain/task';
+import type { Icon } from '$lib/ui/types';
 
 /** Words and colors of the matrix. Class names are written out in full for Tailwind. */
 export const BOXES: Record<
@@ -78,3 +80,45 @@ export const WORK_STATUS: Record<WorkStatus, { label: string; dot: string }> = {
 
 /** Theme tints for projects and avatars (`--tint-0…7`). */
 export const tint = (index: number) => `var(--tint-${((index % 8) + 8) % 8})`;
+
+/**
+ * The four kinds of work. Only a bug gets a colored background: it is the one that asks for a
+ * reaction. Class names are written out in full for Tailwind.
+ */
+export const KINDS: Record<
+	TaskKind,
+	{ label: string; plural: string; icon: Icon; hint: string; text: string; chip: string }
+> = {
+	feature: {
+		label: 'Fonctionnalité',
+		plural: 'Fonctionnalités',
+		icon: Sparkles,
+		hint: 'Ce que le produit saura faire de plus',
+		text: 'text-accent-text',
+		chip: 'text-accent-text'
+	},
+	bug: {
+		label: 'Bug',
+		plural: 'Bugs',
+		icon: Bug,
+		hint: 'Quelque chose ne marche pas',
+		text: 'text-danger-text',
+		chip: 'bg-danger-soft text-danger-text'
+	},
+	tech: {
+		label: 'Technique',
+		plural: 'Technique',
+		icon: Wrench,
+		hint: 'Interne : dette, mises à jour, outillage',
+		text: 'text-ink-2',
+		chip: 'text-ink-2'
+	},
+	action: {
+		label: 'Action',
+		plural: 'Actions',
+		icon: Megaphone,
+		hint: 'Hors code : appeler, vendre, publier, facturer',
+		text: 'text-delegate-text',
+		chip: 'text-delegate-text'
+	}
+};

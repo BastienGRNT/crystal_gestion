@@ -3,7 +3,6 @@ import {
 	createHypothesis,
 	deleteHypothesis,
 	judgeHypothesis,
-	recordReading,
 	updateHypothesis,
 	verifyHypothesis
 } from './application/hypotheses';
@@ -12,9 +11,11 @@ import {
 	closeMilestone,
 	createMilestone,
 	deleteMilestone,
-	moveMilestone,
+	reorderMilestone,
 	updateMilestone
 } from './application/milestones';
+import { createMetric, recordReading, updateMetric } from './application/metrics';
+import { deleteRelease, shipRelease, updateRelease } from './application/releases';
 import type { RoadmapDeps } from './application/ports';
 
 export function createRoadmap(deps: RoadmapDeps) {
@@ -23,9 +24,11 @@ export function createRoadmap(deps: RoadmapDeps) {
 		decisionsOf: (projectIds: string[]) => deps.decisions.ofProjects(projectIds),
 		hypothesesOf: (projectIds: string[]) => deps.hypotheses.ofProjects(projectIds),
 		readingsOf: (projectIds: string[]) => deps.readings.ofProjects(projectIds),
+		metricsOf: (projectIds: string[]) => deps.metrics.ofProjects(projectIds),
+		releasesOf: (projectIds: string[]) => deps.releases.ofProjects(projectIds),
 		createMilestone: createMilestone(deps),
 		updateMilestone: updateMilestone(deps),
-		moveMilestone: moveMilestone(deps),
+		reorderMilestone: reorderMilestone(deps),
 		deleteMilestone: deleteMilestone(deps),
 		closeMilestone: closeMilestone(deps),
 		applyTemplate: applyTemplate(deps),
@@ -36,7 +39,12 @@ export function createRoadmap(deps: RoadmapDeps) {
 		deleteHypothesis: deleteHypothesis(deps),
 		verifyHypothesis: verifyHypothesis(deps),
 		judgeHypothesis: judgeHypothesis(deps),
-		recordReading: recordReading(deps)
+		createMetric: createMetric(deps),
+		updateMetric: updateMetric(deps),
+		recordReading: recordReading(deps),
+		shipRelease: shipRelease(deps),
+		updateRelease: updateRelease(deps),
+		deleteRelease: deleteRelease(deps)
 	};
 }
 

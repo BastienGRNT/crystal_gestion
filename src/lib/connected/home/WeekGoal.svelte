@@ -30,7 +30,7 @@
 			placeholder={doneWhen
 				? `Ex. : ${doneWhen}`
 				: 'Ex. : mettre le paiement en ligne avant vendredi'}
-			class="h-10 min-w-0 flex-1 rounded-lg bg-surface px-3 text-base outline-none focus:ring-4 focus:ring-accent/20"
+			class="h-11 min-w-0 flex-1 rounded-lg bg-surface px-3 text-base outline-none focus:ring-4 focus:ring-accent/20"
 			onkeydown={(e) => {
 				if (e.key === 'Enter') e.currentTarget.blur();
 				if (e.key === 'Escape') editing = false;

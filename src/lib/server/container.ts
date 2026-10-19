@@ -29,11 +29,13 @@ import { currentMilestone } from '$lib/modules/roadmap/domain/milestone';
 import {
 	drizzleDecisions,
 	drizzleHypotheses,
+	drizzleMetrics,
 	drizzleMilestones,
-	drizzleReadings
+	drizzleReadings,
+	drizzleReleases
 } from '$lib/modules/roadmap/infrastructure/repositories';
 import { createTasks } from '$lib/modules/tasks';
-import { drizzleTasks } from '$lib/modules/tasks/infrastructure/task-repository';
+import { drizzleComponents, drizzleTasks } from '$lib/modules/tasks/infrastructure/task-repository';
 import { createVault } from '$lib/modules/vault';
 import type { SecretCipher } from '$lib/modules/vault/application/ports';
 import { aesCipher } from '$lib/modules/vault/infrastructure/aes-cipher';
@@ -47,6 +49,7 @@ const users = drizzleUsers(db);
 const members = drizzleMembers(db);
 const access = projectAccess(members);
 const taskRepository = drizzleTasks(db);
+const componentRepository = drizzleComponents(db);
 const milestoneStore = drizzleMilestones(db);
 const messageRepository = drizzleMessages(db);
 
@@ -79,6 +82,8 @@ const identity = createIdentity({
 
 const tasks = createTasks({
 	tasks: taskRepository,
+	components: componentRepository,
+	componentFeed: feedFor(hub, 'components', byProject),
 	milestones: {
 		get: (id) => milestoneStore.get(id),
 		current: async (projectId) =>
@@ -185,9 +190,14 @@ const roadmap = createRoadmap({
 	milestones: milestoneStore,
 	decisions: drizzleDecisions(db),
 	hypotheses: drizzleHypotheses(db),
+	metrics: drizzleMetrics(db),
 	readings: drizzleReadings(db),
+	releases: drizzleReleases(db),
 	tasks: {
 		ofMilestone: (id) => taskRepository.ofMilestone(id),
+		ofRelease: (id) => taskRepository.ofRelease(id),
+		componentNames: async (projectId) =>
+			new Map((await componentRepository.ofProject(projectId)).map((c) => [c.id, c.name])),
 		get: tasks.get,
 		create: tasks.create,
 		move: tasks.update
@@ -205,7 +215,9 @@ const roadmap = createRoadmap({
 	milestoneFeed: feedFor(hub, 'milestones', byProject),
 	decisionFeed: feedFor(hub, 'decisions', byProject),
 	hypothesisFeed: feedFor(hub, 'hypotheses', byProject),
+	metricFeed: feedFor(hub, 'metrics', byProject),
 	readingFeed: feedFor(hub, 'readings', byProject),
+	releaseFeed: feedFor(hub, 'releases', byProject),
 	activity: activity.log,
 	newId: () => crypto.randomUUID()
 });

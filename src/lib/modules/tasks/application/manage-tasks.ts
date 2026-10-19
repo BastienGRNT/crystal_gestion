@@ -55,6 +55,21 @@ async function checkMilestone(deps: TaskDeps, projectId: string, id: string | nu
 	if (milestone.closedAt) throw invalid('Cette étape est close : choisis-en une autre.');
 }
 
+/** A task joins a module of its own project that is still in use. */
+async function checkComponent(deps: TaskDeps, projectId: string, id: string | null | undefined) {
+	if (!id) return;
+	const component = await deps.components.get(id);
+	if (!component || component.projectId !== projectId) throw invalid('Module inconnu.');
+	if (component.archivedAt) throw invalid('Ce module est archivé : choisis-en un autre.');
+}
+
+/** A bug that starts blocking warns the whole team, whoever holds it. */
+async function raiseAlarm(deps: TaskDeps, task: Task, actorId: string) {
+	await deps.activity.record({ actorId, verb: 'bug.critical', subject: subjectOf(task) });
+	for (const userId of await deps.access.members(task.projectId))
+		await notify(deps, task, userId, 'urgent', actorId);
+}
+
 /** Work reopened in a closed step goes to the step under way: a closed step holds only done work. */
 async function keepClosedStepsDone(deps: TaskDeps, task: Task): Promise<Task> {
 	if (!task.milestoneId || task.status === 'done') return task;
@@ -67,6 +82,7 @@ export const createTask = (deps: TaskDeps) => async (input: CreateTaskInput, act
 	await deps.access.assertMember(input.projectId, actorId);
 	await checkPeople(deps, input.projectId, [input.assigneeId]);
 	await checkMilestone(deps, input.projectId, input.milestoneId);
+	await checkComponent(deps, input.projectId, input.componentId);
 	const number = await deps.tasks.nextNumber(input.projectId);
 	const position = input.position ?? ((await deps.tasks.lastPosition(input.projectId)) ?? 0) + 1;
 	const task = newTask({ ...input, number, position }, actorId, deps.clock.now());
@@ -74,6 +90,7 @@ export const createTask = (deps: TaskDeps) => async (input: CreateTaskInput, act
 	deps.feed.saved(task);
 	await deps.activity.record({ actorId, verb: 'task.created', subject: subjectOf(task) });
 	await notify(deps, task, task.assigneeId, 'assigned', actorId);
+	if (task.critical) await raiseAlarm(deps, task, actorId);
 	return task;
 };
 
@@ -90,6 +107,8 @@ export const updateTask =
 		await checkPeople(deps, current.projectId, [patch.assigneeId, patch.reviewerId]);
 		if (patch.milestoneId !== current.milestoneId)
 			await checkMilestone(deps, current.projectId, patch.milestoneId);
+		if (patch.componentId !== current.componentId)
+			await checkComponent(deps, current.projectId, patch.componentId);
 		let task = applyPatch(current, patch, actorId, deps.clock.now());
 		if (current.status === 'done' && task.status !== 'done')
 			task = await keepClosedStepsDone(deps, task);
@@ -108,6 +127,7 @@ export const updateTask =
 			task.status === 'review' &&
 			(current.status !== 'review' || task.reviewerId !== current.reviewerId);
 		if (reviewAsked) await notify(deps, task, task.reviewerId, 'review', actorId);
+		if (task.critical && !current.critical) await raiseAlarm(deps, task, actorId);
 		return task;
 	};
 

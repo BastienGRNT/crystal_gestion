@@ -1,5 +1,9 @@
+import { clamp } from '$lib/modules/planning/domain/calendar';
 import { columnAt, minutesToPx, pxToMinutes } from '$lib/modules/planning/domain/grid';
-import type { AgendaDraft, AgendaItem } from './types';
+import type { AgendaDraft, AgendaItem, GridFrame } from './types';
+
+/** What a task row carries when dragged onto the grid. */
+export const TASK_DRAG_TYPE = 'text/x-crystal-task';
 
 /** Short items keep a grabbable, readable height. */
 const MIN_HEIGHT_PX = 20;
@@ -10,13 +14,18 @@ const BLOCK_INSET = 0.16;
 type Box = Pick<AgendaItem, 'layer' | 'lane' | 'start' | 'end'> &
 	Partial<Pick<AgendaItem, 'column' | 'columns'>>;
 
-export function boxStyle(box: Box | AgendaDraft, lanes: number, hourHeight: number) {
+/** Pixels from the top of the visible slice of the day. */
+export const topOf = (minutes: number, { hourHeight, from }: GridFrame) =>
+	minutesToPx(minutes - from, { hourHeight });
+
+export function boxStyle(box: Box | AgendaDraft, lanes: number, frame: GridFrame) {
+	const { hourHeight } = frame;
 	const { column = 0, columns = 1 } = box as Box;
 	const lane = 100 / lanes;
 	const inset = box.layer === 'block' ? lane * BLOCK_INSET : 0;
 	const width = (lane - inset) / columns;
 	const left = box.lane * lane + inset + column * width;
-	const top = minutesToPx(box.start, { hourHeight });
+	const top = topOf(box.start, frame);
 	const height = Math.max(MIN_HEIGHT_PX, minutesToPx(box.end - box.start, { hourHeight }));
 	return `top:${top}px;height:${height}px;left:calc(${left}% + 1px);width:calc(${width}% - 3px)`;
 }
@@ -29,16 +38,12 @@ export const availabilityFill = (maybe: boolean) =>
 		? 'background:repeating-linear-gradient(135deg,color-mix(in oklab,var(--tint) 26%,transparent) 0 2px,color-mix(in oklab,var(--tint) 6%,transparent) 2px 7px);border:1px dashed color-mix(in oklab,var(--tint) 55%,transparent)'
 		: 'background:color-mix(in oklab,var(--tint) 16%,transparent);border-left:2px solid color-mix(in oklab,var(--tint) 75%,transparent)';
 
-/** Day column and (unsnapped) minute under the pointer, scroll included. */
-export function pointerAt(
-	surface: HTMLElement,
-	event: PointerEvent,
-	days: number,
-	hourHeight: number
-) {
+/** Day column and (unsnapped) minute under the pointer, scroll included, kept inside the slice. */
+export function pointerAt(surface: HTMLElement, event: MouseEvent, days: number, frame: GridFrame) {
 	const rect = surface.getBoundingClientRect();
 	const day = columnAt(event.clientX - rect.left, rect.width, days);
-	return { day, minutes: pxToMinutes(event.clientY - rect.top, { hourHeight }) };
+	const minutes = frame.from + pxToMinutes(event.clientY - rect.top, frame);
+	return { day, minutes: clamp(minutes, frame.from, frame.to) };
 }
 
 /** Hours shown on an item; "…" marks the side cut at midnight (the item goes on the other day). */

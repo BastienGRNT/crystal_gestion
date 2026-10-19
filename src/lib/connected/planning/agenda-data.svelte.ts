@@ -1,6 +1,7 @@
 import type { AppContext } from '$lib/client/context';
 import { tint } from '$lib/client/labels';
 import { now } from '$lib/client/now.svelte';
+import { hourWindow } from '$lib/client/views/week-plan';
 import { minutesFrom, sameDay } from '$lib/modules/planning/domain/calendar';
 import type { Project } from '$lib/modules/projects/domain/project';
 import type { AgendaLane } from '$lib/ui/organisms/agenda/types';
@@ -25,18 +26,21 @@ export function useAgendaData({ app }: AppContext, project: () => Project, view:
 	const ids = $derived(new Set(lanes.map((l) => l.id)));
 	const slots = $derived(app.slots.all.filter((s) => ids.has(s.userId)));
 	const tasks = $derived(app.tasks.all.filter((t) => t.projectId === project().id));
-	const byId = $derived(new Map(tasks.map((t) => [t.id, t])));
 	const items = $derived(
 		agendaItems({
 			days: view().days,
 			lanes,
 			meId: app.meId,
 			slots,
-			blocks: app.blocks.all.filter((b) => b.projectId === project().id && ids.has(b.userId)),
-			taskOf: (id) => (id ? byId.get(id) : undefined),
+			// Hours taken on another project are not free here either.
+			blocks: app.blocks.all.filter((b) => ids.has(b.userId)),
+			projectId: project().id,
+			projectName: (id) => app.projects.get(id)?.name ?? 'Autre projet',
+			taskOf: (id) => app.tasks.get(id),
 			isDraft: (id) => app.pending.has(id)
 		})
 	);
+	const hours = $derived(hourWindow(items));
 	const nameOf = (id: string) => app.users.get(id)?.name.split(' ')[0] ?? '';
 	const bands = $derived(team ? sharedBands(view().days, slots, nameOf) : []);
 	const marker = $derived.by(() => {
@@ -46,6 +50,8 @@ export function useAgendaData({ app }: AppContext, project: () => Project, view:
 	const marks = $derived(
 		dayMarks(view().days, {
 			tasks,
+			milestones: app.milestones.all.filter((m) => m.projectId === project().id),
+			releases: app.releases.all.filter((r) => r.projectId === project().id),
 			project: project(),
 			people: lanes,
 			color: tint(project().color),
@@ -61,6 +67,9 @@ export function useAgendaData({ app }: AppContext, project: () => Project, view:
 		},
 		get bands() {
 			return bands;
+		},
+		get hours() {
+			return hours;
 		},
 		get marker() {
 			return marker;

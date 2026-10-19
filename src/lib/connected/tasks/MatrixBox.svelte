@@ -71,12 +71,17 @@
 			label="Ajouter ici"
 			hint={QUICK_HINT}
 			onadd={(text) =>
-				quickAdd(context, text, {
-					projectId: project.id,
-					quadrant,
-					assigneeId: personFilter.value,
-					milestoneId: stepFilter.view(app, project.id).newTaskStep
-				})}
+				quickAdd(
+					context,
+					text,
+					{
+						projectId: project.id,
+						quadrant,
+						assigneeId: personFilter.value,
+						milestoneId: stepFilter.view(app, project.id).newTaskStep
+					},
+					true
+				)}
 		/>
 	</div>
 </section>

@@ -14,8 +14,10 @@ import type { Member } from '$lib/modules/projects/domain/membership';
 import type { Project } from '$lib/modules/projects/domain/project';
 import type { Decision } from '$lib/modules/roadmap/domain/decision';
 import type { Hypothesis } from '$lib/modules/roadmap/domain/hypothesis';
-import type { MetricReading } from '$lib/modules/roadmap/domain/metric';
+import type { Metric, MetricReading } from '$lib/modules/roadmap/domain/metric';
 import type { Milestone } from '$lib/modules/roadmap/domain/milestone';
+import type { Release } from '$lib/modules/roadmap/domain/release';
+import type { Component } from '$lib/modules/tasks/domain/component';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import type { VaultEntry } from '$lib/modules/vault/domain/entry';
 import type { Snapshot } from '$lib/server/snapshot';
@@ -50,6 +52,9 @@ export class AppState {
 	decisions = new Collection<Decision>();
 	hypotheses = new Collection<Hypothesis>();
 	readings = new Collection<MetricReading>();
+	metrics = new Collection<Metric>();
+	releases = new Collection<Release>();
+	components = new Collection<Component>();
 	messages = new MessageStore();
 	/** Open questions of all my projects, loaded or not: they wait on someone. */
 	questions = new Collection<Message>();
@@ -93,6 +98,9 @@ export class AppState {
 		this.decisions.reset(snapshot.decisions);
 		this.hypotheses.reset(snapshot.hypotheses);
 		this.readings.reset(snapshot.readings);
+		this.metrics.reset(snapshot.metrics);
+		this.releases.reset(snapshot.releases);
+		this.components.reset(snapshot.components);
 		this.messages.invalidate();
 	}
 

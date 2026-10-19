@@ -1,6 +1,14 @@
 /** What an activity line or a notification points at, with enough to display and open it. */
 export type SubjectKind =
-	'task' | 'file' | 'vault' | 'project' | 'channel' | 'message' | 'milestone' | 'decision';
+	| 'task'
+	| 'file'
+	| 'vault'
+	| 'project'
+	| 'channel'
+	| 'message'
+	| 'milestone'
+	| 'decision'
+	| 'release';
 
 export interface Subject {
 	kind: SubjectKind;
@@ -22,10 +30,15 @@ export type ActivityVerb =
 	| 'vault.added'
 	| 'channel.created'
 	| 'milestone.closed'
-	| 'decision.made';
+	| 'decision.made'
+	| 'bug.critical'
+	| 'release.shipped';
 
-/** `review`: someone asks you to check their work. `answer`: someone answered your question. */
-export type NotificationKind = 'assigned' | 'mention' | 'review' | 'answer';
+/**
+ * `review`: someone asks you to check their work. `answer`: someone answered your question.
+ * `urgent`: a bug blocks production or a client.
+ */
+export type NotificationKind = 'assigned' | 'mention' | 'review' | 'answer' | 'urgent';
 
 export interface ActivityInput {
 	actorId: string;

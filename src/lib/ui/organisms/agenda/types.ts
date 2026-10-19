@@ -20,6 +20,8 @@ export interface AgendaItem {
 	label: string;
 	ref: string | null;
 	editable: boolean;
+	/** Work on another project: shown so the time reads as taken, but changed over there. */
+	muted: boolean;
 	column: number;
 	columns: number;
 	/** Full details for the hover card: blocks are often too small to show them. */
@@ -52,19 +54,29 @@ export interface AgendaDraft {
 	end: number;
 }
 
+/** The visible slice of the day: pixels per hour and the minutes at the top and bottom. */
+export interface GridFrame {
+	hourHeight: number;
+	from: number;
+	to: number;
+}
+
+export type Point = { x: number; y: number };
+
 export interface AgendaHandlers {
-	oncreate: (day: number, start: number, end: number, tap: boolean) => void;
+	/** A range drawn (or tapped, an hour long) on the grid; `point` is where the pointer let go. */
+	oncreate: (day: number, start: number, end: number, point: Point) => void;
 	/** Shifts, in minutes, applied to the item's real start and end. */
 	onchange: (item: AgendaItem, startShift: number, endShift: number) => void;
-	onselect: (item: AgendaItem, point: { x: number; y: number }) => void;
+	onselect: (item: AgendaItem, point: Point) => void;
 }
 
 /** A column header of the agenda, already formatted by the caller. */
 export interface DayMark {
 	id: string;
 	ref: string;
-	/** `due`: planned to end that day; `done`: finished that day. */
-	kind: 'due' | 'done';
+	/** `due`: a task planned to end that day; `step`: the end of a step; `release`: shipped; `done`: finished. */
+	kind: 'due' | 'step' | 'release' | 'done';
 	title: string;
 	color: string;
 	late: boolean;
@@ -84,12 +96,16 @@ export interface AgendaGridProps extends AgendaHandlers {
 	lanes: AgendaLane[];
 	items: AgendaItem[];
 	bands: SharedBand[];
-	/** The layer that is interactive and that drawing creates. */
-	layer: AgendaLayer;
+	/** A drawn range waiting for the person to say what it is. */
+	held?: AgendaDraft | null;
 	now: { day: number; minutes: number } | null;
 	/** Lane where new items are drawn: the current user's. */
 	myLane: number;
 	hourHeight?: number;
-	/** Opens a due or finished task shown above a day. */
-	onmark?: (ref: string) => void;
+	fromHour?: number;
+	toHour?: number;
+	/** Opens what a mark above a day points to. */
+	onmark?: (mark: DayMark) => void;
+	/** A task dragged from outside and dropped at that minute of that day. */
+	ondroptask?: (day: number, minutes: number, taskId: string) => void;
 }

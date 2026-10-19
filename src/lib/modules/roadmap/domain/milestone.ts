@@ -14,7 +14,7 @@ export interface Milestone {
 	/** "C'est fini quand…": what has to be true to close it. */
 	doneWhen: string;
 	targetDate: DateKey | null;
-	/** Order among the steps without a date. */
+	/** Order of the steps, chosen by hand (dragging). The date is a budget, not a sort key. */
 	position: number;
 	closedAt: string | null;
 	closedBy: string | null;
@@ -24,10 +24,10 @@ export interface Milestone {
 
 export type MilestonePatch = Partial<Pick<Milestone, 'title' | 'doneWhen' | 'targetDate'>>;
 
-export const validMilestoneTitle = (title: string) => requiredText(title, 'Le nom de l’étape', 60);
+export const validMilestoneTitle = (title: string) => requiredText(title, 'Le nom de l’étape', 80);
 
 export function validDoneWhen(text: string): string {
-	ensure(text.length <= 200, '« C’est fini quand… » est trop long (200 caractères maximum).');
+	ensure(text.length <= 1000, '« C’est fini quand… » est trop long (1000 caractères maximum).');
 	return text.trim();
 }
 
@@ -44,15 +44,18 @@ export function cleanMilestonePatch(patch: MilestonePatch): MilestonePatch {
 	};
 }
 
-/** Dated steps by date, then the ones without a date (what comes "later") in their order. */
+/** The steps in the order the team set. */
 export function orderMilestones<M extends Milestone>(milestones: M[]): M[] {
-	return [...milestones].sort((a, b) => {
-		if (a.targetDate && b.targetDate)
-			return a.targetDate.localeCompare(b.targetDate) || a.position - b.position;
-		if (a.targetDate) return -1;
-		if (b.targetDate) return 1;
-		return a.position - b.position;
-	});
+	return [...milestones].sort((a, b) => a.position - b.position);
+}
+
+/** A date earlier than the step before it: worth a word, since the order says otherwise. */
+export function datedBeforePrevious(milestones: Milestone[], id: string): boolean {
+	const ordered = orderMilestones(milestones);
+	const at = ordered.findIndex((m) => m.id === id);
+	const date = ordered[at]?.targetDate;
+	if (!date) return false;
+	return ordered.slice(0, at).some((m) => !m.closedAt && m.targetDate && m.targetDate > date);
 }
 
 /** The step under way: the first one not closed yet. */
@@ -85,18 +88,18 @@ export function progressOf(tasks: Pick<Task, 'status'>[]) {
 }
 
 /**
- * Where a step without a date lands when added: right after the step under way, or first of
- * the undated ones, so a closing step like "Vie du produit" stays last.
+ * Where a new step lands: a dated one before the first open step due later (so the order
+ * follows the dates by default), an undated one at the end. Dragging changes it afterwards.
  */
-export function positionForNew(milestones: Milestone[]): number {
-	const undated = orderMilestones(milestones.filter((m) => !m.targetDate));
-	if (!undated.length) return 0;
-	const current = currentMilestone(milestones);
-	const at = current && !current.targetDate ? undated.indexOf(current) : -1;
-	const before = at >= 0 ? undated[at].position : undefined;
-	const after = undated[at + 1]?.position;
-	if (before === undefined) return after! - 1;
-	return after === undefined ? before + 1 : (before + after) / 2;
+export function positionForNew(milestones: Milestone[], targetDate: DateKey | null = null): number {
+	const ordered = orderMilestones(milestones);
+	if (!ordered.length) return 0;
+	const later = targetDate
+		? ordered.findIndex((m) => !m.closedAt && m.targetDate && m.targetDate > targetDate)
+		: -1;
+	if (later < 0) return ordered.at(-1)!.position + 1;
+	const before = ordered[later - 1]?.position ?? ordered[later].position - 2;
+	return (before + ordered[later].position) / 2;
 }
 
 /** `14/11`: short enough for a decision line. */

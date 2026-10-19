@@ -4,9 +4,10 @@ import type { Db } from '$lib/server/db/types';
 import type { Store } from '../application/ports';
 import type { Decision } from '../domain/decision';
 import type { Hypothesis } from '../domain/hypothesis';
-import type { MetricReading } from '../domain/metric';
+import type { Metric, MetricReading } from '../domain/metric';
 import type { Milestone } from '../domain/milestone';
-import { decisions, hypotheses, metricReadings, milestones } from './schema';
+import type { Release } from '../domain/release';
+import { decisions, hypotheses, metricReadings, metrics, milestones, releases } from './schema';
 
 const date = (value: string | null) => (value ? new Date(value) : null);
 
@@ -128,6 +129,70 @@ export const drizzleReadings = (db: Db): Store<MetricReading> => {
 		},
 		async delete(id) {
 			await db.delete(metricReadings).where(eq(metricReadings.id, id));
+		}
+	};
+};
+
+export const drizzleMetrics = (db: Db): Store<Metric> => {
+	const toItem = (row: typeof metrics.$inferSelect): Metric => ({
+		...row,
+		archivedAt: isoOrNull(row.archivedAt),
+		createdAt: iso(row.createdAt)
+	});
+	const toRow = (m: Metric) => ({
+		...m,
+		archivedAt: date(m.archivedAt),
+		createdAt: new Date(m.createdAt)
+	});
+	return {
+		ofProjects: async (ids) =>
+			ids.length
+				? (await db.select().from(metrics).where(inArray(metrics.projectId, ids))).map(toItem)
+				: [],
+		ofProject: async (id) =>
+			(await db.select().from(metrics).where(eq(metrics.projectId, id))).map(toItem),
+		async get(id) {
+			const [row] = await db.select().from(metrics).where(eq(metrics.id, id));
+			return row ? toItem(row) : null;
+		},
+		async put(m) {
+			const row = toRow(m);
+			await db.insert(metrics).values(row).onConflictDoUpdate({ target: metrics.id, set: row });
+		},
+		async delete(id) {
+			await db.delete(metrics).where(eq(metrics.id, id));
+		}
+	};
+};
+
+export const drizzleReleases = (db: Db): Store<Release> => {
+	const toItem = (row: typeof releases.$inferSelect): Release => ({
+		...row,
+		shippedAt: iso(row.shippedAt),
+		createdAt: iso(row.createdAt)
+	});
+	const toRow = (r: Release) => ({
+		...r,
+		shippedAt: new Date(r.shippedAt),
+		createdAt: new Date(r.createdAt)
+	});
+	return {
+		ofProjects: async (ids) =>
+			ids.length
+				? (await db.select().from(releases).where(inArray(releases.projectId, ids))).map(toItem)
+				: [],
+		ofProject: async (id) =>
+			(await db.select().from(releases).where(eq(releases.projectId, id))).map(toItem),
+		async get(id) {
+			const [row] = await db.select().from(releases).where(eq(releases.id, id));
+			return row ? toItem(row) : null;
+		},
+		async put(r) {
+			const row = toRow(r);
+			await db.insert(releases).values(row).onConflictDoUpdate({ target: releases.id, set: row });
+		},
+		async delete(id) {
+			await db.delete(releases).where(eq(releases.id, id));
 		}
 	};
 };

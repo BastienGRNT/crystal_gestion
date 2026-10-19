@@ -191,13 +191,7 @@ describe('the roadmap elsewhere', () => {
 	});
 
 	it('reports the step under way, the decisions and the number', () => {
-		const project = {
-			id: 'p',
-			name: 'Kinéo',
-			deadline: null,
-			metricName: 'Clients payants',
-			metricTarget: 50
-		} as Project;
+		const project = { id: 'p', name: 'Kinéo', deadline: null } as Project;
 		const text = weekReport(project, pace, () => null, today, now, {
 			milestones: [
 				step('Conception', { targetDate: '2026-11-06' }),
@@ -219,9 +213,38 @@ describe('the roadmap elsewhere', () => {
 					decidedAt: new Date(now.getTime() - DAY).toISOString()
 				}
 			],
+			metrics: [
+				{
+					id: 'm',
+					projectId: 'p',
+					name: 'Clients payants',
+					unit: '',
+					target: 50,
+					direction: 'up',
+					position: 1,
+					archivedAt: null,
+					createdAt: ''
+				}
+			],
 			readings: [
-				{ id: 'a', projectId: 'p', weekOf: '2026-10-12', value: 36, by: 'ana', at: '' },
-				{ id: 'b', projectId: 'p', weekOf: '2026-10-19', value: 42, by: 'ana', at: '' }
+				{
+					id: 'a',
+					metricId: 'm',
+					projectId: 'p',
+					weekOf: '2026-10-12',
+					value: 36,
+					by: 'ana',
+					at: ''
+				},
+				{
+					id: 'b',
+					metricId: 'm',
+					projectId: 'p',
+					weekOf: '2026-10-19',
+					value: 42,
+					by: 'ana',
+					at: ''
+				}
 			]
 		});
 		expect(text).toContain('Étape en cours (1/2) : Conception, 0/0 tâches, prévue le 06/11');

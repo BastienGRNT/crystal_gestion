@@ -6,7 +6,6 @@ import {
 	cleanMilestonePatch,
 	dateChange,
 	nextMilestone,
-	orderMilestones,
 	removal,
 	positionForNew,
 	validDoneWhen,
@@ -61,7 +60,10 @@ function build(input: NewMilestone, position: number, actorId: string, now: Date
 export const createMilestone =
 	(deps: RoadmapDeps) => async (input: NewMilestone, actorId: string) => {
 		await deps.access.assertMember(input.projectId, actorId);
-		const position = positionForNew(await deps.milestones.ofProject(input.projectId));
+		const position = positionForNew(
+			await deps.milestones.ofProject(input.projectId),
+			input.targetDate ?? null
+		);
 		return save(deps, build(input, position, actorId, deps.clock.now()));
 	};
 
@@ -88,19 +90,12 @@ export const updateMilestone =
 		return milestone;
 	};
 
-/** Steps without a date keep the order chosen by hand; dated ones follow their dates. */
-export const moveMilestone =
-	(deps: RoadmapDeps) => async (id: string, direction: 'up' | 'down', actorId: string) => {
+/** Dragging a step: its new place among the others (fractional, like the board). */
+export const reorderMilestone =
+	(deps: RoadmapDeps) => async (id: string, position: number, actorId: string) => {
 		const milestone = await existing(deps, id, actorId);
-		if (milestone.targetDate) throw invalid('Une étape datée se range par sa date.');
-		const undated = orderMilestones(
-			(await deps.milestones.ofProject(milestone.projectId)).filter((m) => !m.targetDate)
-		);
-		const at = undated.findIndex((m) => m.id === id);
-		const other = undated[direction === 'up' ? at - 1 : at + 1];
-		if (!other) return milestone;
-		await save(deps, { ...other, position: milestone.position });
-		return save(deps, { ...milestone, position: other.position });
+		if (!Number.isFinite(position)) throw invalid('Position invalide.');
+		return save(deps, { ...milestone, position });
 	};
 
 /**

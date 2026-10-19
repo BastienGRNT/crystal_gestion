@@ -12,6 +12,13 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const QUADRANTS = ['now', 'plan', 'delegate', 'later'] as const;
 export type Quadrant = (typeof QUADRANTS)[number];
 
+/**
+ * What kind of work it is, because a fix, a feature and a phone call do not count the same:
+ * the changelog, the client report, the team's rhythm and the branch name all read it.
+ */
+export const TASK_KINDS = ['feature', 'bug', 'tech', 'action'] as const;
+export type TaskKind = (typeof TASK_KINDS)[number];
+
 export interface ChecklistItem {
 	id: string;
 	text: string;
@@ -26,6 +33,11 @@ export interface Task {
 	title: string;
 	notes: string;
 	status: TaskStatus;
+	kind: TaskKind;
+	/** A bug that blocks production or a client: it jumps the queue and warns everyone. */
+	critical: boolean;
+	/** Who reported it (a client, a pharmacy…), to tell them when it ships. */
+	reportedBy: string | null;
 	quadrant: Quadrant | null;
 	assigneeId: string | null;
 	/** Who checks the work while it is in review. */
@@ -36,6 +48,10 @@ export interface Task {
 	dueDate: DateKey | null;
 	/** The step of the roadmap it belongs to, if any. */
 	milestoneId: string | null;
+	/** The part of the product it touches (site, appointments…), when the project has some. */
+	componentId: string | null;
+	/** The version it shipped in. Set by shipping, cleared when the task is reopened. */
+	releaseId: string | null;
 	/** Fractional order shared by the board columns and the matrix boxes. */
 	position: number;
 	createdBy: string;
@@ -43,6 +59,8 @@ export interface Task {
 	updatedAt: string;
 	/** When it entered its current column, to spot what is stuck. */
 	statusChangedAt: string;
+	/** First time someone started it: the cycle time runs from here, pauses included. */
+	startedAt: string | null;
 	completedAt: string | null;
 }
 
@@ -52,6 +70,9 @@ export type TaskPatch = Partial<
 		| 'title'
 		| 'notes'
 		| 'status'
+		| 'kind'
+		| 'critical'
+		| 'reportedBy'
 		| 'quadrant'
 		| 'assigneeId'
 		| 'reviewerId'
@@ -59,6 +80,8 @@ export type TaskPatch = Partial<
 		| 'checklist'
 		| 'dueDate'
 		| 'milestoneId'
+		| 'componentId'
+		| 'releaseId'
 		| 'position'
 	>
 >;
@@ -82,6 +105,12 @@ export function validBlockedReason(reason: string | null): string | null {
 	return text || 'Bloqué';
 }
 
+export function validReportedBy(text: string | null): string | null {
+	const name = text?.trim() ?? '';
+	ensure(name.length <= 80, 'Le nom de qui l’a signalé est trop long (80 caractères maximum).');
+	return name || null;
+}
+
 export function validChecklist(items: ChecklistItem[]): ChecklistItem[] {
 	ensure(items.length <= 50, 'Une liste de 50 étapes maximum.');
 	return items.map((item) => ({ ...item, text: requiredText(item.text, 'Une étape', 200) }));
@@ -101,8 +130,17 @@ function clean(patch: TaskPatch): TaskPatch {
 		...(patch.blockedReason !== undefined && {
 			blockedReason: validBlockedReason(patch.blockedReason)
 		}),
-		...(patch.checklist !== undefined && { checklist: validChecklist(patch.checklist) })
+		...(patch.checklist !== undefined && { checklist: validChecklist(patch.checklist) }),
+		...(patch.reportedBy !== undefined && { reportedBy: validReportedBy(patch.reportedBy) })
 	};
+}
+
+const STARTED: TaskStatus[] = ['doing', 'review', 'done'];
+
+/** Only a bug can block; a bug that starts blocking goes straight to "Maintenant". */
+function urgency(task: Task, wasCritical = false): Task {
+	if (task.kind !== 'bug') return { ...task, critical: false };
+	return task.critical && !wasCritical ? { ...task, quadrant: 'now' } : task;
 }
 
 /**
@@ -111,9 +149,12 @@ function clean(patch: TaskPatch): TaskPatch {
  * knows who did what), and a finished task is no longer blocked.
  */
 export function applyPatch(task: Task, patch: TaskPatch, actorId: string, now: Date): Task {
-	const next: Task = { ...task, ...clean(patch), updatedAt: now.toISOString() };
+	const next = urgency({ ...task, ...clean(patch), updatedAt: now.toISOString() }, task.critical);
 	if (patch.status === undefined || patch.status === task.status) return next;
 	next.statusChangedAt = now.toISOString();
+	if (STARTED.includes(patch.status)) next.startedAt ??= now.toISOString();
+	// Reopened work is no longer what shipped: it goes out again with a later version.
+	if (task.status === 'done') next.releaseId = null;
 	next.completedAt = patch.status === 'done' ? now.toISOString() : null;
 	if (patch.status === 'done') next.blockedReason = null;
 	if (['doing', 'review', 'done'].includes(patch.status) && !next.assigneeId)
@@ -128,24 +169,31 @@ export interface NewTaskInput {
 	title: string;
 	notes?: string;
 	status?: TaskStatus;
+	kind?: TaskKind;
+	critical?: boolean;
+	reportedBy?: string | null;
 	quadrant?: Quadrant | null;
 	assigneeId?: string | null;
 	dueDate?: string | null;
 	checklist?: ChecklistItem[];
 	milestoneId?: string | null;
+	componentId?: string | null;
 	position: number;
 }
 
 export function newTask(input: NewTaskInput, actorId: string, now: Date): Task {
 	const status = input.status ?? 'todo';
 	const at = now.toISOString();
-	return {
+	return urgency({
 		id: input.id,
 		projectId: input.projectId,
 		number: input.number,
 		title: validTitle(input.title),
 		notes: validNotes(input.notes ?? ''),
 		status,
+		kind: input.kind ?? 'feature',
+		critical: input.critical ?? false,
+		reportedBy: validReportedBy(input.reportedBy ?? null),
 		quadrant: input.quadrant ?? null,
 		assigneeId: input.assigneeId ?? (status === 'doing' || status === 'done' ? actorId : null),
 		reviewerId: null,
@@ -153,13 +201,16 @@ export function newTask(input: NewTaskInput, actorId: string, now: Date): Task {
 		checklist: validChecklist(input.checklist ?? []),
 		dueDate: validDueDate(input.dueDate ?? null),
 		milestoneId: input.milestoneId ?? null,
+		componentId: input.componentId ?? null,
+		releaseId: null,
 		position: input.position,
 		createdBy: actorId,
 		createdAt: at,
 		updatedAt: at,
 		statusChangedAt: at,
+		startedAt: STARTED.includes(status) ? at : null,
 		completedAt: status === 'done' ? at : null
-	};
+	});
 }
 
 /** In a two-person team, review goes to the other one without asking. */

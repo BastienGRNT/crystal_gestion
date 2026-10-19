@@ -11,11 +11,18 @@ import {
 	type MilestonePatch
 } from '$lib/modules/roadmap/domain/milestone';
 import {
+	activeMetrics,
+	parseMetricLine,
 	readingId,
+	validMetricName,
 	validMetricValue,
+	validTarget,
+	validUnit,
 	validWeekOf,
+	type Metric,
 	type MetricReading
 } from '$lib/modules/roadmap/domain/metric';
+import type { Release } from '$lib/modules/roadmap/domain/release';
 import type { TemplateKey } from '$lib/modules/roadmap/domain/templates';
 import { isOpen } from '$lib/modules/tasks/domain/task';
 import { errorMessage, send } from '../api';
@@ -37,7 +44,7 @@ export interface DecisionSeed {
 	supersedes?: string | null;
 }
 
-/** The roadmap: steps, decisions, hypotheses and the project's one number. */
+/** The roadmap: steps, decisions, hypotheses, the project's numbers and its versions. */
 export function roadmapActions(app: AppState, chat: ReturnType<typeof chatActions>) {
 	async function run<T>(request: Promise<T>): Promise<T | null> {
 		try {
@@ -62,7 +69,7 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 			title: validMilestoneTitle(fields.title),
 			doneWhen: validDoneWhen(fields.doneWhen ?? ''),
 			targetDate: validTargetDate(fields.targetDate ?? null),
-			position: positionForNew(stepsOf(projectId)),
+			position: positionForNew(stepsOf(projectId), fields.targetDate ?? null),
 			closedAt: null,
 			closedBy: null,
 			createdBy: app.meId,
@@ -96,9 +103,18 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 		);
 	}
 
-	async function moveStep(id: string, direction: 'up' | 'down') {
-		const moved = await run(send('roadmap.moveMilestone', { id, direction }));
-		if (moved) app.milestones.upsert(moved);
+	/** Dragging a step to its new place. */
+	function moveStep(id: string, position: number) {
+		const current = app.milestones.get(id);
+		if (!current || current.position === position) return;
+		app.milestones.upsert({ ...current, position });
+		settle(
+			app,
+			id,
+			send('roadmap.reorderMilestone', { id, position }),
+			(saved) => app.milestones.upsert(saved),
+			() => app.milestones.upsert(current)
+		);
 	}
 
 	/** Its tasks stay, without a step. */
@@ -250,12 +266,85 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 		}
 	}
 
-	function record(projectId: string, value: number, day = toDateKey(new Date())) {
+	const metricsOf = (projectId: string) =>
+		activeMetrics(app.metrics.all.filter((m) => m.projectId === projectId));
+
+	/** "Clients payants 50" adds a number with its target. */
+	function addMetric(projectId: string, line: string) {
+		const parsed = parseMetricLine(line);
+		const others = metricsOf(projectId);
+		const metric = attempt<Metric>(() => ({
+			id: crypto.randomUUID(),
+			projectId,
+			name: validMetricName(parsed.name),
+			unit: validUnit(parsed.unit),
+			target: validTarget(parsed.target),
+			direction: 'up',
+			position: Math.max(0, ...others.map((m) => m.position)) + 1,
+			archivedAt: null,
+			createdAt: new Date().toISOString()
+		}));
+		if (!metric) return null;
+		const { id, name, unit, target } = metric;
+		app.metrics.upsert(metric);
+		settle(
+			app,
+			id,
+			send('roadmap.createMetric', { id, projectId, name, unit, target }),
+			(saved) => app.metrics.upsert(saved),
+			() => app.metrics.remove(id)
+		);
+		return metric;
+	}
+
+	function updateMetric(
+		id: string,
+		patch: Partial<Pick<Metric, 'name' | 'unit' | 'target' | 'direction'>> & { archived?: boolean }
+	) {
+		const current = app.metrics.get(id);
+		if (!current) return;
+		const { archived, ...fields } = patch;
+		const next = attempt<Metric>(() => ({
+			...current,
+			...fields,
+			...(fields.name !== undefined && { name: validMetricName(fields.name) }),
+			...(fields.unit !== undefined && { unit: validUnit(fields.unit) }),
+			...(fields.target !== undefined && { target: validTarget(fields.target) }),
+			...(archived !== undefined && { archivedAt: archived ? new Date().toISOString() : null })
+		}));
+		if (!next) return;
+		app.metrics.upsert(next);
+		settle(
+			app,
+			id,
+			send('roadmap.updateMetric', { id, ...patch }),
+			(saved) => app.metrics.upsert(saved),
+			() => app.metrics.upsert(current)
+		);
+	}
+
+	function removeMetric(metric: Metric) {
+		deleteWithUndo(
+			`« ${metric.name} » n’est plus suivi`,
+			() => app.metrics.remove(metric.id),
+			() => app.metrics.upsert(metric),
+			() =>
+				void send(
+					'roadmap.updateMetric',
+					{ id: metric.id, archived: true },
+					{ keepalive: true }
+				).catch(() => app.metrics.upsert(metric))
+		);
+	}
+
+	/** One value per week: typing it again the same week replaces it. */
+	function record(metric: Metric, value: number, day = toDateKey(new Date())) {
 		const reading = attempt<MetricReading>(() => {
 			const weekOf = validWeekOf(day);
 			return {
-				id: readingId(projectId, weekOf),
-				projectId,
+				id: readingId(metric.id, weekOf),
+				metricId: metric.id,
+				projectId: metric.projectId,
 				weekOf,
 				value: validMetricValue(value),
 				by: app.meId,
@@ -268,9 +357,58 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 		settle(
 			app,
 			reading.id,
-			send('roadmap.recordReading', { projectId, day, value }),
+			send('roadmap.recordReading', { metricId: metric.id, day, value }),
 			(saved) => app.readings.upsert(saved),
 			() => (before ? app.readings.upsert(before) : app.readings.remove(reading.id))
+		);
+	}
+
+	/**
+	 * "C'est en prod": the version takes the chosen tasks, then its notes are posted in
+	 * #général so the team sees what left.
+	 */
+	async function ship(input: {
+		projectId: string;
+		name: string;
+		taskIds: string[];
+		notes: string;
+	}) {
+		const release = await run<Release>(
+			send('roadmap.shipRelease', { id: crypto.randomUUID(), ...input })
+		);
+		if (!release) return null;
+		app.releases.upsert(release);
+		for (const id of input.taskIds) {
+			const task = app.tasks.get(id);
+			if (task) app.tasks.upsert({ ...task, releaseId: release.id });
+		}
+		const general = generalOf(app.channels.all, input.projectId);
+		if (general) await chat.post(general.id, `🚀 ${release.changelog}`);
+		toasts.show(`${release.name} est en prod`, { tone: 'success' });
+		return release;
+	}
+
+	async function updateRelease(id: string, patch: { name?: string; notes?: string }) {
+		const saved = await run<Release>(send('roadmap.updateRelease', { id, ...patch }));
+		if (saved) app.releases.upsert(saved);
+	}
+
+	function removeRelease(release: Release) {
+		const tasks = app.tasks.all.filter((t) => t.releaseId === release.id);
+		deleteWithUndo(
+			`${release.name} annulée : ses tâches sont de nouveau prêtes à partir`,
+			() => {
+				app.releases.remove(release.id);
+				for (const t of tasks) app.tasks.upsert({ ...t, releaseId: null });
+			},
+			() => {
+				app.releases.upsert(release);
+				for (const t of tasks) app.tasks.upsert(t);
+			},
+			() =>
+				void send('roadmap.deleteRelease', { id: release.id }, { keepalive: true }).catch(() =>
+					app.releases.upsert(release)
+				)
 		);
 	}
 
@@ -288,6 +426,12 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 		removeHypothesis,
 		verify,
 		judge,
-		record
+		addMetric,
+		updateMetric,
+		removeMetric,
+		record,
+		ship,
+		updateRelease,
+		removeRelease
 	};
 }

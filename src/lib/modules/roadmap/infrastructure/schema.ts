@@ -13,6 +13,7 @@ import { users } from '../../identity/infrastructure/schema';
 import { projects } from '../../projects/infrastructure/schema';
 import { tasks } from '../../tasks/infrastructure/schema';
 import { DECISION_SOURCES } from '../domain/decision';
+import { DIRECTIONS } from '../domain/metric';
 import { VERDICTS } from '../domain/hypothesis';
 
 const projectId = () =>
@@ -76,10 +77,46 @@ export const decisions = pgTable(
 	(t) => [index().on(t.projectId)]
 );
 
+export const metrics = pgTable(
+	'metrics',
+	{
+		id: uuid().primaryKey(),
+		projectId: projectId(),
+		name: text().notNull(),
+		unit: text().notNull().default(''),
+		target: doublePrecision(),
+		direction: text({ enum: DIRECTIONS }).notNull().default('up'),
+		position: doublePrecision().notNull(),
+		archivedAt: timestamptz(),
+		createdAt: createdAt()
+	},
+	(t) => [index().on(t.projectId)]
+);
+
+export const releases = pgTable(
+	'releases',
+	{
+		id: uuid().primaryKey(),
+		projectId: projectId(),
+		name: text().notNull(),
+		shippedAt: timestamptz().notNull(),
+		changelog: text().notNull().default(''),
+		notes: text().notNull().default(''),
+		createdBy: uuid()
+			.notNull()
+			.references(() => users.id),
+		createdAt: createdAt()
+	},
+	(t) => [index().on(t.projectId)]
+);
+
 export const metricReadings = pgTable(
 	'metric_readings',
 	{
 		id: text().primaryKey(),
+		metricId: uuid()
+			.notNull()
+			.references(() => metrics.id, { onDelete: 'cascade' }),
 		projectId: projectId(),
 		weekOf: date().notNull(),
 		value: doublePrecision().notNull(),

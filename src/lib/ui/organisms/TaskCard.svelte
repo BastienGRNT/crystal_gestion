@@ -8,7 +8,7 @@
 		MessageSquare,
 		OctagonAlert
 	} from '@lucide/svelte';
-	import { BOXES } from '$lib/client/labels';
+	import { BOXES, KINDS } from '$lib/client/labels';
 	import type { Task } from '$lib/modules/tasks/domain/task';
 	import Avatar from '../atoms/Avatar.svelte';
 	import DueDate from '../atoms/DueDate.svelte';
@@ -31,6 +31,8 @@
 		next?: string | null;
 		/** The step it belongs to, when not the one on screen. */
 		step?: string;
+		/** Its module, when the project has several. */
+		component?: { name: string; color: string };
 		onopen: () => void;
 		oncomplete: () => void;
 		onreopen: () => void;
@@ -48,6 +50,7 @@
 		waitingOn,
 		next = null,
 		step,
+		component,
 		onopen,
 		oncomplete,
 		onreopen,
@@ -57,6 +60,7 @@
 	const box = $derived(BOXES[task.quadrant ?? 'inbox']);
 	const done = $derived(task.status === 'done');
 	const steps = $derived(task.checklist.filter((s) => s.done).length);
+	const kind = $derived(KINDS[task.kind]);
 </script>
 
 <div
@@ -66,7 +70,9 @@
 	onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onopen())}
 	class={[
 		'group relative flex cursor-pointer touch-manipulation flex-col gap-2.5 overflow-hidden rounded-xl border bg-surface py-3 pr-3 pl-4 shadow-card transition-[border-color,box-shadow,transform] select-none hover:-translate-y-px hover:shadow-raise',
-		task.blockedReason ? 'border-danger/50' : 'border-line hover:border-line-strong',
+		task.blockedReason || (task.critical && !done)
+			? 'border-danger/50'
+			: 'border-line hover:border-line-strong',
 		done && 'opacity-75'
 	]}
 >
@@ -115,6 +121,29 @@
 	{/if}
 
 	<div class="flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3">
+		{#if task.critical && !done}
+			<span
+				class="inline-flex items-center gap-1 rounded-md bg-danger px-1.5 text-xs font-semibold text-white"
+				><kind.icon size={12} />Bloquant</span
+			>
+		{:else if task.kind === 'bug'}
+			<span
+				class={[
+					'inline-flex items-center gap-1 rounded-md px-1.5 text-xs font-semibold',
+					kind.chip
+				]}><kind.icon size={12} />Bug</span
+			>
+		{:else if task.kind !== 'feature'}
+			<span class={['inline-flex', kind.text]} title={kind.label}
+				><kind.icon size={14} aria-label={kind.label} /></span
+			>
+		{/if}
+		{#if component}<span
+				class="inline-flex max-w-32 items-center gap-1 text-xs font-medium text-ink-2"
+				title="Module : {component.name}"
+				><span class="size-2 shrink-0 rounded-[3px]" style:background-color={component.color}
+				></span><span class="truncate">{component.name}</span></span
+			>{/if}
 		{#if step}<span
 				class="inline-flex max-w-40 items-center gap-1 rounded-md bg-sunken px-1.5 text-xs font-medium text-ink-2"
 				title="Étape : {step}"
@@ -144,7 +173,7 @@
 			</span>
 		{/if}
 		<span class="ml-auto flex items-center gap-2">
-			{#if task.number}<span class="font-mono text-xs text-ink-4">#{task.number}</span>{/if}
+			{#if task.number}<span class="font-mono text-xs text-ink-3">#{task.number}</span>{/if}
 		</span>
 		<span class="flex items-center -space-x-1">
 			{#if reviewer}<span title="Relu par {reviewer.name}"
@@ -163,7 +192,7 @@
 		<button
 			data-no-drag
 			onclick={(e) => (e.stopPropagation(), onnext())}
-			class="absolute top-2 right-2 hidden h-8 items-center gap-1 rounded-lg border border-line bg-surface px-2.5 text-xs font-semibold text-ink-2 shadow-raise group-focus-within:inline-flex group-hover:inline-flex hover:border-accent hover:text-accent-text"
+			class="absolute top-2 right-2 hidden h-9 items-center gap-1 rounded-lg border border-line bg-surface px-2.5 text-xs font-semibold text-ink-2 shadow-raise group-focus-within:inline-flex group-hover:inline-flex hover:border-accent hover:text-accent-text [@media(hover:none)]:inline-flex"
 		>
 			{next}<ArrowRight size={13} />
 		</button>

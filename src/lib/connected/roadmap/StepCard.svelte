@@ -1,14 +1,5 @@
 <script lang="ts">
-	import {
-		ArrowDown,
-		ArrowUp,
-		ChevronDown,
-		CircleCheckBig,
-		Ellipsis,
-		Gavel,
-		Pencil,
-		Trash2
-	} from '@lucide/svelte';
+	import { ChevronDown, CircleCheckBig, Gavel, GripVertical, Trash2 } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { plural, shortDay } from '$lib/client/format';
 	import { now } from '$lib/client/now.svelte';
@@ -17,10 +8,11 @@
 	import type { Task } from '$lib/modules/tasks/domain/task';
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
+	import DateChip from '$lib/ui/molecules/DateChip.svelte';
+	import EditableText from '$lib/ui/molecules/EditableText.svelte';
 	import InlineAdd from '$lib/ui/molecules/InlineAdd.svelte';
-	import Menu from '$lib/ui/molecules/Menu.svelte';
+	import ProseField from '$lib/ui/molecules/ProseField.svelte';
 	import TaskRow from '$lib/ui/organisms/TaskRow.svelte';
-	import type { MenuItem } from '$lib/ui/types';
 	import { QUICK_HINT, quickAdd } from '../tasks/quick-add';
 	import { paceText } from './step-text';
 
@@ -29,11 +21,12 @@
 		forecast: StepForecast | undefined;
 		number: number;
 		current: boolean;
-		onedit: () => void;
+		/** Its date comes before a step placed earlier: worth a word. */
+		outOfOrder: boolean;
 		onclose: () => void;
 	}
 
-	let { step, forecast, number, current, onedit, onclose }: Props = $props();
+	let { step, forecast, number, current, outOfOrder, onclose }: Props = $props();
 	const context = useApp();
 	const { app, actions, overlays } = context;
 	// The step under way is open; the others until someone opens or folds them.
@@ -53,32 +46,7 @@
 	const progress = $derived(forecast && forecast.total ? forecast.done / forecast.total : 0);
 	const pace = $derived(paceText(forecast));
 	const late = $derived(forecast?.state === 'late');
-
-	const menu = $derived<(MenuItem | 'separator')[]>([
-		{ label: 'Modifier', icon: Pencil, run: onedit },
-		...(!step.targetDate && !step.closedAt
-			? [
-					{ label: 'Monter', icon: ArrowUp, run: () => actions.roadmap.moveStep(step.id, 'up') },
-					{
-						label: 'Descendre',
-						icon: ArrowDown,
-						run: () => actions.roadmap.moveStep(step.id, 'down')
-					}
-				]
-			: []),
-		{
-			label: 'Noter une décision',
-			icon: Gavel,
-			run: () => overlays.decide({ projectId: step.projectId, text: '', milestoneId: step.id })
-		},
-		'separator',
-		{
-			label: 'Supprimer l’étape',
-			icon: Trash2,
-			danger: true,
-			run: () => actions.roadmap.removeStep(step)
-		}
-	]);
+	const closed = $derived(!!step.closedAt);
 </script>
 
 {#snippet row(task: Task)}
@@ -93,76 +61,107 @@
 
 <section
 	id="etape-{step.id}"
+	aria-label="Étape {number} : {step.title}"
 	class={[
 		'scroll-mt-6 rounded-2xl border bg-surface shadow-card',
 		current ? 'border-accent/40' : 'border-line',
-		step.closedAt && 'bg-surface-2'
+		closed && 'bg-surface-2'
 	]}
 >
-	<div class="flex items-start gap-3 px-4 pt-3.5 pb-3">
+	<div class="flex items-start gap-2 px-3 pt-3 pb-2 sm:px-4">
+		{#if !closed}
+			<button
+				type="button"
+				data-drag-handle
+				aria-label="Glisser pour déplacer l’étape"
+				title="Glisser pour déplacer"
+				class="-ml-1 flex size-10 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-3 hover:bg-hover hover:text-ink-2 active:cursor-grabbing"
+			>
+				<GripVertical size={18} aria-hidden="true" />
+			</button>
+		{/if}
 		<span
 			class={[
-				'mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-				step.closedAt
+				'mt-1.5 flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
+				closed
 					? 'bg-ok-soft text-ok-text'
 					: current
 						? 'bg-accent text-accent-ink'
 						: 'bg-sunken text-ink-2'
 			]}
 		>
-			{#if step.closedAt}<CircleCheckBig size={15} />{:else}{number}{/if}
+			{#if closed}<CircleCheckBig size={15} />{:else}{number}{/if}
 		</span>
-		<button
-			class="min-w-0 flex-1 text-left"
-			onclick={() => (toggled = !expanded)}
-			aria-expanded={expanded}
-		>
-			<span class="flex flex-wrap items-baseline gap-x-2">
-				<span class={['text-lg font-semibold tracking-tight', step.closedAt && 'text-ink-2']}
-					>{step.title}</span
-				>
+		<div class="flex min-w-0 flex-1 flex-col gap-1">
+			<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+				<EditableText
+					label="Nom de l’étape"
+					value={step.title}
+					maxlength={80}
+					class={['text-lg font-semibold tracking-tight', closed && 'text-ink-2'].join(' ')}
+					onsave={(title) => actions.roadmap.updateStep(step.id, { title })}
+				/>
 				{#if current}<span class="text-sm font-medium text-accent-text">en cours</span>{/if}
-			</span>
-			<span class="block text-sm text-ink-3">
-				{#if step.closedAt}
-					Close le {shortDay(step.closedAt.slice(0, 10))}{step.targetDate
-						? ` · prévue le ${shortDay(step.targetDate)}`
-						: ''}
+			</div>
+			<div class="flex flex-wrap items-center gap-2 text-sm text-ink-3">
+				{#if closed}
+					<span
+						>Close le {shortDay(step.closedAt!.slice(0, 10))}{step.targetDate
+							? ` · prévue le ${shortDay(step.targetDate)}`
+							: ''}</span
+					>
 				{:else}
-					{step.targetDate ? `Pour le ${shortDay(step.targetDate)}` : 'Sans date'}{#if pace}
-						·
-						<span class={late ? 'font-medium text-danger-text' : ''}>{pace}</span>{/if}
+					<DateChip
+						value={step.targetDate}
+						today={now.today}
+						label="Date de l’étape"
+						text={step.targetDate ? `Pour le ${shortDay(step.targetDate)}` : 'Sans date'}
+						askReason
+						tone={late ? 'danger' : outOfOrder ? 'warn' : 'neutral'}
+						onchange={(targetDate, reason) =>
+							actions.roadmap.updateStep(step.id, { targetDate }, reason)}
+					/>
+					{#if pace}<span class={late ? 'font-medium text-danger-text' : ''}>{pace}</span>{/if}
+					{#if outOfOrder}<span class="text-warn-text">prévue avant l’étape d’avant</span>{/if}
 				{/if}
-			</span>
-		</button>
-		<span class="mt-1 shrink-0 text-sm font-medium text-ink-2"
+			</div>
+		</div>
+		<span class="mt-2.5 shrink-0 text-sm font-medium text-ink-2 tabular-nums"
 			>{forecast?.done ?? 0}/{forecast?.total ?? 0}</span
 		>
-		<Menu label="Options de l’étape" items={menu}>
-			{#snippet trigger({ props })}<IconButton
-					icon={Ellipsis}
-					label="Options de l’étape"
-					size="sm"
-					{...props}
-				/>{/snippet}
-		</Menu>
+		<IconButton
+			icon={ChevronDown}
+			label={expanded ? 'Replier l’étape' : 'Déplier l’étape'}
+			aria-expanded={expanded}
+			class={['shrink-0 transition-transform', expanded && 'rotate-180']}
+			onclick={() => (toggled = !expanded)}
+		/>
 	</div>
 
-	<div class="flex flex-col gap-3 px-4 pb-4">
+	<div class="flex flex-col gap-3 px-4 pb-4" data-no-drag>
 		<div class="h-1.5 overflow-hidden rounded-full bg-sunken" aria-hidden="true">
 			<div
-				class={['h-full rounded-full', step.closedAt ? 'bg-ok' : late ? 'bg-danger' : 'bg-accent']}
-				style:width="{Math.round((step.closedAt ? 1 : progress) * 100)}%"
+				class={['h-full rounded-full', closed ? 'bg-ok' : late ? 'bg-danger' : 'bg-accent']}
+				style:width="{Math.round((closed ? 1 : progress) * 100)}%"
 			></div>
 		</div>
-		{#if step.doneWhen}
-			<p class="text-base text-ink-2">
-				<span class="font-medium text-ink-3">Fini quand :</span>
-				{step.doneWhen}
-			</p>
+
+		{#if expanded || step.doneWhen}
+			<div class="flex flex-col gap-0.5">
+				<span class="text-xs font-semibold tracking-wide text-ink-3 uppercase"
+					>C’est fini quand</span
+				>
+				<ProseField
+					label="C’est fini quand"
+					value={step.doneWhen}
+					maxlength={1000}
+					placeholder="Ce qui doit être vrai pour la clore. Ex. : 3 pharmacies l’utilisent sans nous appeler"
+					onsave={(doneWhen) => actions.roadmap.updateStep(step.id, { doneWhen })}
+				/>
+			</div>
 		{/if}
 
-		{#if current && forecast?.ready}
+		{#if !closed && forecast?.ready}
 			<div class="flex flex-wrap items-center gap-3 rounded-xl bg-ok-soft px-4 py-3">
 				<p class="min-w-0 flex-1 text-base font-medium text-ok-text">
 					Tout est fait. C’est le cas ? Alors on la clôt.
@@ -178,7 +177,7 @@
 		{#if expanded}
 			<div class="flex flex-col">
 				{#each open as task (task.id)}{@render row(task)}{/each}
-				{#if !open.length && !step.closedAt}
+				{#if !open.length && !closed}
 					<p class="py-2 text-base text-ink-3">
 						Rien d’ouvert. Ajoute ce qu’il faut pour la finir.
 					</p>
@@ -200,7 +199,7 @@
 					{#if showDone}{#each done as task (task.id)}{@render row(task)}{/each}{/if}
 				{/if}
 			</div>
-			{#if !step.closedAt}
+			{#if !closed}
 				<InlineAdd
 					label="Ajouter une tâche"
 					hint={QUICK_HINT}
@@ -208,12 +207,26 @@
 						quickAdd(context, text, { projectId: step.projectId, milestoneId: step.id })}
 				/>
 			{/if}
-		{/if}
-
-		{#if current && !forecast?.ready}
-			<Button size="sm" icon={CircleCheckBig} class="self-start" onclick={onclose}
-				>Clore l’étape</Button
-			>
+			<div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+				{#if !closed}
+					<Button size="sm" icon={CircleCheckBig} onclick={onclose}>Clore l’étape</Button>
+				{/if}
+				<Button
+					size="sm"
+					variant="ghost"
+					icon={Gavel}
+					onclick={() =>
+						overlays.decide({ projectId: step.projectId, text: '', milestoneId: step.id })}
+					>Noter une décision</Button
+				>
+				<Button
+					size="sm"
+					variant="ghost"
+					icon={Trash2}
+					class="ml-auto text-danger-text"
+					onclick={() => actions.roadmap.removeStep(step)}>Supprimer</Button
+				>
+			</div>
 		{/if}
 	</div>
 </section>

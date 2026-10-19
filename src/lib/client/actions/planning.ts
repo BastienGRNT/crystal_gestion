@@ -57,48 +57,80 @@ export function planningActions(app: AppState) {
 		},
 
 		/** Pre-fills the shown week with the previous one. */
-		async copyWeek(from: Date, to: Date) {
+		copyWeek(from: Date, to: Date) {
 			const mine = app.slots.all.filter((s) => s.userId === app.meId);
-			const copies = copiedWeek(mine, from, to).map((s) => ({ ...s, id: crypto.randomUUID() }));
+			const copies = copiedWeek(mine, from, to);
 			if (!copies.length)
 				return toasts.show('Rien à copier : la semaine d’avant est vide (ou déjà recopiée).');
-			copies.forEach((s) => app.slots.upsert(s));
+			return this.createSlots(
+				copies,
+				`${copies.length} créneau${copies.length > 1 ? 'x' : ''} recopié${copies.length > 1 ? 's' : ''}`
+			);
+		},
+
+		/** Several slots at once, said in one toast. */
+		async createSlots(ranges: (Range & { status?: AvailabilityStatus })[], done: string) {
+			const slots: AvailabilitySlot[] = ranges.map((range) => ({
+				id: crypto.randomUUID(),
+				userId: app.meId,
+				startsAt: range.startsAt,
+				endsAt: range.endsAt,
+				status: range.status ?? 'available'
+			}));
+			slots.forEach((s) => app.slots.upsert(s));
 			try {
 				await send('slots.createMany', {
-					slots: copies.map(({ id, startsAt, endsAt, status }) => ({
-						id,
-						startsAt,
-						endsAt,
-						status
-					}))
+					slots: slots.map(({ id, startsAt, endsAt, status }) => ({ id, startsAt, endsAt, status }))
 				});
-				toasts.show(
-					`${copies.length} créneau${copies.length > 1 ? 'x' : ''} recopié${copies.length > 1 ? 's' : ''}`,
-					{ tone: 'success' }
-				);
+				toasts.show(done, { tone: 'success' });
 			} catch (error) {
-				copies.forEach((s) => app.slots.remove(s.id));
+				slots.forEach((s) => app.slots.remove(s.id));
 				toasts.error(errorMessage(error));
 			}
 		},
 
 		createBlock(projectId: string, range: Range, taskId: string | null = null) {
+			return this.planBlock(projectId, range, taskId).block;
+		},
+
+		/** A block shown at once; `saved` settles when the server has answered. */
+		planBlock(projectId: string, range: Range, taskId: string | null = null) {
 			const block: WorkBlock = {
 				id: crypto.randomUUID(),
 				projectId,
 				userId: app.meId,
 				taskId,
-				...range
+				startsAt: range.startsAt,
+				endsAt: range.endsAt
 			};
 			app.blocks.upsert(block);
-			settle(
+			const saved = settle(
 				app,
 				block.id,
 				send('blocks.create', block),
 				(b) => app.blocks.upsert(b),
 				() => app.blocks.remove(block.id)
 			);
-			return block;
+			return { block, saved };
+		},
+
+		/**
+		 * Tasks laid in the agenda in one go, said in a toast with "Annuler". Undoing waits for the
+		 * creations to land, so a quick click never leaves a block behind on the server.
+		 */
+		placeTasks(projectId: string, placements: (Range & { taskId: string })[], done: string) {
+			const planned = placements.map((p) => this.planBlock(projectId, p, p.taskId));
+			toasts.show(done, {
+				tone: 'success',
+				duration: 6000,
+				action: {
+					label: 'Annuler',
+					run: async () => {
+						await Promise.all(planned.map((p) => p.saved));
+						planned.forEach((p) => this.removeBlock(p.block.id));
+					}
+				}
+			});
 		},
 
 		updateBlock(id: string, patch: Partial<Range> & { taskId?: string | null }) {

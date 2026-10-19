@@ -10,6 +10,7 @@
 	import type { Task, TaskStatus } from '$lib/modules/tasks/domain/task';
 	import DropSlot from '$lib/ui/atoms/DropSlot.svelte';
 	import TaskCard from '$lib/ui/organisms/TaskCard.svelte';
+	import { componentChip } from './components-of';
 	import { stepFilter } from './step-filter.svelte';
 
 	interface Props {
@@ -89,6 +90,7 @@
 					waitingOn={waiting(task.id)}
 					next={next?.label}
 					step={tagOf(task)}
+					component={componentChip(app, task.componentId)}
 					onnext={() => next?.run(task.id)}
 					onopen={() => overlays.openTask(task.id)}
 					oncomplete={() => actions.tasks.complete(task.id)}

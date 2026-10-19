@@ -1,3 +1,9 @@
+import {
+	activeComponents,
+	ensureRoomForComponent,
+	validComponentName,
+	type Component
+} from '$lib/modules/tasks/domain/component';
 import { positionAtEnd } from '$lib/modules/tasks/domain/position';
 import {
 	applyPatch,
@@ -11,7 +17,10 @@ import type { AppState } from '../state/app.svelte';
 import { deleteWithUndo, toasts } from '../toasts.svelte';
 import { attempt, settle } from './optimistic';
 
-export interface TaskDraft extends Omit<TaskPatch, 'title' | 'reviewerId' | 'blockedReason'> {
+export interface TaskDraft extends Omit<
+	TaskPatch,
+	'title' | 'reviewerId' | 'blockedReason' | 'releaseId'
+> {
 	projectId: string;
 	title: string;
 }
@@ -108,6 +117,73 @@ export function taskActions(app: AppState) {
 				() => app.tasks.upsert(task),
 				() =>
 					void send('tasks.delete', { id }, { keepalive: true }).catch(() => app.tasks.upsert(task))
+			);
+		},
+
+		/** A new part of the product: one line, not a new project. */
+		addComponent(projectId: string, name: string): boolean {
+			const others = app.components.all.filter((c) => c.projectId === projectId);
+			const component = attempt<Component>(() => {
+				ensureRoomForComponent(others);
+				return {
+					id: crypto.randomUUID(),
+					projectId,
+					name: validComponentName(name),
+					color: activeComponents(others).length % 8,
+					position: Math.max(0, ...others.map((c) => c.position)) + 1,
+					archivedAt: null,
+					createdAt: new Date().toISOString()
+				};
+			});
+			if (!component) return false;
+			app.components.upsert(component);
+			settle(
+				app,
+				component.id,
+				send('components.create', {
+					id: component.id,
+					projectId,
+					name: component.name,
+					color: component.color
+				}),
+				(saved) => app.components.upsert(saved),
+				() => app.components.remove(component.id)
+			);
+			return true;
+		},
+
+		updateComponent(id: string, patch: { name?: string; color?: number }) {
+			const current = app.components.get(id);
+			const next =
+				current &&
+				attempt(() => ({
+					...current,
+					...patch,
+					...(patch.name !== undefined && { name: validComponentName(patch.name) })
+				}));
+			if (!current || !next) return;
+			app.components.upsert(next);
+			settle(
+				app,
+				id,
+				send('components.update', { id, ...patch }),
+				(saved) => app.components.upsert(saved),
+				() => app.components.upsert(current)
+			);
+		},
+
+		/** Its tasks keep their history: a module that holds some is archived, not deleted. */
+		removeComponent(id: string) {
+			const component = app.components.get(id);
+			if (!component) return;
+			deleteWithUndo(
+				`Module « ${component.name} » retiré`,
+				() => app.components.remove(id),
+				() => app.components.upsert(component),
+				() =>
+					void send('components.delete', { id }, { keepalive: true })
+						.then((kept) => kept && app.components.upsert(kept))
+						.catch(() => app.components.upsert(component))
 			);
 		}
 	};

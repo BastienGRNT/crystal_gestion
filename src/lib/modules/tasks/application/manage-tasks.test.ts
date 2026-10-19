@@ -8,11 +8,13 @@ import {
 	RecordingNotifier,
 	testId
 } from '../../kernel/testing';
+import type { Component } from '../domain/component';
 import type { Task } from '../domain/task';
 import { createTasks } from '../index';
 
 function setup() {
 	const table = new MemoryTable<Task>();
+	const modules = new MemoryTable<Component>();
 	const counters = new Map<string, number>();
 	const feed = new RecordingFeed<Task>();
 	const activity = new RecordingActivity();
@@ -28,10 +30,19 @@ function setup() {
 		feed,
 		activity,
 		notifier,
-		access: new FakeAccess({ p1: ['bastien', 'ana'] }),
+		access: new FakeAccess({ p1: ['bastien', 'ana'], p2: ['paul'] }),
+		components: {
+			ofProjects: async (ids) => modules.all().filter((c) => ids.includes(c.projectId)),
+			ofProject: async (id) => modules.all().filter((c) => c.projectId === id),
+			get: async (id) => modules.get(id),
+			put: async (c) => modules.put(c),
+			delete: async (id) => modules.delete(id)
+		},
+		componentFeed: new RecordingFeed<Component>(),
 		tasks: {
 			ofProjects: async () => table.all(),
 			ofMilestone: async (id) => table.all().filter((t) => t.milestoneId === id),
+			ofRelease: async (id) => table.all().filter((t) => t.releaseId === id),
 			get: async (id: string) => table.get(id),
 			insert: async (task) => table.put(task),
 			save: async (task) => table.put(task),
@@ -46,7 +57,7 @@ function setup() {
 			}
 		}
 	});
-	return { tasks, feed, activity, notifier, table };
+	return { tasks, feed, activity, notifier, table, modules };
 }
 
 describe('tasks', () => {
@@ -110,5 +121,44 @@ describe('tasks', () => {
 		const task = await create('Fini', { status: 'done' });
 		ctx.table.put({ ...task, milestoneId: 'm1' });
 		expect((await ctx.tasks.update(task.id, { status: 'todo' }, 'bastien')).milestoneId).toBe('m2');
+	});
+
+	it('puts a blocking bug in "Maintenant" and warns the whole team', async () => {
+		const bug = await create('Le paiement plante', { kind: 'bug', critical: true });
+		expect(bug).toMatchObject({ quadrant: 'now', critical: true });
+		expect(ctx.notifier.sent).toMatchObject([{ userId: 'ana', kind: 'urgent' }]);
+		expect(ctx.activity.verbs).toContain('bug.critical');
+		const feature = await create('Export PDF', { kind: 'feature', critical: true });
+		expect(feature.critical).toBe(false);
+	});
+
+	it('remembers when work started, once, and forgets the version of reopened work', async () => {
+		const task = await create('Page horaires');
+		const started = await ctx.tasks.update(task.id, { status: 'doing' }, 'bastien');
+		expect(started.startedAt).not.toBeNull();
+		ctx.table.put({ ...ctx.table.get(task.id)!, status: 'done', releaseId: 'v1' });
+		const reopened = await ctx.tasks.update(task.id, { status: 'todo' }, 'bastien');
+		expect(reopened).toMatchObject({ startedAt: started.startedAt, releaseId: null });
+	});
+
+	it('files a task only under a module of its project, still in use', async () => {
+		const site = await ctx.tasks.createComponent(
+			{ id: testId(), projectId: 'p1', name: 'Site' },
+			'ana'
+		);
+		const other = await ctx.tasks.createComponent(
+			{ id: testId(), projectId: 'p2', name: 'Autre' },
+			'paul'
+		);
+		expect((await create('Footer', { componentId: site.id })).componentId).toBe(site.id);
+		await expect(create('X', { componentId: other.id })).rejects.toThrow(/Module inconnu/);
+		await expect(
+			ctx.tasks.createComponent({ id: testId(), projectId: 'p1', name: 'site' }, 'ana')
+		).rejects.toThrow(/existe déjà/);
+		// A module that holds tasks is archived, not deleted.
+		expect(await ctx.tasks.deleteComponent(site.id, 'ana')).toMatchObject({
+			archivedAt: expect.any(String)
+		});
+		await expect(create('Y', { componentId: site.id })).rejects.toThrow(/archivé/);
 	});
 });

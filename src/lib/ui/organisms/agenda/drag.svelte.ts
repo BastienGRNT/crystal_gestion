@@ -3,7 +3,14 @@ import { previewAt, shiftsTo, type DragOrigin } from './drag-preview';
 import type { AgendaDraft, AgendaHandlers, AgendaItem, AgendaLayer, DragMode } from './types';
 
 type Locate = (event: PointerEvent) => { day: number; minutes: number };
-type Pending = DragOrigin & { x: number; y: number; touch: boolean; moved: boolean };
+type Pending = DragOrigin & {
+	x: number;
+	y: number;
+	touch: boolean;
+	moved: boolean;
+	/** What a tap selects: the item under the pointer, even when the gesture draws over it. */
+	tapped: AgendaItem | null;
+};
 const DRAG_THRESHOLD_PX = 5;
 
 /** Pointer gestures of the agenda (mouse and touch): draw, move, resize, or tap to select. */
@@ -21,11 +28,19 @@ export class AgendaDrag {
 		if (event.button > 0) return;
 		event.stopPropagation();
 		const touch = event.pointerType === 'touch';
-		// Touch on empty space must keep scrolling the grid natively; only items capture the gesture.
-		if (!touch || item) event.preventDefault();
+		const moving = mode === 'create' ? null : (item ?? null);
+		// Touch on empty space must keep scrolling the grid natively; only moved items capture it.
+		if (!touch || moving) event.preventDefault();
 		const { day, minutes } = this.locate(event);
-		const origin = { mode, layer, lane, day: item?.day ?? day, minutes, item: item ?? null };
-		this.#pending = { ...origin, x: event.clientX, y: event.clientY, touch, moved: false };
+		const origin = { mode, layer, lane, day: moving?.day ?? day, minutes, item: moving };
+		this.#pending = {
+			...origin,
+			x: event.clientX,
+			y: event.clientY,
+			touch,
+			moved: false,
+			tapped: item ?? null
+		};
 		window.addEventListener('pointermove', this.#move);
 		window.addEventListener('pointerup', this.#end);
 		window.addEventListener('pointercancel', this.#stop);
@@ -44,15 +59,15 @@ export class AgendaDrag {
 		const [p, draft, handlers] = [this.#pending, this.draft, this.handlers()];
 		this.#stop();
 		if (!p) return;
-		if (draft && !p.item) handlers.oncreate(draft.day, draft.start, draft.end, false);
+		const point = { x: event.clientX, y: event.clientY };
+		if (draft && !p.item) handlers.oncreate(draft.day, draft.start, draft.end, point);
 		else if (draft && p.item) {
 			const [start, end] = shiftsTo(p.item, draft);
 			if (start || end) handlers.onchange(p.item, start, end);
-		} else if (!p.moved && p.item)
-			handlers.onselect(p.item, { x: event.clientX, y: event.clientY });
-		else if (!p.moved && p.touch) {
+		} else if (!p.moved && p.tapped) handlers.onselect(p.tapped, point);
+		else if (!p.moved) {
 			const { start, end } = hourAt(p.minutes);
-			handlers.oncreate(p.day, start, end, true);
+			handlers.oncreate(p.day, start, end, point);
 		}
 	};
 

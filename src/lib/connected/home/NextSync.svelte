@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		Bug,
 		CalendarClock,
 		ChartLine,
 		CircleCheckBig,
@@ -9,6 +10,7 @@
 		Inbox,
 		MessageCircleQuestion,
 		OctagonAlert,
+		Rocket,
 		Send,
 		TriangleAlert
 	} from '@lucide/svelte';
@@ -27,7 +29,7 @@
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import type { Icon } from '$lib/ui/types';
 	import { projectTasks } from '../projects/current.svelte';
-	import { metricMissing, roadmapHref, roadmapOf } from '../roadmap/roadmap-of';
+	import { missingMetrics, roadmapHref, roadmapOf } from '../roadmap/roadmap-of';
 	import { riskOf } from '../tasks/risk';
 	import { teamOrder } from '../team/usePresence.svelte';
 
@@ -42,6 +44,7 @@
 	const moment = $derived(nextMoment(app.slots.all, app.meId, teammates, now.value));
 	const tasks = $derived(projectTasks(app, project.id));
 	const roadmap = $derived(roadmapOf(app, project.id, now.today, now.value));
+	const missing = $derived(missingMetrics(app, project.id, now.today));
 	const agenda = $derived(
 		agendaOf({
 			step: roadmap.current && {
@@ -49,7 +52,8 @@
 				late: roadmap.currentForecast?.state === 'late',
 				ready: !!roadmap.currentForecast?.ready
 			},
-			metricMissing: metricMissing(app, project, now.today),
+			metricMissing: missing.length > 0,
+			shipsReleases: app.releases.all.some((r) => r.projectId === project.id),
 			tasks,
 			questions: app.questions.all.filter((q) => q.projectId === project.id),
 			risks: new Map(tasks.map((t) => [t.id, riskOf(app, t)])),
@@ -70,6 +74,8 @@
 		'step-late': Scissors,
 		'step-ready': CircleCheckBig,
 		metric: ChartLine,
+		critical: Bug,
+		unshipped: Rocket,
 		question: MessageCircleQuestion,
 		review: Eye,
 		blocked: OctagonAlert,
@@ -88,7 +94,11 @@
 			case 'step-ready':
 				return `Tout est fait pour « ${roadmap.current?.title} » : on la clôt ?`;
 			case 'metric':
-				return `${project.metricName} : noter le chiffre de la semaine`;
+				return `Noter les chiffres de la semaine (${missing.map((m) => m.name).join(', ')})`;
+			case 'critical':
+				return `Bug bloquant ouvert depuis plus d’un jour : ${title}`;
+			case 'unshipped':
+				return `${plural(item.count ?? 0, 'tâche terminée attend', 'tâches terminées attendent')} la mise en prod depuis plus d’une semaine`;
 			case 'question': {
 				const q = item.question!;
 				const text = plainText(toDisplay(q.body, app.users.all));
@@ -111,7 +121,8 @@
 		if (item.taskId) return overlays.openTask(item.taskId);
 		if (item.kind === 'sort') return void goto(`/p/${project.slug}/priorites`);
 		if (item.milestoneId) return void goto(roadmapHref(project.slug, `etape-${item.milestoneId}`));
-		if (item.kind === 'metric') return void goto(roadmapHref(project.slug, 'cap'));
+		if (item.kind === 'metric') return void goto(`/p/${project.slug}/indicateurs`);
+		if (item.kind === 'unshipped') return void goto(`/p/${project.slug}/versions`);
 		const q = item.question!;
 		const taskId = app.channels.get(q.channelId)?.taskId;
 		if (taskId) overlays.openTask(taskId);

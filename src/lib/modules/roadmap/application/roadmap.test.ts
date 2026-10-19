@@ -11,7 +11,8 @@ import { notFound } from '../../kernel/domain/errors';
 import { newTask, type Task } from '../../tasks/domain/task';
 import type { Decision } from '../domain/decision';
 import type { Hypothesis } from '../domain/hypothesis';
-import type { MetricReading } from '../domain/metric';
+import type { Metric, MetricReading } from '../domain/metric';
+import type { Release } from '../domain/release';
 import type { Milestone } from '../domain/milestone';
 import { createRoadmap } from '../index';
 import type { Store } from './ports';
@@ -31,6 +32,7 @@ function setup() {
 	const clock = new FixedClock();
 	const milestones = store<Milestone>();
 	const decisions = store<Decision>();
+	const releases = store<Release>();
 	const tasks = new MemoryTable<Task>();
 	const channels: string[] = [];
 	const activity = new RecordingActivity();
@@ -39,9 +41,13 @@ function setup() {
 		milestones: milestones.store,
 		decisions: decisions.store,
 		hypotheses: store<Hypothesis>().store,
+		metrics: store<Metric>().store,
 		readings: store<MetricReading>().store,
+		releases: releases.store,
 		tasks: {
 			ofMilestone: async (id) => tasks.all().filter((t) => t.milestoneId === id),
+			ofRelease: async (id) => tasks.all().filter((t) => t.releaseId === id),
+			componentNames: async () => new Map([['c-rdv', 'RDV']]),
 			async get(id) {
 				const task = tasks.get(id);
 				if (!task) throw notFound('Tâche');
@@ -69,11 +75,13 @@ function setup() {
 		milestoneFeed: new RecordingFeed<Milestone>(),
 		decisionFeed: new RecordingFeed<Decision>(),
 		hypothesisFeed: new RecordingFeed<Hypothesis>(),
+		metricFeed: new RecordingFeed<Metric>(),
 		readingFeed: new RecordingFeed<MetricReading>(),
+		releaseFeed: new RecordingFeed<Release>(),
 		activity,
 		newId: testId
 	});
-	return { roadmap, milestones, decisions, tasks, channels, activity };
+	return { roadmap, milestones, decisions, releases, tasks, channels, activity };
 }
 
 describe('roadmap', () => {
@@ -153,15 +161,19 @@ describe('roadmap', () => {
 		expect(decisionTexts()).toHaveLength(1);
 	});
 
-	it('reorders only steps without a date', async () => {
-		const dated = await step('Datée', '2026-12-01');
-		const a = await step('A');
-		const b = await step('B');
-		await ctx.roadmap.moveMilestone(b.id, 'up', 'ana');
-		expect(ctx.milestones.table.get(b.id)!.position).toBeLessThan(
-			ctx.milestones.table.get(a.id)!.position
-		);
-		await expect(ctx.roadmap.moveMilestone(dated.id, 'up', 'ana')).rejects.toThrow(/date/);
+	it('keeps the order set by hand, a dated step landing before the steps due later', async () => {
+		const a = await step('A', '2026-11-06');
+		const c = await step('C', '2026-12-04');
+		const b = await step('B', '2026-11-20');
+		const order = () =>
+			ctx.milestones.table
+				.all()
+				.sort((x, y) => x.position - y.position)
+				.map((m) => m.title);
+		expect(order()).toEqual(['A', 'B', 'C']);
+		await ctx.roadmap.reorderMilestone(a.id, c.position + 1, 'ana');
+		expect(order()).toEqual(['B', 'C', 'A']);
+		expect(b.id).toBeTruthy();
 	});
 
 	it('lays out a template once, with its tasks and channels', async () => {
@@ -236,16 +248,49 @@ describe('roadmap', () => {
 		).rejects.toThrow(/3 hypothèses/);
 	});
 
-	it('keeps one reading per week, on its Monday', async () => {
+	it('keeps one reading per week and per number, on its Monday', async () => {
+		const metric = await ctx.roadmap.createMetric(
+			{ id: testId(), projectId: 'p1', name: 'Clients payants', target: 50 },
+			'ana'
+		);
 		const first = await ctx.roadmap.recordReading(
-			{ projectId: 'p1', day: '2026-10-21', value: 3 },
+			{ metricId: metric.id, day: '2026-10-21', value: 3 },
 			'ana'
 		);
 		const again = await ctx.roadmap.recordReading(
-			{ projectId: 'p1', day: '2026-10-23', value: 4 },
+			{ metricId: metric.id, day: '2026-10-23', value: 4 },
 			'hugo'
 		);
 		expect(first.weekOf).toBe('2026-10-19');
 		expect(again.id).toBe(first.id);
+		await expect(
+			ctx.roadmap.recordReading({ metricId: metric.id, day: '2026-10-23', value: 1 }, 'paul')
+		).rejects.toThrow(/ne fais pas partie/);
+	});
+
+	it('follows five numbers at most', async () => {
+		for (const name of ['A', 'B', 'C', 'D', 'E'])
+			await ctx.roadmap.createMetric({ id: testId(), projectId: 'p1', name }, 'ana');
+		await expect(
+			ctx.roadmap.createMetric({ id: testId(), projectId: 'p1', name: 'F' }, 'ana')
+		).rejects.toThrow(/5 chiffres/);
+	});
+
+	it('ships only finished work of the project, once, with its changelog', async () => {
+		const fix = task('', 'Horaires du samedi', 'done');
+		ctx.tasks.put({ ...fix, kind: 'bug', reportedBy: 'Pharmacie Martin', componentId: 'c-rdv' });
+		const open = task('', 'Pas fini', 'doing');
+		const ship = (taskIds: string[]) =>
+			ctx.roadmap.shipRelease({ id: testId(), projectId: 'p1', name: 'v1.1', taskIds }, 'ana');
+		await expect(ship([open.id])).rejects.toThrow(/pas prête/);
+		const release = await ship([fix.id]);
+		expect(release.changelog).toContain('## Corrections');
+		expect(release.changelog).toContain(
+			'RDV : Horaires du samedi (#1, signalé par Pharmacie Martin)'
+		);
+		expect(ctx.tasks.get(fix.id)!.releaseId).toBe(release.id);
+		await expect(ship([fix.id])).rejects.toThrow(/déjà en prod/);
+		await ctx.roadmap.deleteRelease(release.id, 'ana');
+		expect(ctx.tasks.get(fix.id)!.releaseId).toBeNull();
 	});
 });

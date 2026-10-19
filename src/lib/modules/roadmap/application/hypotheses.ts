@@ -7,7 +7,6 @@ import {
 	verificationTitle,
 	type Hypothesis
 } from '../domain/hypothesis';
-import { readingId, validMetricValue, validWeekOf, type MetricReading } from '../domain/metric';
 import { recordDecision } from './decisions';
 import type { RoadmapDeps } from './ports';
 
@@ -96,20 +95,3 @@ export const judgeHypothesis =
 	};
 
 /** The week's value of the project's one number; typing it again replaces it. */
-export const recordReading =
-	(deps: RoadmapDeps) =>
-	async (input: { projectId: string; day: string; value: number }, actorId: string) => {
-		await deps.access.assertMember(input.projectId, actorId);
-		const weekOf = validWeekOf(input.day);
-		const reading: MetricReading = {
-			id: readingId(input.projectId, weekOf),
-			projectId: input.projectId,
-			weekOf,
-			value: validMetricValue(input.value),
-			by: actorId,
-			at: deps.clock.now().toISOString()
-		};
-		await deps.readings.put(reading);
-		deps.readingFeed.saved(reading);
-		return reading;
-	};

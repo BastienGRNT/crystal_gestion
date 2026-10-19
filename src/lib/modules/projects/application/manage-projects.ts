@@ -1,11 +1,8 @@
 import { notFound } from '../../kernel/domain/errors';
 import { memberId } from '../domain/membership';
 import {
-	CAP_LIMITS,
-	emptyCap,
 	uniqueSlug,
-	validCapText,
-	validMetricTarget,
+	validBrief,
 	validDeadline,
 	validDescription,
 	validProjectColor,
@@ -27,20 +24,6 @@ export interface NewProject {
 
 export type { ProjectPatch };
 
-function cleanCap(patch: ProjectPatch): Partial<Project> {
-	const fields = Object.keys(CAP_LIMITS) as (keyof typeof CAP_LIMITS)[];
-	return {
-		...Object.fromEntries(
-			fields
-				.filter((field) => patch[field] !== undefined)
-				.map((field) => [field, validCapText(field, patch[field]!)])
-		),
-		...(patch.metricTarget !== undefined && {
-			metricTarget: validMetricTarget(patch.metricTarget)
-		})
-	};
-}
-
 /** The creator becomes the project's first owner. */
 export const createProject = (deps: ProjectDeps) => async (input: NewProject, actorId: string) => {
 	const name = validProjectName(input.name);
@@ -53,8 +36,7 @@ export const createProject = (deps: ProjectDeps) => async (input: NewProject, ac
 		color: validProjectColor(input.color ?? 0),
 		deadline: validDeadline(input.deadline ?? null),
 		weekGoal: '',
-		...emptyCap,
-		metricTarget: null,
+		brief: '',
 		archivedAt: null,
 		createdBy: actorId,
 		createdAt: now
@@ -103,7 +85,7 @@ export const updateProject =
 			...(patch.color !== undefined && { color: validProjectColor(patch.color) }),
 			...(patch.deadline !== undefined && { deadline: validDeadline(patch.deadline) }),
 			...(patch.weekGoal !== undefined && { weekGoal: validWeekGoal(patch.weekGoal) }),
-			...cleanCap(patch)
+			...(patch.brief !== undefined && { brief: validBrief(patch.brief) })
 		}));
 
 export const setArchived =

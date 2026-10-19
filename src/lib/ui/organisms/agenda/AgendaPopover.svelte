@@ -6,14 +6,14 @@
 		heading: string;
 		detail: string;
 		onclose: () => void;
+		width?: number;
 		children?: Snippet;
 	}
 
-	let { point, heading, detail, onclose, children }: Props = $props();
+	let { point, heading, detail, onclose, width = 248, children }: Props = $props();
 	let root = $state<HTMLElement>();
 	let height = $state(0);
-	const WIDTH = 248;
-	const left = $derived(Math.max(8, Math.min(point.x - 24, innerWidth - WIDTH - 8)));
+	const left = $derived(Math.max(8, Math.min(point.x - 24, innerWidth - width - 8)));
 	const top = $derived(
 		point.y + 12 + height > innerHeight - 8 ? Math.max(8, point.y - height - 12) : point.y + 12
 	);
@@ -27,7 +27,7 @@
 	bind:this={root}
 	bind:clientHeight={height}
 	class="fixed z-50 animate-pop rounded-lg border border-line bg-surface p-1 shadow-pop"
-	style="left:{left}px;top:{top}px;width:{WIDTH}px"
+	style="left:{left}px;top:{top}px;width:{width}px"
 	role="dialog"
 	aria-label={heading}
 >

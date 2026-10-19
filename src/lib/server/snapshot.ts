@@ -27,7 +27,10 @@ export async function loadSnapshot(userId: string) {
 		milestones,
 		decisions,
 		hypotheses,
-		readings
+		readings,
+		metrics,
+		releases,
+		components
 	] = await Promise.all([
 		identity.listByIds(people),
 		tasks.ofProjects(ids),
@@ -45,7 +48,10 @@ export async function loadSnapshot(userId: string) {
 		roadmap.milestonesOf(ids),
 		roadmap.decisionsOf(ids),
 		roadmap.hypothesesOf(ids),
-		roadmap.readingsOf(ids)
+		roadmap.readingsOf(ids),
+		roadmap.metricsOf(ids),
+		roadmap.releasesOf(ids),
+		tasks.componentsOf(ids)
 	]);
 	return {
 		meId: userId,
@@ -69,7 +75,10 @@ export async function loadSnapshot(userId: string) {
 		milestones,
 		decisions,
 		hypotheses,
-		readings
+		readings,
+		metrics,
+		releases,
+		components
 	};
 }
 

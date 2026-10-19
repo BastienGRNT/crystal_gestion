@@ -34,7 +34,7 @@
 			bind:value={text}
 			{placeholder}
 			aria-label={label}
-			class="h-8 w-full bg-transparent px-2 text-base outline-none"
+			class="h-11 w-full bg-transparent px-2.5 text-base outline-none"
 			onkeydown={(e) => {
 				if (e.key === 'Enter') {
 					e.preventDefault();
@@ -53,7 +53,7 @@
 	<button
 		type="button"
 		onclick={open}
-		class="flex h-9 w-full items-center gap-2 rounded-lg px-2.5 text-base text-ink-3 transition-colors hover:bg-hover hover:text-ink-2"
+		class="flex h-10 w-full items-center gap-2 rounded-lg px-2.5 text-base text-ink-3 transition-colors hover:bg-hover hover:text-ink-2"
 	>
 		<Plus size={16} aria-hidden="true" />{label}
 	</button>

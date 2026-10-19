@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { command, dateKey, id } from '$lib/server/commands/define';
+import { DIRECTIONS } from '../domain/metric';
 import { TEMPLATE_KEYS } from '../domain/templates';
 import type { Roadmap } from '../index';
 
@@ -27,9 +28,9 @@ export const roadmapCommands = (roadmap: Roadmap) => ({
 		({ userId }, { id, reason, ...patch }) =>
 			roadmap.updateMilestone(id, patch, reason ?? '', userId)
 	),
-	'roadmap.moveMilestone': command(
-		z.object({ id, direction: z.enum(['up', 'down']) }),
-		({ userId }, input) => roadmap.moveMilestone(input.id, input.direction, userId)
+	'roadmap.reorderMilestone': command(
+		z.object({ id, position: z.number().finite() }),
+		({ userId }, input) => roadmap.reorderMilestone(input.id, input.position, userId)
 	),
 	'roadmap.deleteMilestone': command(z.object({ id }), ({ userId }, input) =>
 		roadmap.deleteMilestone(input.id, userId)
@@ -81,8 +82,51 @@ export const roadmapCommands = (roadmap: Roadmap) => ({
 		z.object({ id, verdict: z.enum(['true', 'false']), why: z.string().optional() }),
 		({ userId }, input) => roadmap.judgeHypothesis(input.id, input.verdict, input.why ?? '', userId)
 	),
+	'roadmap.createMetric': command(
+		z.object({
+			id,
+			projectId: id,
+			name: z.string(),
+			unit: z.string().optional(),
+			target: z.number().finite().nullable().optional(),
+			direction: z.enum(DIRECTIONS).optional()
+		}),
+		({ userId }, input) => roadmap.createMetric(input, userId)
+	),
+	'roadmap.updateMetric': command(
+		z
+			.object({
+				id,
+				name: z.string(),
+				unit: z.string(),
+				target: z.number().finite().nullable(),
+				direction: z.enum(DIRECTIONS),
+				position: z.number().finite(),
+				archived: z.boolean()
+			})
+			.partial()
+			.required({ id: true }),
+		({ userId }, { id, ...patch }) => roadmap.updateMetric(id, patch, userId)
+	),
 	'roadmap.recordReading': command(
-		z.object({ projectId: id, day: dateKey, value: z.number().finite() }),
+		z.object({ metricId: id, day: dateKey, value: z.number().finite() }),
 		({ userId }, input) => roadmap.recordReading(input, userId)
+	),
+	'roadmap.shipRelease': command(
+		z.object({
+			id,
+			projectId: id,
+			name: z.string(),
+			taskIds: z.array(id).max(500),
+			notes: z.string().max(20_000).optional()
+		}),
+		({ userId }, input) => roadmap.shipRelease(input, userId)
+	),
+	'roadmap.updateRelease': command(
+		z.object({ id, name: z.string().optional(), notes: z.string().max(20_000).optional() }),
+		({ userId }, { id, ...patch }) => roadmap.updateRelease(id, patch, userId)
+	),
+	'roadmap.deleteRelease': command(z.object({ id }), ({ userId }, input) =>
+		roadmap.deleteRelease(input.id, userId)
 	)
 });

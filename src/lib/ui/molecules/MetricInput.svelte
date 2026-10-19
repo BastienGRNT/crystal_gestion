@@ -1,34 +1,49 @@
 <script lang="ts">
-	import Button from '../atoms/Button.svelte';
+	import { Check } from '@lucide/svelte';
 
 	interface Props {
 		/** What is measured, for the field's label ("Clients payants cette semaine"). */
 		label: string;
 		/** This week's value when already written. */
 		value: number | null;
+		/** Shown while empty, like last week's value. */
+		placeholder?: string;
 		onsave: (value: number) => void;
 	}
 
-	let { label, value, onsave }: Props = $props();
+	let { label, value, placeholder = '—', onsave }: Props = $props();
 	// Follows the saved value, until someone types over it.
 	let text = $derived(value === null ? '' : String(value));
+	let saved = $state(false);
 
-	function submit(event: SubmitEvent) {
-		event.preventDefault();
-		const number = Number(text.replace(',', '.'));
-		if (text.trim() && Number.isFinite(number)) onsave(number);
+	/** Enter or leaving the field saves: no button to find. */
+	function save() {
+		const number = Number(text.replace(',', '.').replace(/\s/g, ''));
+		if (!text.trim() || !Number.isFinite(number) || number === value) return;
+		onsave(number);
+		saved = true;
+		setTimeout(() => (saved = false), 1500);
 	}
 </script>
 
-<form class="flex items-center gap-2" onsubmit={submit}>
+<span class="relative inline-flex items-center">
 	<input
 		bind:value={text}
 		inputmode="decimal"
 		aria-label={label}
-		placeholder="—"
-		class="h-10 w-24 rounded-xl border border-line-strong/70 bg-surface px-3 text-base tabular-nums outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
+		{placeholder}
+		class="h-11 w-28 rounded-xl border border-line-strong/70 bg-surface px-3 pr-8 text-base tabular-nums outline-none placeholder:text-ink-3 focus:border-accent focus:ring-4 focus:ring-accent-soft"
+		onblur={save}
+		onkeydown={(e) => {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				save();
+			}
+		}}
 	/>
-	<Button type="submit" size="sm" disabled={!text.trim() || text === String(value)}
-		>{value === null ? 'Noter' : 'Corriger'}</Button
-	>
-</form>
+	{#if saved}<Check
+			size={16}
+			class="pointer-events-none absolute right-2.5 text-ok-text"
+			aria-label="Enregistré"
+		/>{/if}
+</span>

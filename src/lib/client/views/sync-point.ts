@@ -2,6 +2,7 @@ import type { Message } from '$lib/modules/chat/domain/chat';
 import type { AvailabilitySlot } from '$lib/modules/planning/domain/availability';
 import { sharedRanges } from '$lib/modules/planning/domain/shared';
 import { daysInColumn, STALE_DAYS } from '$lib/modules/tasks/domain/views';
+import { shippable } from '$lib/modules/roadmap/domain/release';
 import type { Task } from '$lib/modules/tasks/domain/task';
 import type { Risk } from './forecast';
 import { waitsForLaterStep } from './roadmap';
@@ -58,7 +59,9 @@ export type AgendaKind =
 	| 'risk'
 	| 'sort'
 	| 'stale'
-	| 'metric';
+	| 'metric'
+	| 'critical'
+	| 'unshipped';
 
 export interface AgendaItem {
 	kind: AgendaKind;
@@ -76,8 +79,10 @@ export interface AgendaInput {
 	now: Date;
 	/** The step under way: late means deciding what to cut, ready means closing it. */
 	step?: { id: string; late: boolean; ready: boolean } | null;
-	/** The project's number is tracked and nobody wrote this week's value yet. */
+	/** The project's numbers are tracked and nobody wrote this week's value yet. */
 	metricMissing?: boolean;
+	/** The team ships versions: finished work waiting a week for production is worth a word. */
+	shipsReleases?: boolean;
 	/** At most that many items: a point is five minutes, not a meeting. */
 	max?: number;
 }
@@ -87,6 +92,9 @@ export interface AgendaInput {
  * (close it), questions still open, work waiting for a
  * review, what is stuck, deadlines in danger, tasks nobody sorted and cards that stopped moving.
  */
+const DAY_MS = 86_400_000;
+const UNSHIPPED_DAYS = 7;
+
 export function agendaOf({
 	tasks,
 	questions,
@@ -94,13 +102,24 @@ export function agendaOf({
 	now,
 	step = null,
 	metricMissing = false,
+	shipsReleases = false,
 	max = 6
 }: AgendaInput): AgendaItem[] {
+	const t = now.getTime();
 	const open = tasks.filter((t) => t.status !== 'done' && t.status !== 'idea');
 	const unsorted = open.filter(
 		(t) => t.status === 'todo' && t.quadrant === null && !waitsForLaterStep(t, step?.id ?? null)
 	).length;
+	const unshipped = shipsReleases
+		? tasks.filter(
+				(task) =>
+					shippable(task) && t - Date.parse(task.completedAt ?? '') > UNSHIPPED_DAYS * DAY_MS
+			).length
+		: 0;
 	const items: AgendaItem[] = [
+		...open
+			.filter((task) => task.critical && t - Date.parse(task.createdAt) > DAY_MS)
+			.map((task) => ({ kind: 'critical' as const, taskId: task.id })),
 		...(step?.late ? [{ kind: 'step-late' as const, milestoneId: step.id }] : []),
 		...(step?.ready ? [{ kind: 'step-ready' as const, milestoneId: step.id }] : []),
 		...(metricMissing ? [{ kind: 'metric' as const }] : []),
@@ -115,7 +134,8 @@ export function agendaOf({
 		...(unsorted ? [{ kind: 'sort' as const, count: unsorted }] : []),
 		...open
 			.filter((t) => t.status === 'doing' && daysInColumn(t, now) >= STALE_DAYS)
-			.map((t) => ({ kind: 'stale' as const, taskId: t.id }))
+			.map((t) => ({ kind: 'stale' as const, taskId: t.id })),
+		...(unshipped ? [{ kind: 'unshipped' as const, count: unshipped }] : [])
 	];
 	// A task shows once, for its most pressing reason.
 	const seen = new Set<string>();

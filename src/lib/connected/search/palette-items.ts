@@ -1,5 +1,8 @@
 import {
+	Bug,
 	CalendarDays,
+	ChartLine,
+	Rocket,
 	Compass,
 	Gavel,
 	FileText,
@@ -70,6 +73,13 @@ function projectItems({ app, overlays }: AppContext, project: Project): PaletteI
 			'N'
 		),
 		action(
+			'new-bug',
+			'Signaler un bug',
+			Bug,
+			() => overlays.newTask({ projectId: project.id, kind: 'bug' }),
+			'B'
+		),
+		action(
 			'new-idea',
 			'Noter une idée',
 			Lightbulb,
@@ -95,6 +105,8 @@ function projectItems({ app, overlays }: AppContext, project: Project): PaletteI
 		page('go-roadmap', 'Feuille de route', Compass, `${base}/feuille-de-route`),
 		page('go-board', 'Tableau', SquareKanban, `${base}/tableau`),
 		page('go-matrix', 'Priorités', Target, `${base}/priorites`),
+		page('go-metrics', 'Indicateurs', ChartLine, `${base}/indicateurs`),
+		page('go-releases', 'Mises en prod', Rocket, `${base}/versions`),
 		page('go-planning', 'Planning', CalendarDays, `${base}/planning`),
 		page('go-files', 'Documents', FolderOpen, `${base}/documents`),
 		page('go-vault', 'Accès', KeyRound, `${base}/acces`),

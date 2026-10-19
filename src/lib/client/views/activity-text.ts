@@ -13,7 +13,9 @@ const VERBS: Record<ActivityVerb, string> = {
 	'vault.added': 'a ajouté l’accès',
 	'channel.created': 'a ouvert le canal',
 	'milestone.closed': 'a clos l’étape',
-	'decision.made': 'a noté la décision'
+	'decision.made': 'a noté la décision',
+	'bug.critical': 'a signalé un bug bloquant :',
+	'release.shipped': 'a mis en prod'
 };
 
 export const activityVerb = (activity: Activity) => VERBS[activity.verb] ?? 'a modifié';
@@ -22,7 +24,8 @@ const NOTIFICATION_VERBS: Record<NotificationKind, string> = {
 	assigned: 'te confie',
 	review: 'te demande de relire',
 	mention: 't’a mentionné',
-	answer: 'a répondu à ta question :'
+	answer: 'a répondu à ta question :',
+	urgent: 'signale un bug bloquant :'
 };
 
 export const notificationVerb = (notification: Notification) =>
@@ -49,5 +52,7 @@ export function subjectHref(subject: Subject, slug: string | undefined): string 
 			return `${base}/feuille-de-route#etape-${subject.id}`;
 		case 'decision':
 			return `${base}/feuille-de-route#decision-${subject.id}`;
+		case 'release':
+			return `${base}/versions`;
 	}
 }

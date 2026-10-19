@@ -4,20 +4,27 @@
 		Ellipsis,
 		FlaskConical,
 		Gavel,
+		GitBranch,
+		GitCommitHorizontal,
+		Rocket,
 		Link,
 		Trash2,
 		TriangleAlert,
 		X
 	} from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
-	import { relativeTime } from '$lib/client/format';
+	import { relativeTime, shortDay } from '$lib/client/format';
 	import { tint } from '$lib/client/labels';
 	import { now } from '$lib/client/now.svelte';
 	import { toasts } from '$lib/client/toasts.svelte';
+	import { branchName, commitMessage } from '$lib/modules/tasks/domain/kind';
 	import type { Task, TaskStatus } from '$lib/modules/tasks/domain/task';
 	import IconButton from '$lib/ui/atoms/IconButton.svelte';
 	import TextArea from '$lib/ui/atoms/TextArea.svelte';
+	import ComponentPicker from '$lib/ui/molecules/ComponentPicker.svelte';
 	import DuePicker from '$lib/ui/molecules/DuePicker.svelte';
+	import KindPicker from '$lib/ui/molecules/KindPicker.svelte';
+	import ProseField from '$lib/ui/molecules/ProseField.svelte';
 	import Menu from '$lib/ui/molecules/Menu.svelte';
 	import PeoplePicker from '$lib/ui/molecules/PeoplePicker.svelte';
 	import QuadrantPicker from '$lib/ui/molecules/QuadrantPicker.svelte';
@@ -29,6 +36,7 @@
 	import { teamOrder } from '../team/usePresence.svelte';
 	import BlockButton from './BlockButton.svelte';
 	import Checklist from './Checklist.svelte';
+	import { componentOptions, reporters } from './components-of';
 	import { riskOf } from './risk';
 	import TaskComments from './TaskComments.svelte';
 
@@ -49,22 +57,41 @@
 	const hypothesis = $derived(
 		app.hypotheses.all.find((h) => h.taskId === task.id && h.verdict === 'open')
 	);
+	const modules = $derived(componentOptions(app, task.projectId));
+	const release = $derived(app.releases.get(task.releaseId));
+	const shipsReleases = $derived(app.releases.all.some((r) => r.projectId === task.projectId));
+	const branch = $derived(branchName(task));
+	const commit = $derived(commitMessage(task, app.components.get(task.componentId)?.name ?? null));
+	let reportedBy = $state('');
+	$effect(() => {
+		if (editing !== 'reportedBy') reportedBy = task.reportedBy ?? '';
+	});
+
+	async function copy(text: string, what: string) {
+		await navigator.clipboard.writeText(text).catch(() => {});
+		toasts.show(`${what} copié : ${text}`, { tone: 'success', duration: 2500 });
+	}
+
 	const decide = () => overlays.decide({ projectId: task.projectId, text: '', taskId: task.id });
 
 	// Drafts: what is being typed is never replaced by a live update.
 	let title = $state('');
-	let notes = $state('');
-	let editing = $state<'title' | 'notes' | null>(null);
+	let editing = $state<'title' | 'reportedBy' | null>(null);
 	$effect(() => {
 		if (editing !== 'title') title = task.title;
-		if (editing !== 'notes') notes = task.notes;
 	});
 
-	function save(field: 'title' | 'notes') {
+	function saveTitle() {
 		editing = null;
-		const value = field === 'title' ? title.trim() : notes;
-		if (field === 'title' && !value) return void (title = task.title);
-		if (value !== task[field]) actions.tasks.update(task.id, { [field]: value });
+		const value = title.trim();
+		if (!value) return void (title = task.title);
+		if (value !== task.title) actions.tasks.update(task.id, { title: value });
+	}
+
+	function saveReporter() {
+		editing = null;
+		const value = reportedBy.trim() || null;
+		if (value !== task.reportedBy) actions.tasks.update(task.id, { reportedBy: value });
 	}
 
 	async function copyLink() {
@@ -92,6 +119,20 @@
 				label="Plus d’options"
 				items={[
 					{ label: 'Copier le lien', icon: Link, run: copyLink },
+					...(branch
+						? [
+								{
+									label: 'Copier le nom de branche',
+									icon: GitBranch,
+									run: () => copy(branch, 'Nom de branche')
+								},
+								{
+									label: 'Copier le message de commit',
+									icon: GitCommitHorizontal,
+									run: () => copy(commit ?? '', 'Message de commit')
+								}
+							]
+						: []),
 					{ label: 'Noter une décision', icon: Gavel, run: decide },
 					'separator',
 					{
@@ -119,7 +160,7 @@
 			aria-label="Titre"
 			class="text-xl leading-snug font-semibold tracking-tight"
 			onfocus={() => (editing = 'title')}
-			onblur={() => save('title')}
+			onblur={saveTitle}
 			onkeydown={(e) => {
 				if (e.key !== 'Enter') return;
 				e.preventDefault();
@@ -157,7 +198,76 @@
 			</div>
 		{/if}
 
+		{#if release}
+			<p class="mt-3 flex items-center gap-1.5 text-sm font-medium text-ok-text">
+				<Rocket size={14} aria-hidden="true" />En prod depuis {release.name} ({shortDay(
+					release.shippedAt.slice(0, 10)
+				)})
+			</p>
+		{:else if task.status === 'done' && shipsReleases && task.kind !== 'action'}
+			<p class="mt-3 flex items-center gap-1.5 text-sm text-ink-3">
+				<Rocket size={14} aria-hidden="true" />Terminée, pas encore en prod
+			</p>
+		{/if}
+
 		<dl class="mt-6 flex flex-col gap-6">
+			<div class="flex flex-col gap-2.5">
+				{@render section('Type')}
+				<dd class="flex flex-col gap-3">
+					<KindPicker
+						value={task.kind}
+						onchange={(kind) => actions.tasks.update(task.id, { kind })}
+					/>
+					{#if task.kind === 'bug'}
+						<label class="flex min-h-10 items-center gap-2.5 text-base">
+							<input
+								type="checkbox"
+								checked={task.critical}
+								class="size-5 accent-[var(--color-danger)]"
+								onchange={(e) =>
+									actions.tasks.update(task.id, { critical: e.currentTarget.checked })}
+							/>
+							<span
+								><span class="font-medium">Bloquant</span>
+								<span class="text-ink-3"
+									>· la prod ou un client est bloqué : toute l’équipe est prévenue</span
+								></span
+							>
+						</label>
+						<label class="flex flex-col gap-1">
+							<span class="text-sm font-medium text-ink-2">Signalé par</span>
+							<input
+								bind:value={reportedBy}
+								list="reporters-{task.projectId}"
+								maxlength={80}
+								placeholder="Ex. : Pharmacie Martin"
+								class="h-11 rounded-xl border border-line-strong/70 bg-surface px-3.5 text-base outline-none placeholder:text-ink-3 focus:border-accent focus:ring-4 focus:ring-accent-soft"
+								onfocus={() => (editing = 'reportedBy')}
+								onblur={saveReporter}
+								onkeydown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+							/>
+							<datalist id="reporters-{task.projectId}">
+								{#each reporters(app, task.projectId) as name (name)}<option value={name}
+									></option>{/each}
+							</datalist>
+						</label>
+					{/if}
+				</dd>
+			</div>
+
+			{#if modules.length}
+				<div class="flex flex-col gap-2.5">
+					{@render section('Module')}
+					<dd>
+						<ComponentPicker
+							options={modules}
+							value={task.componentId}
+							onchange={(componentId) => actions.tasks.update(task.id, { componentId })}
+						/>
+					</dd>
+				</div>
+			{/if}
+
 			<div class="flex flex-col gap-2.5">
 				{@render section('Où en est-elle')}
 				<dd class="flex flex-col gap-2">
@@ -261,14 +371,14 @@
 			<div class="flex flex-col gap-2.5">
 				{@render section('Notes')}
 				<dd>
-					<TextArea
-						bind:value={notes}
-						aria-label="Notes"
-						placeholder="Détails, liens, ce qui veut dire « fini »…"
-						class="min-h-24"
-						maxHeight={480}
-						onfocus={() => (editing = 'notes')}
-						onblur={() => save('notes')}
+					<ProseField
+						label="Notes"
+						value={task.notes}
+						maxlength={20000}
+						placeholder={task.kind === 'bug'
+							? 'Ce qui se passe, ce qui devrait se passer, comment le reproduire (appareil, compte, lien)'
+							: 'Détails, liens, ce qui veut dire « fini »…'}
+						onsave={(notes) => actions.tasks.update(task.id, { notes })}
 					/>
 				</dd>
 			</div>

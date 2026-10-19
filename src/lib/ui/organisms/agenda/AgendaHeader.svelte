@@ -1,18 +1,18 @@
 <script lang="ts">
 	import Avatar from '$lib/ui/atoms/Avatar.svelte';
 	import DayMarks from './DayMarks.svelte';
-	import type { AgendaDay, AgendaLane } from './types';
+	import type { AgendaDay, AgendaLane, DayMark } from './types';
 
 	interface Props {
 		days: AgendaDay[];
 		lanes: AgendaLane[];
-		onmark?: (ref: string) => void;
+		onmark?: (mark: DayMark) => void;
 	}
 
 	let { days, lanes, onmark }: Props = $props();
 </script>
 
-<div class="sticky top-0 z-30 flex border-b border-line bg-surface/95 backdrop-blur">
+<div class="sticky top-0 z-30 flex rounded-t-2xl border-b border-line bg-surface/95 backdrop-blur">
 	<div class="w-11 shrink-0"></div>
 	<div class="grid flex-1" style="grid-template-columns:repeat({days.length},minmax(0,1fr))">
 		{#each days as day (day.key)}

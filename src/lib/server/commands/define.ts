@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { QUADRANTS, TASK_STATUSES } from '$lib/modules/tasks/domain/task';
+import { QUADRANTS, TASK_KINDS, TASK_STATUSES } from '$lib/modules/tasks/domain/task';
 
 export interface CommandContext {
 	userId: string;
@@ -23,4 +23,5 @@ export const nullableText = text.nullable();
 export const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const status = z.enum(TASK_STATUSES);
 export const quadrant = z.enum(QUADRANTS).nullable();
+export const kind = z.enum(TASK_KINDS);
 export const slots = z.array(z.object({ start: z.string(), end: z.string() })).max(24);

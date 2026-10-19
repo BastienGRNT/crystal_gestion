@@ -13,6 +13,8 @@ export type Inline =
 
 export type Block =
 	| { type: 'paragraph'; inlines: Inline[] }
+	| { type: 'heading'; inlines: Inline[] }
+	| { type: 'list'; ordered: boolean; items: Inline[][] }
 	| { type: 'quote'; inlines: Inline[] }
 	| { type: 'code'; lang: string; text: string };
 
@@ -43,22 +45,57 @@ function lines(text: string): Inline[] {
 		.flatMap((line, i) => [...(i ? [{ type: 'break' } as const] : []), ...parseInline(line)]);
 }
 
+type LineKind = 'text' | 'quote' | 'bullet' | 'number' | 'heading' | 'blank';
+
+const BULLET = /^\s*[-*•]\s+/;
+const NUMBER = /^\s*\d{1,3}[.)]\s+/;
+const HEADING = /^#{1,3}\s+/;
+
+function kindOf(line: string): LineKind {
+	if (!line.trim()) return 'blank';
+	if (line.startsWith('>')) return 'quote';
+	if (HEADING.test(line)) return 'heading';
+	if (BULLET.test(line)) return 'bullet';
+	if (NUMBER.test(line)) return 'number';
+	return 'text';
+}
+
+const contentOf = (line: string, kind: LineKind) =>
+	kind === 'quote'
+		? line.replace(/^>\s?/, '')
+		: kind === 'heading'
+			? line.replace(HEADING, '')
+			: kind === 'bullet'
+				? line.replace(BULLET, '')
+				: kind === 'number'
+					? line.replace(NUMBER, '')
+					: line;
+
+/**
+ * Light formatting, the way people already type it: `## titre`, `- liste`, `1. liste`,
+ * `> citation`, `**gras**`. A blank line starts a new paragraph.
+ */
 function proseBlocks(text: string): Block[] {
-	const blocks: Block[] = [];
-	const groups = text.split('\n').reduce<{ quote: boolean; lines: string[] }[]>((acc, line) => {
-		const quote = line.startsWith('> ') || line === '>';
-		const content = quote ? line.replace(/^>\s?/, '') : line;
-		const current = acc.at(-1);
-		if (current && current.quote === quote) current.lines.push(content);
-		else acc.push({ quote, lines: [content] });
-		return acc;
-	}, []);
-	for (const group of groups) {
-		const content = group.lines.join('\n').replace(/^\n+|\n+$/g, '');
-		if (!content) continue;
-		blocks.push({ type: group.quote ? 'quote' : 'paragraph', inlines: lines(content) });
+	const groups: { kind: LineKind; lines: string[] }[] = [];
+	for (const line of text.split('\n')) {
+		const kind = kindOf(line);
+		const current = groups.at(-1);
+		if (current && current.kind === kind && kind !== 'heading')
+			current.lines.push(contentOf(line, kind));
+		else groups.push({ kind, lines: [contentOf(line, kind)] });
 	}
-	return blocks;
+	return groups.flatMap((group): Block[] => {
+		if (group.kind === 'blank') return [];
+		if (group.kind === 'heading')
+			return [{ type: 'heading', inlines: parseInline(group.lines[0]) }];
+		if (group.kind === 'bullet' || group.kind === 'number')
+			return [
+				{ type: 'list', ordered: group.kind === 'number', items: group.lines.map(parseInline) }
+			];
+		const content = group.lines.join('\n').replace(/^\n+|\n+$/g, '');
+		if (!content) return [];
+		return [{ type: group.kind === 'quote' ? 'quote' : 'paragraph', inlines: lines(content) }];
+	});
 }
 
 export function parseMessage(body: string): Block[] {

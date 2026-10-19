@@ -24,6 +24,10 @@
 			event.preventDefault();
 			overlays.newTask({ projectId: currentProjectId(), status: key === 'i' ? 'idea' : undefined });
 		}
+		if (key === 'b') {
+			event.preventDefault();
+			overlays.newTask({ projectId: currentProjectId(), kind: 'bug' });
+		}
 	}
 </script>
 

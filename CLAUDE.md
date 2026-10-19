@@ -25,9 +25,10 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 `src/lib/modules/<module>/` : `domain/` (pur, isomorphe, testé) → `application/` (cas d'usage + `ports.ts`)
 → `infrastructure/` (Drizzle, disque, chiffrement) → `presentation/commands.ts` (schémas zod → cas d'usage) → `index.ts` (fabrique).
 
-Modules : `identity` (comptes, sessions, statut), `projects` (projets, membres, invitations, **accès**), `tasks`,
+Modules : `identity` (comptes, sessions, statut), `projects` (projets, membres, invitations, **accès**, cap), `tasks`
+(tâches, types, modules du produit = `components`),
 `chat` (canaux, messages, fils de commentaires des tâches), `files` (documents, dossiers), `vault`, `planning`
-(dispos, blocs de travail, calculs de l'agenda), `roadmap` (étapes, décisions, hypothèses, indicateur, modèles),
+(dispos, blocs de travail, calculs de l'agenda), `roadmap` (étapes, décisions, hypothèses, chiffres `metrics`, versions `releases`, modèles),
 `activity` (activité, notifications), `kernel` (erreurs, dates, ports).
 
 - Les dépendances pointent vers l'intérieur. `domain` n'importe que `kernel/domain` (ou le domaine d'un autre module).
@@ -60,8 +61,9 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Toute action passe par `actions.*` : optimiste (`settle()` puis la réponse serveur fait foi). Suppressions :
   `deleteWithUndo` (retrait immédiat, « Annuler » 6 s, envoi à l'expiration).
 - Comptes : `/login`, `/inscription` (libre : on ne voit que les projets créés ou rejoints), `/invite/[token]`.
-- Routes : `/p/[slug]` (accueil), `/feuille-de-route`, `/tableau`, `/priorites`, `/discussion/[channel]`, `/planning`, `/documents`,
-  `/acces`, `/equipe` ; `/projets`, `/compte`. Fiche tâche : `?tache=<id>` sur n'importe quelle page du projet.
+- Routes : `/` (Ma journée, tous projets), `/p/[slug]` (accueil), `/feuille-de-route`, `/tableau`, `/priorites`,
+  `/indicateurs`, `/versions` (mises en prod), `/discussion/[channel]`, `/planning`, `/documents`, `/acces`, `/equipe` ;
+  `/projets`, `/compte`. Fiche tâche : `?tache=<id>` sur n'importe quelle page du projet.
 - Mise en page : `PageHeader` (titre, phrase qui dit à quoi sert la page, boutons) puis le contenu.
 - Tailles (lisibilité d'abord) : texte de base 15 px (`text-base`), plancher 13 px (`text-xs`) ; champs `h-11`,
   boutons `h-10` (`sm` = `h-9`), cibles cliquables ≥ 40 px.
@@ -74,8 +76,13 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
   qui compte (une colonne), `data-drop-gaps` = le conteneur dont les espaces ne renvoient pas la carte chez elle.
   Règle : **rien n'apparaît, ne disparaît ni ne change de taille pendant un glisser** (pas de `{#if dnd.active}`).
 - Agenda : `ui/organisms/agenda/*` (grille, gestes) + `connected/planning/*` (données, commandes).
+- Texte : un champ d'une ligne valide à Entrée ; un texte long (cap, notes, « fini quand », pourquoi) va à la ligne à
+  Entrée et s'enregistre à Ctrl+Entrée ou en sortant. Édition sur place : `EditableText` (une ligne) et `ProseField`
+  (texte mis en forme, affiché par `RichText` : `##`, listes, `**gras**`, liens). Pas de menu « … → Modifier ».
+- Types de tâches : `KINDS` (`client/labels.ts`) ; saisie rapide `quick-entry.ts` (préfixes `bug!:`, `+module`, `@`,
+  date) ; filtre type / module `connected/tasks/kind-filter.svelte.ts`. Rythme et prévisions : `isPlanned` (feature + tech).
 - Lectures qui croisent plusieurs modules (rattrapage, questions, prévisions, prochain point, compte rendu, prévision
-  par étape, bilan d'étape) : fonctions pures dans `client/views/*`, testées là.
+  par étape, bilan d'étape, chiffres et rythme `metrics.ts`, semaine du planning `week-plan.ts`, Ma journée `today.ts`) : fonctions pures dans `client/views/*`, testées là.
 - Feuille de route : rien ne s'y saisit qui pourrait se calculer (avancement, date prévue, retard, étape en cours).
   Tout nouvel élément doit remonter ailleurs (accueil, fiche, compte rendu, prochain point), sinon il est mort.
   Filtre d'étape du tableau et de la matrice : `connected/tasks/step-filter.svelte.ts` (ne cache jamais en cours / revue).
@@ -92,8 +99,9 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 
 - `npm test` plante au démarrage (« Tsconfig not found ») quand le dépôt est sous un dossier `.claude/` (worktree) :
   lancer vitest depuis une copie hors de ce chemin.
-- `tasks.milestone_id` n'a pas de clé étrangère (le module `roadmap` détache les tâches avant de supprimer une étape) :
-  ne jamais supprimer une étape autrement que par `roadmap.deleteMilestone`.
+- `tasks.milestone_id` et `tasks.release_id` n'ont pas de clé étrangère (le module `roadmap` détache les tâches avant de
+  supprimer une étape ou une version) : passer par `roadmap.deleteMilestone` / `roadmap.deleteRelease`.
+- Les étapes se trient par `position` seulement (`orderMilestones`) : la date ne change jamais l'ordre.
 
 - Commandes de mise à jour : pas de `.default()` zod dans un schéma `.partial()` (un update réinitialiserait des champs).
 - `Collection.reset()` réinitialise **en place** : ne remplace jamais une collection.

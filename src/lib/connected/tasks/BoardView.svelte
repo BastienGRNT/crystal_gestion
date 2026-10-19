@@ -15,6 +15,8 @@
 	import BoardColumn from './BoardColumn.svelte';
 	import CardZone from './CardZone.svelte';
 	import { personFilter } from './filter.svelte';
+	import KindFilter from './KindFilter.svelte';
+	import { workFilter } from './kind-filter.svelte';
 	import PersonFilter from './PersonFilter.svelte';
 	import { stepFilter } from './step-filter.svelte';
 	import StepFilter from './StepFilter.svelte';
@@ -30,7 +32,7 @@
 	const matches = (t: Task) => score(`${t.title} #${t.number}`, query) !== null;
 	const steps = $derived(stepFilter.view(app, project.id));
 	const tasks = $derived(
-		steps.apply(personFilter.apply(projectTasks(app, project.id))).filter(matches)
+		steps.apply(workFilter.apply(personFilter.apply(projectTasks(app, project.id)))).filter(matches)
 	);
 	const board = $derived(boardOf(tasks, now.value, showAllDone));
 	const limit = $derived(Math.max(1, teamOf(app.members.all, project.id).length) * WIP_PER_PERSON);
@@ -59,12 +61,17 @@
 	}
 
 	const add = (status: TaskStatus) => (text: string) =>
-		quickAdd(context, text, {
-			projectId: project.id,
-			status,
-			assigneeId: status === 'doing' ? app.meId : personFilter.value,
-			milestoneId: steps.stepFor(status)
-		});
+		quickAdd(
+			context,
+			text,
+			{
+				projectId: project.id,
+				status,
+				assigneeId: status === 'doing' ? app.meId : personFilter.value,
+				milestoneId: steps.stepFor(status)
+			},
+			true
+		);
 </script>
 
 <div class="flex flex-wrap items-center gap-3 px-4 pb-4 sm:px-8">
@@ -81,6 +88,7 @@
 			class="h-11 w-full rounded-xl border border-line-strong/70 bg-surface pr-3 pl-10 text-base shadow-card outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
 		/>
 	</label>
+	<KindFilter projectId={project.id} />
 	<StepFilter projectId={project.id} />
 	<PersonFilter projectId={project.id} />
 </div>

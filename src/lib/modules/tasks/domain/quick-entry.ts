@@ -1,4 +1,6 @@
 import { addDays, isDateKey, weekdayOf, type DateKey } from '../../kernel/domain/dates';
+import { fold, guessKind, readPrefix } from './kind';
+import type { TaskKind } from './task';
 
 export interface Person {
 	id: string;
@@ -9,10 +11,24 @@ export interface QuickEntry {
 	title: string;
 	assigneeId: string | null;
 	dueDate: DateKey | null;
+	kind: TaskKind;
+	/** Said by a prefix (`fix:`), not guessed from the words. */
+	kindSaid: boolean;
+	critical: boolean;
+	componentId: string | null;
 }
 
-const fold = (text: string) =>
-	text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/’/g, "'").toLowerCase();
+export interface Named {
+	id: string;
+	name: string;
+}
+
+/** `+rdv` picks the module whose name starts that way. */
+export function findComponent(query: string, components: Named[]): Named | null {
+	const wanted = fold(query);
+	if (!wanted) return null;
+	return components.find((c) => fold(c.name).startsWith(wanted)) ?? null;
+}
 
 const WEEKDAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
@@ -42,18 +58,27 @@ export function parseDay(word: string, today: DateKey): DateKey | null {
 }
 
 /**
- * Reads "Corriger le login @ana demain": `@prénom` anywhere picks who does it, a day at the
- * end sets the deadline. Dates are only read at the end so a title can still say "demain".
+ * Reads "fix: login cassé @ana +site demain": a prefix says the kind (`bug!:` for a blocking
+ * one; otherwise it is guessed), `@prénom` who does it, `+module` where, and a day at the end
+ * the deadline. Dates are only read at the end so a title can still say "demain".
  */
 export function parseQuickEntry(
 	text: string,
 	people: Person[],
 	today: DateKey,
-	meId?: string
+	meId?: string,
+	components: Named[] = []
 ): QuickEntry {
 	let assigneeId: string | null = null;
 	let dueDate: DateKey | null = null;
-	const words = text.trim().split(/\s+/).filter(Boolean);
+	let componentId: string | null = null;
+	const prefix = readPrefix(text);
+	const words = (prefix?.rest ?? text).trim().split(/\s+/).filter(Boolean);
+	const plus = words.findIndex((w) => w.startsWith('+') && findComponent(w.slice(1), components));
+	if (plus >= 0) {
+		componentId = findComponent(words[plus].slice(1), components)!.id;
+		words.splice(plus, 1);
+	}
 	const mention = words.findIndex((w) => w.startsWith('@') && findPerson(w.slice(1), people, meId));
 	if (mention >= 0) {
 		assigneeId = findPerson(words[mention].slice(1), people, meId)!.id;
@@ -65,5 +90,14 @@ export function parseQuickEntry(
 		dueDate = day;
 		words.pop();
 	}
-	return { title: words.join(' '), assigneeId, dueDate };
+	const title = words.join(' ');
+	return {
+		title,
+		assigneeId,
+		dueDate,
+		kind: prefix?.kind ?? guessKind(title),
+		kindSaid: !!prefix,
+		critical: prefix?.critical ?? false,
+		componentId
+	};
 }
