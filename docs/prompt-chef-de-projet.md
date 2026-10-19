@@ -53,7 +53,7 @@ But : que le projet contienne assez d'informations pour être piloté, par un hu
 5. **Santé du cadrage, calculée sans IA** : étendre `isFramed` en `framingGaps(project, …)`.
    - Elle signale : section du Cap vide ou trop courte, chiffre sans cible ni date, étape sans « fini quand »,
      aucune partie prenante qui décide ou paie, hypothèse jamais vérifiée depuis plus de 30 jours, pas de
-     `deadline` ni de `soldDays`.
+     `deadline` ni de `soldDays`, fiche technique vide.
    - Affichage : accueil du projet, avec un bouton par trou vers l'endroit où le combler.
    - Tests dans `client/views` ou dans le domaine.
 
