@@ -50,3 +50,20 @@ export interface TemplateOption<K extends string = string> {
 
 /** A button of the text editor's toolbar. */
 export type TextFormat = 'bold' | 'italic' | 'h1' | 'h2' | 'bullet' | 'number' | 'quote' | 'link';
+
+/** A line of a document's table of contents. */
+export interface DocEntry {
+	id: string;
+	label: string;
+	count?: number;
+	tone?: 'warn';
+}
+
+/** An acceptance criterion of a user story, with its optional test data. */
+export interface CriterionItem {
+	id: string;
+	text: string;
+	done: boolean;
+	data: string;
+	expected: string;
+}

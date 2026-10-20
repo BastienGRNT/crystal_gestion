@@ -122,3 +122,44 @@ export const KINDS: Record<
 		chip: 'text-delegate-text'
 	}
 };
+
+/** The framing's words, as the screens say them. */
+export const STAKEHOLDER_ROLE_LABELS = {
+	decides: 'Décide',
+	pays: 'Paie',
+	uses: 'Utilise',
+	validates: 'Valide la livraison',
+	prescribes: 'Prescrit',
+	contributes: 'Contribue'
+} as const;
+
+export const TECH_LEVEL_LABELS = { low: 'Faible', medium: 'Moyen', high: 'À l’aise' } as const;
+
+export const INFORM_LABELS = {
+	week: 'Chaque semaine',
+	step: 'À chaque étape',
+	release: 'À chaque mise en prod'
+} as const;
+
+export const SWOT_LABELS = {
+	S: { label: 'Forces', question: 'Ce que vous faites mieux que les autres' },
+	W: { label: 'Faiblesses', question: 'Ce qui vous manque : compétence, temps, audience' },
+	O: { label: 'Opportunités', question: 'Ce qui, dehors, joue pour vous en ce moment' },
+	T: { label: 'Menaces', question: 'Ce qui pourrait faire échouer le projet' }
+} as const;
+
+export const STRATEGY_LABELS = {
+	SO: { label: 'Attaquer', hint: 'Une force qui saisit une opportunité' },
+	WO: { label: 'Corriger', hint: 'Une opportunité qui comble une faiblesse' },
+	ST: { label: 'Se défendre', hint: 'Une force qui pare une menace' },
+	WT: { label: 'Éviter', hint: 'Une faiblesse face à une menace : à contourner' }
+} as const;
+
+export const PROJECT_KIND_LABELS = {
+	express: { label: 'Express', hint: 'Quelques semaines : on cadre le strict minimum' },
+	product: { label: 'Produit', hint: 'Notre produit, qui va durer : cadrage complet' },
+	client: {
+		label: 'Projet client',
+		hint: 'Pour un client : le cahier des charges fonctionnel est le contrat'
+	}
+} as const;

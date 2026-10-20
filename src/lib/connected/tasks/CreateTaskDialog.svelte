@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { CalendarClock, Puzzle, UserRound } from '@lucide/svelte';
+	import { CalendarClock, Layers, Puzzle, UserRound } from '@lucide/svelte';
 	import type { TaskDraft } from '$lib/client/actions/tasks';
 	import { useApp } from '$lib/client/context';
 	import { dueLabel, firstName } from '$lib/client/format';
@@ -22,6 +22,7 @@
 	import StepPicker from '$lib/ui/molecules/StepPicker.svelte';
 	import { stepOptions } from '../roadmap/step-options';
 	import { teamOrder } from '../team/usePresence.svelte';
+	import { framingTargets } from '../framing/attach';
 	import { componentOptions, reporters } from './components-of';
 	import { QUICK_HINT } from './quick-add';
 	import { stepFilter } from './step-filter.svelte';
@@ -72,7 +73,20 @@
 	});
 
 	const parsed = $derived(
-		parseQuickEntry(text, app.users.all, now.today, app.meId, modules, reporters(app, projectId))
+		parseQuickEntry(
+			text,
+			app.users.all,
+			now.today,
+			app.meId,
+			modules,
+			reporters(app, projectId),
+			framingTargets(app, projectId)
+		)
+	);
+	const parsedFraming = $derived(
+		app.stories.get(parsed.storyId)
+			? `US-${app.stories.get(parsed.storyId)!.number}`
+			: app.epics.get(parsed.epicId)?.title
 	);
 	const parsedPerson = $derived(app.users.get(parsed.assigneeId));
 	const kind = $derived(parsed.kindSaid ? parsed.kind : (kindChosen ?? parsed.kind));
@@ -92,6 +106,8 @@
 			critical: isCritical,
 			reportedBy: isBug ? parsed.reportedBy || reportedBy.trim() || null : null,
 			componentId: parsed.componentId ?? componentId,
+			storyId: parsed.storyId ?? seed.storyId ?? null,
+			epicId: parsed.epicId ?? seed.epicId ?? null,
 			quadrant: isIdea ? null : quadrant,
 			assigneeId: parsed.assigneeId ?? assigneeId,
 			dueDate: parsed.dueDate ?? dueDate,
@@ -130,7 +146,7 @@
 						: 'Que faut-il faire ?'}
 				class="h-12 w-full rounded-xl border border-line bg-surface px-4 text-lg font-medium outline-none placeholder:font-normal focus:border-accent focus:ring-3 focus:ring-accent-soft"
 			/>
-			{#if parsedPerson || parsed.dueDate || parsed.kindSaid || parsedModule || parsed.reportedBy}
+			{#if parsedPerson || parsed.dueDate || parsed.kindSaid || parsedModule || parsed.reportedBy || parsedFraming}
 				<p class="flex flex-wrap gap-2 text-sm">
 					{#if parsed.reportedBy}
 						<span
@@ -145,6 +161,13 @@
 							class="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 font-medium text-accent-text"
 						>
 							<meta.icon size={13} />{parsed.critical ? 'Bug bloquant' : meta.label}
+						</span>
+					{/if}
+					{#if parsedFraming}
+						<span
+							class="inline-flex items-center gap-1 rounded-md bg-accent-soft px-2 py-0.5 font-medium text-accent-text"
+						>
+							<Layers size={13} />{parsedFraming}
 						</span>
 					{/if}
 					{#if parsedModule}

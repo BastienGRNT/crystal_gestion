@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { storiesCompletedBy, storiesNote } from '$lib/client/views/framing';
 	import { Copy, ListChecks, Rocket, TriangleAlert, X } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { KINDS } from '$lib/client/labels';
@@ -47,7 +48,17 @@
 			chosen.map((t) => t.kind)
 		)
 	);
-	const draftNote = $derived(clientNoteOf(chosen, moduleOf));
+	const draftNote = $derived(
+		[
+			storiesNote(
+				storiesCompletedBy(chosen, app.tasks.all, app.stories.all),
+				(id) => app.stakeholders.get(id)?.name.toLowerCase() ?? null
+			),
+			clientNoteOf(chosen, moduleOf)
+		]
+			.filter(Boolean)
+			.join('\n\n')
+	);
 	const shownName = $derived(nameTouched ? name : suggested);
 	const shownNotes = $derived(notesTouched ? notes : draftNote);
 	const tell = $derived(toTell(chosen));

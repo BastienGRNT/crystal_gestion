@@ -34,6 +34,7 @@
 	import { stepOptions } from '../roadmap/step-options';
 	import { supersededIds } from '$lib/modules/roadmap/domain/decision';
 	import { teamOrder } from '../team/usePresence.svelte';
+	import TaskFraming from '../framing/TaskFraming.svelte';
 	import BlockButton from './BlockButton.svelte';
 	import Checklist from './Checklist.svelte';
 	import { componentOptions, reporters } from './components-of';
@@ -209,6 +210,8 @@
 				<Rocket size={14} aria-hidden="true" />Terminée, pas encore en prod
 			</p>
 		{/if}
+
+		<TaskFraming {task} />
 
 		<dl class="mt-6 flex flex-col gap-6">
 			<div class="flex flex-col gap-2.5">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Editor } from '@tiptap/core';
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import {
 		activeFormats,
 		createTextEditor,
@@ -55,21 +55,32 @@
 		if (startEditing) editing = true;
 	});
 
-	/** Mounts the editor where the text was, cursor at the end. */
+	/**
+	 * Mounts the editor where the text was, cursor at the end. Read once (`untrack`): a live update
+	 * of the value must not rebuild the editor under the cursor. The toolbar state is written
+	 * after the editor's own transaction, never during the attachment.
+	 */
 	function mount(element: HTMLElement) {
-		const instance = createTextEditor({
-			element,
-			markdown: value,
-			placeholder,
-			label,
-			onchange: () => {
-				active = activeFormats(instance);
-				tooLong = instance.getText().length > maxlength;
-			}
-		});
+		let alive = true;
+		const instance = untrack(() =>
+			createTextEditor({
+				element,
+				markdown: value,
+				placeholder,
+				label,
+				onchange: () =>
+					queueMicrotask(() => {
+						// Destroying the editor emits a last transaction, after the field is gone.
+						if (!alive) return;
+						active = activeFormats(instance);
+						tooLong = instance.getText().length > maxlength;
+					})
+			})
+		);
 		editor = instance;
 		instance.commands.focus('end');
 		return () => {
+			alive = false;
 			instance.destroy();
 			if (editor === instance) editor = null;
 		};

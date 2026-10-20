@@ -10,6 +10,7 @@
 	import CatchUp from '$lib/connected/home/CatchUp.svelte';
 	import CurrentStep from '$lib/connected/home/CurrentStep.svelte';
 	import Deadlines from '$lib/connected/home/Deadlines.svelte';
+	import FramingGaps from '$lib/connected/home/FramingGaps.svelte';
 	import MyWork from '$lib/connected/home/MyWork.svelte';
 	import NextSync from '$lib/connected/home/NextSync.svelte';
 	import TeamPanel from '$lib/connected/home/TeamPanel.svelte';
@@ -46,7 +47,9 @@
 				readings: app.readings.all,
 				releases: app.releases.all,
 				spentDays: daysSpent(app.blocks.all, project.id, now.value),
-				components: app.components.all.filter((c) => c.projectId === project.id)
+				components: app.components.all.filter((c) => c.projectId === project.id),
+				stories: app.stories.all,
+				stakeholders: app.stakeholders.all
 			},
 			audience
 		);
@@ -94,6 +97,7 @@
 					{project}
 				/>{/key}
 			<WeekGoal {project} />
+			{#key project.id}<FramingGaps {project} />{/key}
 		</div>
 		<CatchUp {project} />
 		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">

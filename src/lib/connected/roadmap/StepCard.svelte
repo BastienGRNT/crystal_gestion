@@ -16,6 +16,7 @@
 	import ComponentPicker from '$lib/ui/molecules/ComponentPicker.svelte';
 	import { componentOptions } from '../tasks/components-of';
 	import { QUICK_HINT, quickAdd } from '../tasks/quick-add';
+	import { epicIdOf, epicProgress } from '$lib/client/views/framing';
 	import { paceText } from './step-text';
 
 	interface Props {
@@ -51,6 +52,13 @@
 	const closed = $derived(!!step.closedAt);
 	const modules = $derived(componentOptions(app, step.projectId));
 	const module = $derived(modules.find((m) => m.id === step.componentId));
+	// The epics this step moves forward, from its tasks: nothing to link by hand.
+	const epics = $derived.by(() => {
+		const ids = new Set(tasks.map((t) => epicIdOf(t, app.stories.all)).filter(Boolean));
+		return app.epics.all
+			.filter((e) => ids.has(e.id))
+			.map((e) => ({ epic: e, progress: epicProgress(e, app.stories.all, app.tasks.all) }));
+	});
 </script>
 
 {#snippet row(task: Task)}
@@ -167,6 +175,21 @@
 					onsave={(doneWhen) => actions.roadmap.updateStep(step.id, { doneWhen })}
 				/>
 			</div>
+		{/if}
+
+		{#if epics.length}
+			<p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3">
+				<span>Fait avancer</span>
+				{#each epics as { epic, progress: p } (epic.id)}
+					<a
+						href="/p/{app.projects.get(step.projectId)?.slug}/cadrage/fonctionnel#stories"
+						class="font-medium text-ink-2 hover:text-accent-text"
+						>{epic.title}{#if p.total}<span class="font-normal text-ink-3 tabular-nums">
+								· {p.delivered}/{p.total}</span
+							>{/if}</a
+					>
+				{/each}
+			</p>
 		{/if}
 
 		{#if !closed && forecast?.ready}

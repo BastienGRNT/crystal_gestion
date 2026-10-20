@@ -2,7 +2,9 @@
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { useApp } from '$lib/client/context';
-	import type { Project } from '$lib/modules/projects/domain/project';
+	import type { Project, ProjectKind } from '$lib/modules/projects/domain/project';
+	import { PROJECT_KIND_LABELS } from '$lib/client/labels';
+	import Segmented from '$lib/ui/molecules/Segmented.svelte';
 	import Button from '$lib/ui/atoms/Button.svelte';
 	import ColorPicker from '$lib/ui/atoms/ColorPicker.svelte';
 	import TextArea from '$lib/ui/atoms/TextArea.svelte';
@@ -27,6 +29,7 @@
 	let description = $state('');
 	let color = $state(0);
 	let deadline = $state('');
+	let kind = $state<ProjectKind>('product');
 	// Suggested from the delivery date until someone picks one.
 	let picked = $state<TemplateKey | null>(null);
 	const template = $derived(picked ?? suggestedTemplate(deadline || null, now.today));
@@ -39,6 +42,7 @@
 			description = project?.description ?? '';
 			color = project?.color ?? app.projects.size % 8;
 			deadline = project?.deadline ?? '';
+			kind = project?.kind ?? 'product';
 			picked = null;
 		});
 	});
@@ -49,17 +53,21 @@
 		event.preventDefault();
 		const fields = { name, description, color, deadline: deadline || null };
 		if (project) {
-			actions.projects.update(project.id, fields);
+			actions.projects.update(project.id, { ...fields, kind });
 			open = false;
 			return;
 		}
 		saving = true;
-		const created = await actions.projects.create(fields);
+		// The template is the kind of project: it sets how much framing is worth asking for.
+		const created = await actions.projects.create({
+			...fields,
+			kind: template === 'empty' ? 'product' : template
+		});
 		if (created) await actions.roadmap.applyTemplate(created.id, template, created.deadline);
 		saving = false;
 		if (!created) return;
 		open = false;
-		void goto(`/p/${created.slug}`);
+		void goto(`/p/${created.slug}/demarrer`);
 	}
 </script>
 
@@ -106,6 +114,19 @@
 					options={templateOptions()}
 					value={template}
 					onchange={(key) => (picked = key)}
+				/>
+			</Field>
+		{/if}
+		{#if project}
+			<Field label="Type de projet" hint={PROJECT_KIND_LABELS[kind].hint}>
+				<Segmented
+					label="Type de projet"
+					value={kind}
+					options={Object.entries(PROJECT_KIND_LABELS).map(([value, k]) => ({
+						value: value as ProjectKind,
+						label: k.label
+					}))}
+					onchange={(k) => (kind = k)}
 				/>
 			</Field>
 		{/if}

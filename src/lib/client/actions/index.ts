@@ -1,6 +1,7 @@
 import type { AppState } from '../state/app.svelte';
 import { chatActions } from './chat';
 import { fileActions } from './files.svelte';
+import { framingActions } from './framing';
 import { peopleActions } from './people';
 import { planningActions } from './planning';
 import { projectActions } from './projects';
@@ -19,6 +20,7 @@ export function createActions(app: AppState) {
 		vault: vaultActions(app),
 		planning: planningActions(app),
 		roadmap: roadmapActions(app, chat),
+		framing: framingActions(app),
 		people: peopleActions(app)
 	};
 }

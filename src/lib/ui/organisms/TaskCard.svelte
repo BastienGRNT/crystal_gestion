@@ -3,6 +3,7 @@
 		ArrowRight,
 		Compass,
 		Hourglass,
+		Layers,
 		ListChecks,
 		MessageCircleQuestion,
 		MessageSquare,
@@ -33,6 +34,8 @@
 		step?: string;
 		/** Its module, when the project has several. */
 		component?: { name: string; color: string };
+		/** The epic (and story) it builds, from the functional spec: "Réservation · US-7". */
+		epic?: string;
 		onopen: () => void;
 		oncomplete: () => void;
 		onreopen: () => void;
@@ -51,6 +54,7 @@
 		next = null,
 		step,
 		component,
+		epic,
 		onopen,
 		oncomplete,
 		onreopen,
@@ -143,6 +147,11 @@
 				title="Module : {component.name}"
 				><span class="size-2 shrink-0 rounded-[3px]" style:background-color={component.color}
 				></span><span class="truncate">{component.name}</span></span
+			>{/if}
+		{#if epic}<span
+				class="inline-flex max-w-40 items-center gap-1 rounded-md bg-accent-soft px-1.5 text-xs font-medium text-accent-text"
+				title="Cahier des charges : {epic}"
+				><Layers size={12} class="shrink-0" /><span class="truncate">{epic}</span></span
 			>{/if}
 		{#if step}<span
 				class="inline-flex max-w-40 items-center gap-1 rounded-md bg-sunken px-1.5 text-xs font-medium text-ink-2"

@@ -1,15 +1,10 @@
 <script lang="ts">
-	import { ChevronDown, Crosshair } from '@lucide/svelte';
+	import { BookOpen, ChevronDown, Crosshair } from '@lucide/svelte';
 	import { untrack } from 'svelte';
 	import { useApp } from '$lib/client/context';
-	import {
-		BRIEF_HEADINGS,
-		briefSections,
-		joinBrief,
-		type Project
-	} from '$lib/modules/projects/domain/project';
+	import type { Project } from '$lib/modules/projects/domain/project';
 	import EditableText from '$lib/ui/molecules/EditableText.svelte';
-	import ProseField from '$lib/ui/molecules/ProseField.svelte';
+	import BriefSections from '../framing/BriefSections.svelte';
 
 	let { project }: { project: Project } = $props();
 	const { actions } = useApp();
@@ -32,18 +27,6 @@
 			// Folded for this visit only.
 		}
 	}
-
-	const sections = $derived(briefSections(project.brief));
-	const HINTS: Record<string, string> = {
-		'Pour qui':
-			'Qui utilise le produit, précisément. Ex. : pharmacies indépendantes de 3 à 10 personnes',
-		'Leur problème': 'Ce qui leur coûte du temps ou de l’argent aujourd’hui',
-		'Notre réponse': 'Ce qu’on leur apporte, et pourquoi nous plutôt qu’un autre',
-		'Qui paie, combien': 'Qui signe, quel prix, quel modèle',
-		'Ce qu’on ne fait pas': 'Ce qu’on refuse, pour couper court aux débats'
-	};
-	const save = (heading: string, text: string) =>
-		actions.projects.update(project.id, { brief: joinBrief({ ...sections, [heading]: text }) });
 </script>
 
 <section
@@ -80,22 +63,14 @@
 	</div>
 
 	{#if !folded}
-		<div class="px-4 pb-4 pl-[3.25rem]">
-			<div class="flex flex-col gap-4">
-				{#each BRIEF_HEADINGS as heading (heading)}
-					<div class="flex flex-col gap-0.5">
-						<h3 class="text-xs font-semibold tracking-wide text-ink-3 uppercase">{heading}</h3>
-						<ProseField
-							label={heading}
-							value={sections[heading]}
-							maxlength={4000}
-							size="md"
-							placeholder={HINTS[heading]}
-							onsave={(text) => save(heading, text)}
-						/>
-					</div>
-				{/each}
-			</div>
+		<div class="flex flex-col gap-3 px-4 pb-4 sm:pl-[3.25rem]">
+			<BriefSections {project} />
+			<a
+				href="/p/{project.slug}/cadrage"
+				class="inline-flex items-center gap-1.5 self-start text-sm text-accent-text hover:underline"
+				><BookOpen size={15} aria-hidden="true" />Toute la note de cadrage, le SWOT et les cahiers
+				des charges</a
+			>
 		</div>
 	{/if}
 </section>

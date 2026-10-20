@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { CircleCheckBig, Compass, Crosshair, X } from '@lucide/svelte';
+	import { CircleCheckBig, Compass } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { shortDay } from '$lib/client/format';
 	import { now } from '$lib/client/now.svelte';
-	import { isFramed, type Project } from '$lib/modules/projects/domain/project';
-	import IconButton from '$lib/ui/atoms/IconButton.svelte';
+	import type { Project } from '$lib/modules/projects/domain/project';
 	import { roadmapHref, roadmapOf } from '../roadmap/roadmap-of';
 	import { paceText } from '../roadmap/step-text';
 
@@ -15,40 +14,8 @@
 	// One line per module moving forward, the project's own line first.
 	const moduleName = (id: string | null) => app.components.get(id)?.name;
 
-	// Short projects (two steps) are never asked to frame themselves; dismissing is per device.
-	const nudgeKey = () => `crystal-cap-nudge-${project.id}`;
-	let dismissed = $state(read());
-	function read() {
-		try {
-			return localStorage.getItem(nudgeKey()) === 'off';
-		} catch {
-			return false;
-		}
-	}
-	function dismiss() {
-		dismissed = true;
-		try {
-			localStorage.setItem(nudgeKey(), 'off');
-		} catch {
-			// Hidden for this visit only.
-		}
-	}
-	const nudge = $derived(!dismissed && roadmap.steps.length >= 3 && !isFramed(project));
 	const href = $derived(roadmapHref(project.slug));
 </script>
-
-{#if nudge}
-	<div
-		class="flex items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 shadow-card"
-	>
-		<Crosshair size={18} class="shrink-0 text-accent-text" aria-hidden="true" />
-		<a href="{href}#cap" class="min-w-0 flex-1 text-base hover:underline">
-			<span class="font-semibold">Le cap n’est pas posé :</span> pour qui, leur problème, ce qu’on ne
-			fait pas. Dix minutes, et tout le monde sait pourquoi on fait ce projet.
-		</a>
-		<IconButton icon={X} label="Ne plus proposer" size="sm" onclick={dismiss} />
-	</div>
-{/if}
 
 {#each roadmap.currents as step (step.id)}
 	{@const forecast = roadmap.forecasts.get(step.id)}

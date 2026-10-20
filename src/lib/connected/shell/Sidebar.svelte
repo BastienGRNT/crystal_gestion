@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		BookOpen,
 		CalendarDays,
 		ChartLine,
 		Compass,
@@ -73,6 +74,13 @@
 				label="Feuille de route"
 				icon={Compass}
 				active={at('/feuille-de-route')}
+				onclick={onnavigate}
+			/>
+			<NavItem
+				href="{base}/cadrage"
+				label="Comprendre le projet"
+				icon={BookOpen}
+				active={at('/cadrage')}
 				onclick={onnavigate}
 			/>
 			<NavItem

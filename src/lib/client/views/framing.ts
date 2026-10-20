@@ -296,3 +296,26 @@ export function definitionOfDone(project: Project): string[] {
 		.map((l) => l.replace(/^\s*(?:[-*•]|\d+[.)])\s+(?:\[[ x]\]\s*)?/, '').trim())
 		.filter(Boolean);
 }
+
+/**
+ * The stories a release completes: every piece of their work ships now or shipped before. The
+ * client note opens with them, in the words of the spec the client read.
+ */
+export function storiesCompletedBy(shipping: Task[], tasks: Task[], stories: Story[]): Story[] {
+	const now = new Set(shipping.map((t) => t.id));
+	const touched = new Set(shipping.map((t) => t.storyId).filter(Boolean));
+	return byPosition(stories.filter((s) => touched.has(s.id))).filter((s) =>
+		tasks
+			.filter((t) => t.storyId === s.id && t.status !== 'idea')
+			.every((t) => now.has(t.id) || t.releaseId)
+	);
+}
+
+export function storiesNote(stories: Story[], personaOf: (id: string | null) => string | null) {
+	if (!stories.length) return '';
+	const lines = stories.map((s) => {
+		const who = personaOf(s.personaId);
+		return `- ${who ? `${who.charAt(0).toUpperCase()}${who.slice(1)} : ` : ''}${s.want.charAt(0).toUpperCase()}${s.want.slice(1)}`;
+	});
+	return ['## Ce que vous pouvez faire maintenant', ...lines].join('\n');
+}

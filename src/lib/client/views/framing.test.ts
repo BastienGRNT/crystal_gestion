@@ -6,6 +6,8 @@ import {
 	definitionOfDone,
 	epicIdOf,
 	framingGaps,
+	storiesCompletedBy,
+	storiesNote,
 	functionalSpecMarkdown,
 	storyState,
 	toSort,
@@ -180,5 +182,20 @@ describe('framing views', () => {
 				'## Définition de « fini »\n\n- Testé sur téléphone\n- [ ] Relu\n\n## Stack\n\nSvelte'
 		});
 		expect(definitionOfDone(p)).toEqual(['Testé sur téléphone', 'Relu']);
+	});
+
+	it('opens the client note with the stories a release completes', () => {
+		const s = story({ want: 'réserver sans compte', personaId: 'patient' });
+		const other = story({ want: 'annuler' });
+		const front = task({ storyId: s.id, status: 'done' });
+		const back = task({ storyId: s.id, status: 'done', releaseId: 'v1' });
+		const half = task({ storyId: other.id, status: 'done' });
+		const pending = task({ storyId: other.id, status: 'doing' });
+		const all = [front, back, half, pending];
+		const done = storiesCompletedBy([front, half], all, [s, other]);
+		expect(done).toEqual([s]);
+		expect(storiesNote(done, () => 'patient')).toBe(
+			'## Ce que vous pouvez faire maintenant\n- Patient : Réserver sans compte'
+		);
 	});
 });

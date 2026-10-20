@@ -8,6 +8,8 @@
 		maxlength?: number;
 		/** Called on Enter or on leaving, only when the text changed and is not empty. */
 		onsave: (value: string) => void;
+		/** An optional text: emptying it is a change like any other. */
+		allowEmpty?: boolean;
 		class?: string;
 	}
 
@@ -17,6 +19,7 @@
 		placeholder = '',
 		maxlength = 200,
 		onsave,
+		allowEmpty = false,
 		class: extra = ''
 	}: Props = $props();
 	let editing = $state(false);
@@ -33,7 +36,7 @@
 	function save() {
 		editing = false;
 		const text = draft.trim();
-		if (text && text !== value) onsave(text);
+		if ((text || allowEmpty) && text !== value) onsave(text);
 	}
 </script>
 
@@ -66,7 +69,8 @@
 		aria-label="{label} : modifier"
 		class={[
 			'-mx-2 min-h-10 max-w-full cursor-text rounded-lg px-2 text-left transition-colors hover:bg-hover',
-			extra
+			extra,
+			!value && 'text-ink-4'
 		]}
 		onclick={edit}>{value || placeholder}</button
 	>

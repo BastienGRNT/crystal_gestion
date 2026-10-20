@@ -1,4 +1,4 @@
-import type { Project, ProjectPatch } from '$lib/modules/projects/domain/project';
+import type { Project, ProjectKind, ProjectPatch } from '$lib/modules/projects/domain/project';
 import { errorMessage, send } from '../api';
 import type { AppState } from '../state/app.svelte';
 import { toasts } from '../toasts.svelte';
@@ -36,6 +36,7 @@ export function projectActions(app: AppState) {
 			description?: string;
 			color?: number;
 			deadline?: string | null;
+			kind?: ProjectKind;
 		}) {
 			const project = await attempt(send('projects.create', { ...input, id: crypto.randomUUID() }));
 			if (project) app.projects.upsert(project);

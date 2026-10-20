@@ -1,4 +1,6 @@
 import { daysBetween, type DateKey } from '$lib/modules/kernel/domain/dates';
+import type { Stakeholder, Story } from '$lib/modules/framing/domain/framing';
+import { storyState } from './framing';
 import type { Project } from '$lib/modules/projects/domain/project';
 import type { Decision } from '$lib/modules/roadmap/domain/decision';
 import type { Metric, MetricReading } from '$lib/modules/roadmap/domain/metric';
@@ -30,6 +32,10 @@ export interface ReportRoadmap {
 	spentDays?: number;
 	/** The product's modules, to name the steps under way of each. */
 	components?: { id: string; name: string }[];
+	/** The functional spec's stories: those finished this week are told in its words. */
+	stories?: Story[];
+	/** Who to keep informed, and how often. */
+	stakeholders?: Stakeholder[];
 }
 
 const NO_ROADMAP: ReportRoadmap = { milestones: [], decisions: [], readings: [] };
@@ -98,6 +104,27 @@ export function weekReport(
 				(a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999')
 		)
 		.slice(0, UPCOMING);
+	const delivered = (roadmap.stories ?? [])
+		.filter((s) => s.projectId === project.id)
+		.filter((s) => {
+			const state = storyState(s, all);
+			if (state !== 'delivered' && state !== 'shipped') return false;
+			const last = Math.max(
+				...all.filter((t) => t.storyId === s.id).map((t) => Date.parse(t.completedAt ?? '') || 0)
+			);
+			return last >= weekAgo;
+		})
+		.map((s) => s.want.charAt(0).toUpperCase() + s.want.slice(1));
+	const stepClosed = steps.some((m) => m.closedAt && Date.parse(m.closedAt) >= weekAgo);
+	const toInform = (roadmap.stakeholders ?? [])
+		.filter((s) => s.projectId === project.id && !s.userId)
+		.filter(
+			(s) =>
+				s.informEvery === 'week' ||
+				(s.informEvery === 'step' && stepClosed) ||
+				(s.informEvery === 'release' && shipped.length > 0)
+		)
+		.map((s) => `${s.name}${s.organization ? ` (${s.organization})` : ''}`);
 	const decided = roadmap.decisions
 		.filter((d) => d.projectId === project.id && Date.parse(d.decidedAt) >= weekAgo)
 		.map((d) => d.text);
@@ -105,6 +132,7 @@ export function weekReport(
 		`${project.name} : le point du ${longDate(today)}`,
 		'',
 		...stepLines(steps, all, today, now, roadmap.components ?? []),
+		...section('Ce que vous pouvez faire maintenant', delivered),
 		...section('Terminé cette semaine', done),
 		...section(
 			'En cours',
@@ -122,6 +150,7 @@ export function weekReport(
 				)
 			: []),
 		...(audience === 'team' ? section('Décidé cette semaine', decided) : []),
+		...(audience === 'team' ? section('À informer cette semaine', toInform) : []),
 		...section(
 			'Ensuite',
 			upcoming.map((t) => `${t.title}${due(t)}`)
