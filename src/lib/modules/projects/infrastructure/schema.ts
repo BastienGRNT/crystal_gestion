@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createdAt, timestamptz } from '../../../server/db/columns';
 import { users } from '../../identity/infrastructure/schema';
+import { PROJECT_KINDS } from '../domain/project';
 
 export const projects = pgTable('projects', {
 	id: uuid().primaryKey(),
@@ -18,9 +19,11 @@ export const projects = pgTable('projects', {
 	name: text().notNull(),
 	description: text().notNull().default(''),
 	color: integer().notNull().default(0),
+	kind: text({ enum: PROJECT_KINDS }).notNull().default('product'),
 	deadline: date(),
 	weekGoal: text().notNull().default(''),
 	brief: text().notNull().default(''),
+	techSpec: text().notNull().default(''),
 	soldDays: doublePrecision(),
 	shipChecklist: jsonb().$type<string[]>().notNull().default([]),
 	archivedAt: timestamptz(),

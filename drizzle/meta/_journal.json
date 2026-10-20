@@ -57,6 +57,13 @@
       "when": 1792436614901,
       "tag": "0007_step_modules",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792514227866,
+      "tag": "0008_framing",
+      "breakpoints": true
     }
   ]
 }

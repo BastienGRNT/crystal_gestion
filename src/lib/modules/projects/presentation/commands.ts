@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { command, dateKey, id } from '$lib/server/commands/define';
+import { PROJECT_KINDS } from '../domain/project';
 import type { Projects } from '../index';
 
 export const projectCommands = (projects: Projects) => ({
@@ -9,7 +10,8 @@ export const projectCommands = (projects: Projects) => ({
 			name: z.string(),
 			description: z.string().optional(),
 			color: z.number().int().optional(),
-			deadline: dateKey.nullable().optional()
+			deadline: dateKey.nullable().optional(),
+			kind: z.enum(PROJECT_KINDS).optional()
 		}),
 		({ userId }, input) => projects.create(input, userId)
 	),
@@ -22,6 +24,8 @@ export const projectCommands = (projects: Projects) => ({
 			deadline: dateKey.nullable().optional(),
 			weekGoal: z.string().optional(),
 			brief: z.string().max(50_000).optional(),
+			techSpec: z.string().max(50_000).optional(),
+			kind: z.enum(PROJECT_KINDS).optional(),
 			soldDays: z.number().finite().nullable().optional(),
 			shipChecklist: z.array(z.string().max(500)).max(50).optional()
 		}),

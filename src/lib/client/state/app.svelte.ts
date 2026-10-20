@@ -8,6 +8,16 @@ import {
 } from '$lib/modules/chat/domain/chat';
 import type { StoredFile } from '$lib/modules/files/domain/file';
 import type { Folder } from '$lib/modules/files/domain/folder';
+import type {
+	Epic,
+	Initiative,
+	Journey,
+	Stakeholder,
+	Story,
+	Strategy,
+	SwotItem,
+	Term
+} from '$lib/modules/framing/domain/framing';
 import type { User } from '$lib/modules/identity/domain/user';
 import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/availability';
 import type { Member } from '$lib/modules/projects/domain/membership';
@@ -55,6 +65,14 @@ export class AppState {
 	metrics = new Collection<Metric>();
 	releases = new Collection<Release>();
 	components = new Collection<Component>();
+	initiatives = new Collection<Initiative>();
+	epics = new Collection<Epic>();
+	stories = new Collection<Story>();
+	stakeholders = new Collection<Stakeholder>();
+	journeys = new Collection<Journey>();
+	terms = new Collection<Term>();
+	swot = new Collection<SwotItem>();
+	strategies = new Collection<Strategy>();
 	messages = new MessageStore();
 	/** Open questions of all my projects, loaded or not: they wait on someone. */
 	questions = new Collection<Message>();
@@ -101,6 +119,14 @@ export class AppState {
 		this.metrics.reset(snapshot.metrics);
 		this.releases.reset(snapshot.releases);
 		this.components.reset(snapshot.components);
+		this.initiatives.reset(snapshot.initiatives);
+		this.epics.reset(snapshot.epics);
+		this.stories.reset(snapshot.stories);
+		this.stakeholders.reset(snapshot.stakeholders);
+		this.journeys.reset(snapshot.journeys);
+		this.terms.reset(snapshot.terms);
+		this.swot.reset(snapshot.swot);
+		this.strategies.reset(snapshot.strategies);
 		this.messages.invalidate();
 	}
 

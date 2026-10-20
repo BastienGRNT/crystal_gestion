@@ -8,15 +8,20 @@ export interface Project {
 	description: string;
 	/** Index in the 8 tints of the theme. */
 	color: number;
+	/** What kind of project it is: it sets how much framing is worth asking for. */
+	kind: ProjectKind;
 	/** Delivery date, when there is one. */
 	deadline: DateKey | null;
 	/** One sentence the team aims at this week: the focus everyone sees on the project home. */
 	weekGoal: string;
 	/**
-	 * The Cap, as one formatted note: who it is for, their problem, who pays, what we do not do
-	 * (or, for a client project, the brief). Written once, read when in doubt.
+	 * The framing note, as one formatted note in QQOQCCP sections (why, who, what, what we do
+	 * not do, where, how many). When and how are never typed: the steps and the technical spec
+	 * say them. Written once, read when in doubt.
 	 */
 	brief: string;
+	/** The technical spec: how it is built, in fixed sections (`TECH_HEADINGS`). */
+	techSpec: string;
 	/** Days sold to the client, for a fixed-price project: what the time spent is compared to. */
 	soldDays: number | null;
 	/** What to check before each release (backups, migrations…), unticked again every time. */
@@ -35,12 +40,21 @@ export type ProjectPatch = Partial<
 		| 'deadline'
 		| 'weekGoal'
 		| 'brief'
+		| 'techSpec'
+		| 'kind'
 		| 'soldDays'
 		| 'shipChecklist'
 	>
 >;
 
 export const PROJECT_COLORS = 8;
+
+/**
+ * Express: a few weeks, little framing. Produit: our own product, framed for the long run.
+ * Client: built for someone, whose functional spec is the contract.
+ */
+export const PROJECT_KINDS = ['express', 'product', 'client'] as const;
+export type ProjectKind = (typeof PROJECT_KINDS)[number];
 
 export const validProjectName = (name: string) => requiredText(name, 'Le nom du projet', 60);
 
@@ -55,7 +69,12 @@ export function validWeekGoal(text: string): string {
 }
 
 export function validBrief(text: string): string {
-	ensure(text.length <= 20_000, 'Le cap est trop long (20 000 caractères maximum).');
+	ensure(text.length <= 20_000, 'La note de cadrage est trop longue (20 000 caractères maximum).');
+	return text.trim();
+}
+
+export function validTechSpec(text: string): string {
+	ensure(text.length <= 40_000, 'Le cahier des charges technique est trop long.');
 	return text.trim();
 }
 
@@ -76,37 +95,86 @@ export function validShipChecklist(items: string[]): string[] {
 	return items.map((i) => i.trim().slice(0, 120)).filter(Boolean);
 }
 
-/** The headings offered for an empty Cap: a frame to fill in ten minutes, not a form. */
+/**
+ * The QQOQCCP sections of the framing note, in the order they are asked. "Quand" and
+ * "Comment" are not typed: the steps and the technical spec answer them.
+ */
 export const BRIEF_HEADINGS = [
-	'Pour qui',
-	'Leur problème',
-	'Notre réponse',
-	'Qui paie, combien',
-	'Ce qu’on ne fait pas'
-];
+	'Pourquoi',
+	'Qui',
+	'Quoi',
+	'Ce qu’on ne fait pas',
+	'Où',
+	'Combien'
+] as const;
+export type BriefHeading = (typeof BRIEF_HEADINGS)[number];
 
-export const BRIEF_TEMPLATE = BRIEF_HEADINGS.map((h) => `## ${h}\n\n`).join('\n');
+/** The headings of the first Caps, read into the section that now holds them. */
+const OLD_BRIEF_HEADINGS: Record<string, BriefHeading> = {
+	'Pour qui': 'Qui',
+	'Leur problème': 'Pourquoi',
+	'Notre réponse': 'Quoi',
+	'Qui paie, combien': 'Qui',
+	Contraintes: 'Où'
+};
 
-/** The Cap's fixed sections: each one its own text, none can be dropped. */
-export function briefSections(brief: string): Record<string, string> {
-	const out: Record<string, string> = Object.fromEntries(BRIEF_HEADINGS.map((h) => [h, '']));
-	let current = BRIEF_HEADINGS[0];
-	for (const line of brief.split('\n')) {
+/** The technical spec's fixed sections. */
+export const TECH_HEADINGS = [
+	'Performance',
+	'Sécurité et données personnelles',
+	'Plateformes et accessibilité',
+	'Services externes',
+	'Hébergement',
+	'Stack',
+	'Environnements et mise en ligne',
+	'Définition de « fini »',
+	'Conventions',
+	'Après la mise en ligne'
+] as const;
+export type TechHeading = (typeof TECH_HEADINGS)[number];
+
+/**
+ * Splits a note into its fixed `##` sections. Text under no known heading (an older free note)
+ * lands in the first section; an old heading lands in the section that replaced it.
+ */
+export function sectionsOf<H extends string>(
+	text: string,
+	headings: readonly H[],
+	aliases: Record<string, H> = {}
+): Record<H, string> {
+	const out = Object.fromEntries(headings.map((h) => [h, ''])) as Record<H, string>;
+	let current = headings[0];
+	for (const line of text.split('\n')) {
 		const heading = line.match(/^##\s+(.*)$/)?.[1].trim();
-		// Text before any known heading (an older free Cap) lands in the first section.
-		if (heading && heading in out) current = heading;
+		const known = heading && (headings.includes(heading as H) ? (heading as H) : aliases[heading]);
+		if (known) current = known;
 		else out[current] += `${line}\n`;
 	}
-	for (const h of BRIEF_HEADINGS) out[h] = out[h].trim();
+	for (const h of headings) out[h] = out[h].replace(/\n{3,}/g, '\n\n').trim();
 	return out;
 }
 
-export const joinBrief = (sections: Record<string, string>) =>
-	BRIEF_HEADINGS.map((h) => `## ${h}\n\n${(sections[h] ?? '').trim()}`).join('\n\n');
+export const joinSections = <H extends string>(
+	sections: Record<H, string>,
+	headings: readonly H[]
+) => headings.map((h) => `## ${h}\n\n${(sections[h] ?? '').trim()}`).join('\n\n');
 
-/** Framed enough not to be asked again: some words under the headings. */
-export const isFramed = (project: Pick<Project, 'brief'>) =>
-	project.brief.replace(/^#{1,3}\s.*$/gm, '').trim().length > 20;
+export const briefSections = (brief: string) =>
+	sectionsOf(brief, BRIEF_HEADINGS, OLD_BRIEF_HEADINGS);
+export const joinBrief = (sections: Record<BriefHeading, string>) =>
+	joinSections(sections, BRIEF_HEADINGS);
+export const techSections = (spec: string) => sectionsOf(spec, TECH_HEADINGS);
+export const joinTech = (sections: Record<TechHeading, string>) =>
+	joinSections(sections, TECH_HEADINGS);
+
+/** The three questions asked at the start: without them, nobody knows what the project is. */
+export const STARTING_HEADINGS: BriefHeading[] = ['Pourquoi', 'Qui', 'Quoi'];
+
+/** Framed enough not to be asked again: why, who and what have a few words each. */
+export const isFramed = (project: Pick<Project, 'brief'>) => {
+	const sections = briefSections(project.brief);
+	return STARTING_HEADINGS.every((h) => sections[h].length > 10);
+};
 
 export function validDeadline(deadline: string | null): DateKey | null {
 	ensure(deadline === null || isDateKey(deadline), 'Date limite invalide.');

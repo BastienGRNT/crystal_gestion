@@ -2,10 +2,19 @@ import { ensure, requiredText } from '../../kernel/domain/errors';
 
 /**
  * Who wrote it: someone (`manual`), or the app when a date moved, work left a step at its
- * closing, a bet was settled or a step was deleted. Those are the trace of a change of scope:
+ * closing, a bet was settled, a step was deleted or an epic left the scope (`scope`); `ai`: proposed
+ * by the project manager assistant and accepted by someone. Those are the trace of a change of scope:
  * nobody can take them back, or the change would become silent.
  */
-export const DECISION_SOURCES = ['manual', 'date', 'carry', 'verdict', 'removal'] as const;
+export const DECISION_SOURCES = [
+	'manual',
+	'date',
+	'carry',
+	'verdict',
+	'removal',
+	'scope',
+	'ai'
+] as const;
 export type DecisionSource = (typeof DECISION_SOURCES)[number];
 
 /**
@@ -36,7 +45,7 @@ export function validWhy(text: string): string {
 }
 
 export const canWithdraw = (d: Pick<Decision, 'source' | 'decidedBy'>, userId: string) =>
-	d.source === 'manual' && d.decidedBy === userId;
+	(d.source === 'manual' || d.source === 'ai') && d.decidedBy === userId;
 
 /** The ids replaced by a newer decision. */
 export const supersededIds = (decisions: Decision[]) =>

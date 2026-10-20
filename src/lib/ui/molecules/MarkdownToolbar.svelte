@@ -1,24 +1,38 @@
 <script lang="ts">
-	import { Bold, Heading1, Heading2, Link, List, ListOrdered, TextQuote } from '@lucide/svelte';
-	import type { LineFormat } from '$lib/client/markdown-edit';
+	import {
+		Bold,
+		Heading1,
+		Heading2,
+		Italic,
+		Link,
+		List,
+		ListOrdered,
+		TextQuote
+	} from '@lucide/svelte';
+	import type { TextFormat } from '../types';
 	import IconButton from '../atoms/IconButton.svelte';
 
 	interface Props {
-		/** The format of the line holding the cursor, shown pressed. */
-		current: LineFormat | null;
-		onformat: (format: LineFormat) => void;
-		onbold: () => void;
-		onlink: () => void;
+		/** The formats under the cursor, shown pressed. */
+		active: Set<TextFormat>;
+		onformat: (format: TextFormat) => void;
 	}
 
-	let { current, onformat, onbold, onlink }: Props = $props();
+	let { active, onformat }: Props = $props();
 
-	const LINES = [
-		{ format: 'h1', icon: Heading1, label: 'Titre' },
-		{ format: 'h2', icon: Heading2, label: 'Sous-titre' },
-		{ format: 'bullet', icon: List, label: 'Liste à puces' },
-		{ format: 'number', icon: ListOrdered, label: 'Liste numérotée' },
-		{ format: 'quote', icon: TextQuote, label: 'Citation' }
+	const GROUPS = [
+		[
+			{ format: 'bold', icon: Bold, label: 'Gras (Ctrl+B)' },
+			{ format: 'italic', icon: Italic, label: 'Italique (Ctrl+I)' }
+		],
+		[
+			{ format: 'h1', icon: Heading1, label: 'Titre' },
+			{ format: 'h2', icon: Heading2, label: 'Sous-titre' },
+			{ format: 'bullet', icon: List, label: 'Liste à puces' },
+			{ format: 'number', icon: ListOrdered, label: 'Liste numérotée' },
+			{ format: 'quote', icon: TextQuote, label: 'Citation' }
+		],
+		[{ format: 'link', icon: Link, label: 'Lien (Ctrl+K)' }]
 	] as const;
 </script>
 
@@ -30,17 +44,17 @@
 	class="flex flex-wrap items-center gap-0.5"
 	onmousedown={(e) => e.preventDefault()}
 >
-	<IconButton icon={Bold} label="Gras (Ctrl+B)" onclick={onbold} />
-	<span class="mx-1 h-5 w-px bg-line" aria-hidden="true"></span>
-	{#each LINES as line (line.format)}
-		<IconButton
-			icon={line.icon}
-			label={line.label}
-			active={current === line.format}
-			aria-pressed={current === line.format}
-			onclick={() => onformat(line.format)}
-		/>
+	{#each GROUPS as group, i (i)}
+		{#if i}<span class="mx-1 h-5 w-px bg-line" aria-hidden="true"></span>{/if}
+		{#each group as button (button.format)}
+			<IconButton
+				icon={button.icon}
+				label={button.label}
+				size="sm"
+				active={active.has(button.format)}
+				aria-pressed={active.has(button.format)}
+				onclick={() => onformat(button.format)}
+			/>
+		{/each}
 	{/each}
-	<span class="mx-1 h-5 w-px bg-line" aria-hidden="true"></span>
-	<IconButton icon={Link} label="Lien" onclick={onlink} />
 </div>

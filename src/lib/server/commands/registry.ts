@@ -2,6 +2,7 @@ import type { z } from 'zod';
 import { activityCommands } from '$lib/modules/activity/presentation/commands';
 import { chatCommands } from '$lib/modules/chat/presentation/commands';
 import { fileCommands } from '$lib/modules/files/presentation/commands';
+import { framingCommands } from '$lib/modules/framing/presentation/commands';
 import { identityCommands } from '$lib/modules/identity/presentation/commands';
 import { planningCommands } from '$lib/modules/planning/presentation/commands';
 import { projectCommands } from '$lib/modules/projects/presentation/commands';
@@ -20,6 +21,7 @@ export const commands = {
 	...vaultCommands(container.vault),
 	...planningCommands(container.planning),
 	...roadmapCommands(container.roadmap),
+	...framingCommands(container.framing),
 	...activityCommands(container.activity)
 };
 

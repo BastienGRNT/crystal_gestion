@@ -68,11 +68,13 @@ async function checkLinks(deps: RoadmapDeps, input: NewDecision, actorId: string
 	if (input.supersedes) sameProject((await deps.decisions.get(input.supersedes))?.projectId);
 }
 
+/** `ai`: proposed by the assistant, accepted by the actor; it stays theirs to take back. */
 export const createDecision =
-	(deps: RoadmapDeps) => async (input: NewDecision, actorId: string) => {
+	(deps: RoadmapDeps) =>
+	async (input: NewDecision & { source?: 'manual' | 'ai' }, actorId: string) => {
 		await deps.access.assertMember(input.projectId, actorId);
 		await checkLinks(deps, input, actorId);
-		return recordDecision(deps, input, actorId);
+		return recordDecision(deps, input, actorId, input.source ?? 'manual');
 	};
 
 /**
@@ -83,7 +85,7 @@ export const deleteDecision = (deps: RoadmapDeps) => async (id: string, actorId:
 	const decision = await deps.decisions.get(id);
 	if (!decision) throw notFound('Décision');
 	await deps.access.assertMember(decision.projectId, actorId);
-	if (decision.source !== 'manual')
+	if (decision.source !== 'manual' && decision.source !== 'ai')
 		throw forbidden('Cette décision garde la trace d’un changement : remplace-la plutôt.');
 	if (!canWithdraw(decision, actorId))
 		throw forbidden('Seule la personne qui l’a notée peut retirer une décision. Remplace-la.');

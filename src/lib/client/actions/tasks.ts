@@ -1,6 +1,8 @@
 import {
 	activeComponents,
+	ensureParentFits,
 	ensureRoomForComponent,
+	validComponentDescription,
 	validComponentName,
 	type Component
 } from '$lib/modules/tasks/domain/component';
@@ -121,14 +123,17 @@ export function taskActions(app: AppState) {
 		},
 
 		/** A new part of the product: one line, not a new project. */
-		addComponent(projectId: string, name: string): boolean {
+		addComponent(projectId: string, name: string, parentId: string | null = null): boolean {
 			const others = app.components.all.filter((c) => c.projectId === projectId);
 			const component = attempt<Component>(() => {
 				ensureRoomForComponent(others);
+				ensureParentFits(others, '', parentId);
 				return {
 					id: crypto.randomUUID(),
 					projectId,
 					name: validComponentName(name),
+					description: '',
+					parentId,
 					color: activeComponents(others).length % 8,
 					position: Math.max(0, ...others.map((c) => c.position)) + 1,
 					archivedAt: null,
@@ -144,7 +149,8 @@ export function taskActions(app: AppState) {
 					id: component.id,
 					projectId,
 					name: component.name,
-					color: component.color
+					color: component.color,
+					parentId
 				}),
 				(saved) => app.components.upsert(saved),
 				() => app.components.remove(component.id)
@@ -152,15 +158,29 @@ export function taskActions(app: AppState) {
 			return true;
 		},
 
-		updateComponent(id: string, patch: { name?: string; color?: number }) {
+		updateComponent(
+			id: string,
+			patch: { name?: string; color?: number; description?: string; parentId?: string | null }
+		) {
 			const current = app.components.get(id);
 			const next =
 				current &&
-				attempt(() => ({
-					...current,
-					...patch,
-					...(patch.name !== undefined && { name: validComponentName(patch.name) })
-				}));
+				attempt(() => {
+					if (patch.parentId !== undefined)
+						ensureParentFits(
+							app.components.all.filter((c) => c.projectId === current.projectId),
+							id,
+							patch.parentId
+						);
+					return {
+						...current,
+						...patch,
+						...(patch.name !== undefined && { name: validComponentName(patch.name) }),
+						...(patch.description !== undefined && {
+							description: validComponentDescription(patch.description)
+						})
+					};
+				});
 			if (!current || !next) return;
 			app.components.upsert(next);
 			settle(

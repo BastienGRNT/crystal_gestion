@@ -3,6 +3,7 @@ import { memberId } from '../domain/membership';
 import {
 	uniqueSlug,
 	validBrief,
+	validTechSpec,
 	validShipChecklist,
 	validSoldDays,
 	DEFAULT_SHIP_CHECKLIST,
@@ -12,6 +13,7 @@ import {
 	validProjectName,
 	validWeekGoal,
 	type Project,
+	type ProjectKind,
 	type ProjectPatch
 } from '../domain/project';
 import { projectAccess } from './access';
@@ -23,6 +25,7 @@ export interface NewProject {
 	description?: string;
 	color?: number;
 	deadline?: string | null;
+	kind?: ProjectKind;
 }
 
 export type { ProjectPatch };
@@ -37,9 +40,11 @@ export const createProject = (deps: ProjectDeps) => async (input: NewProject, ac
 		name,
 		description: validDescription(input.description ?? ''),
 		color: validProjectColor(input.color ?? 0),
+		kind: input.kind ?? 'product',
 		deadline: validDeadline(input.deadline ?? null),
 		weekGoal: '',
 		brief: '',
+		techSpec: '',
 		soldDays: null,
 		shipChecklist: DEFAULT_SHIP_CHECKLIST,
 		archivedAt: null,
@@ -91,6 +96,8 @@ export const updateProject =
 			...(patch.deadline !== undefined && { deadline: validDeadline(patch.deadline) }),
 			...(patch.weekGoal !== undefined && { weekGoal: validWeekGoal(patch.weekGoal) }),
 			...(patch.brief !== undefined && { brief: validBrief(patch.brief) }),
+			...(patch.techSpec !== undefined && { techSpec: validTechSpec(patch.techSpec) }),
+			...(patch.kind !== undefined && { kind: patch.kind }),
 			...(patch.soldDays !== undefined && { soldDays: validSoldDays(patch.soldDays) }),
 			...(patch.shipChecklist !== undefined && {
 				shipChecklist: validShipChecklist(patch.shipChecklist)

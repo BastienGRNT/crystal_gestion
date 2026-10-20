@@ -3,6 +3,16 @@ import type { Activity, Notification, ProjectVisit } from '$lib/modules/activity
 import type { Channel, Message } from '$lib/modules/chat/domain/chat';
 import type { StoredFile } from '$lib/modules/files/domain/file';
 import type { Folder } from '$lib/modules/files/domain/folder';
+import type {
+	Epic,
+	Initiative,
+	Journey,
+	Stakeholder,
+	Story,
+	Strategy,
+	SwotItem,
+	Term
+} from '$lib/modules/framing/domain/framing';
 import type { User } from '$lib/modules/identity/domain/user';
 import type { AvailabilitySlot, WorkBlock } from '$lib/modules/planning/domain/availability';
 import type { Member } from '$lib/modules/projects/domain/membership';
@@ -38,6 +48,14 @@ export interface Collections {
 	metrics: Metric;
 	releases: Release;
 	components: Component;
+	initiatives: Initiative;
+	epics: Epic;
+	stories: Story;
+	stakeholders: Stakeholder;
+	journeys: Journey;
+	terms: Term;
+	swot: SwotItem;
+	strategies: Strategy;
 }
 
 export type CollectionName = keyof Collections;

@@ -63,6 +63,18 @@ async function checkComponent(deps: TaskDeps, projectId: string, id: string | nu
 	if (component.archivedAt) throw invalid('Ce module est archivé : choisis-en un autre.');
 }
 
+/** A task builds a story, or serves an epic, of its own project. */
+async function checkFraming(
+	deps: TaskDeps,
+	projectId: string,
+	links: { storyId?: string | null; epicId?: string | null }
+) {
+	const story = links.storyId ? await deps.framing.story(links.storyId) : null;
+	if (links.storyId && story?.projectId !== projectId) throw invalid('Story inconnue.');
+	const epic = links.epicId ? await deps.framing.epic(links.epicId) : null;
+	if (links.epicId && epic?.projectId !== projectId) throw invalid('Epic inconnue.');
+}
+
 /** A bug that starts blocking warns the whole team, whoever holds it. */
 async function raiseAlarm(deps: TaskDeps, task: Task, actorId: string) {
 	await deps.activity.record({ actorId, verb: 'bug.critical', subject: subjectOf(task) });
@@ -83,6 +95,7 @@ export const createTask = (deps: TaskDeps) => async (input: CreateTaskInput, act
 	await checkPeople(deps, input.projectId, [input.assigneeId]);
 	await checkMilestone(deps, input.projectId, input.milestoneId);
 	await checkComponent(deps, input.projectId, input.componentId);
+	await checkFraming(deps, input.projectId, input);
 	const number = await deps.tasks.nextNumber(input.projectId);
 	const position = input.position ?? ((await deps.tasks.lastPosition(input.projectId)) ?? 0) + 1;
 	const task = newTask({ ...input, number, position }, actorId, deps.clock.now());
@@ -109,6 +122,10 @@ export const updateTask =
 			await checkMilestone(deps, current.projectId, patch.milestoneId);
 		if (patch.componentId !== current.componentId)
 			await checkComponent(deps, current.projectId, patch.componentId);
+		await checkFraming(deps, current.projectId, {
+			storyId: patch.storyId !== current.storyId ? patch.storyId : null,
+			epicId: patch.epicId !== current.epicId ? patch.epicId : null
+		});
 		let task = applyPatch(current, patch, actorId, deps.clock.now());
 		if (current.status === 'done' && task.status !== 'done')
 			task = await keepClosedStepsDone(deps, task);

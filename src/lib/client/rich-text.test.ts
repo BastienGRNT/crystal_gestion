@@ -20,6 +20,21 @@ describe('rich text', () => {
 		]);
 	});
 
+	it('reads what the text editor writes: links, italics and escapes', () => {
+		expect(
+			parseInline(
+				'[la doc](https://a.fr/x) et [https://b.fr](https://b.fr), *vite*, 3 \\* 4, a\\_b'
+			)
+		).toEqual([
+			{ type: 'link', href: 'https://a.fr/x', text: 'la doc' },
+			{ type: 'text', text: ' et ' },
+			{ type: 'link', href: 'https://b.fr', text: 'b.fr' },
+			{ type: 'text', text: ', ' },
+			{ type: 'italic', text: 'vite' },
+			{ type: 'text', text: ', 3 * 4, a_b' }
+		]);
+	});
+
 	it('does not read a URL anchor or a word as a task', () => {
 		expect(parseInline('page#12 et C#3')).toEqual([{ type: 'text', text: 'page#12 et C#3' }]);
 	});

@@ -1,4 +1,10 @@
-import { createDecision, deleteDecision } from './application/decisions';
+import {
+	createDecision,
+	deleteDecision,
+	recordDecision,
+	type NewDecision
+} from './application/decisions';
+import type { DecisionSource } from './domain/decision';
 import {
 	createHypothesis,
 	deleteHypothesis,
@@ -33,6 +39,9 @@ export function createRoadmap(deps: RoadmapDeps) {
 		closeMilestone: closeMilestone(deps),
 		applyTemplate: applyTemplate(deps),
 		createDecision: createDecision(deps),
+		/** For other modules: a decision written by the app, with its source. */
+		recordDecision: (input: NewDecision, actorId: string, source: DecisionSource) =>
+			recordDecision(deps, input, actorId, source),
 		deleteDecision: deleteDecision(deps),
 		createHypothesis: createHypothesis(deps),
 		updateHypothesis: updateHypothesis(deps),

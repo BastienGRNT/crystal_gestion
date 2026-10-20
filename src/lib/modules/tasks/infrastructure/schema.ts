@@ -23,6 +23,8 @@ export const components = pgTable(
 			.notNull()
 			.references(() => projects.id, { onDelete: 'cascade' }),
 		name: text().notNull(),
+		description: text().notNull().default(''),
+		parentId: uuid(),
 		color: integer().notNull(),
 		position: doublePrecision().notNull(),
 		archivedAt: timestamptz(),
@@ -56,6 +58,10 @@ export const tasks = pgTable(
 		componentId: uuid().references(() => components.id, { onDelete: 'set null' }),
 		// No foreign key either: the roadmap module owns versions and detaches before deleting one.
 		releaseId: uuid(),
+		// The framing module owns stories and epics, and detaches tasks before deleting one.
+		storyId: uuid(),
+		epicId: uuid(),
+		outsideProduct: boolean().notNull().default(false),
 		position: doublePrecision().notNull(),
 		createdBy: uuid()
 			.notNull()

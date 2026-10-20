@@ -78,7 +78,9 @@ describe('kind of work', () => {
 			kindSaid: true,
 			critical: true,
 			componentId: 'c-site',
-			reportedBy: null
+			reportedBy: null,
+			storyId: null,
+			epicId: null
 		});
 		expect(
 			parseQuickEntry('fix: horaires ~mart', people, today, undefined, [], ['Pharmacie Martin'])
@@ -115,5 +117,30 @@ describe('kind of work', () => {
 			'fix(prise-rdv): les horaires du samedi (#12)'
 		);
 		expect(branchName({ ...task, kind: 'action' })).toBeNull();
+	});
+
+	it('reads ^ as the epic or the story the task builds', () => {
+		const targets = [
+			{ id: 'e1', kind: 'epic' as const, name: 'Prise de rendez-vous' },
+			{ id: 'e2', kind: 'epic' as const, name: 'Facturation' },
+			{ id: 's7', kind: 'story' as const, name: 'réserver sans compte', number: 7 }
+		];
+		const epic = parseQuickEntry(
+			'feat: export PDF ^fact',
+			[],
+			'2026-10-19',
+			undefined,
+			[],
+			[],
+			targets
+		);
+		expect(epic).toMatchObject({ title: 'export PDF', epicId: 'e2', storyId: null });
+		const byWord = parseQuickEntry('agenda ^rendez', [], '2026-10-19', undefined, [], [], targets);
+		expect(byWord.epicId).toBe('e1');
+		const story = parseQuickEntry('formulaire ^US-7', [], '2026-10-19', undefined, [], [], targets);
+		expect(story).toMatchObject({ title: 'formulaire', storyId: 's7', epicId: null });
+		expect(parseQuickEntry('a ^zz', [], '2026-10-19', undefined, [], [], targets).title).toBe(
+			'a ^zz'
+		);
 	});
 });

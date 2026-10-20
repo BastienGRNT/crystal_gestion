@@ -11,6 +11,11 @@ import { drizzleMessages } from '$lib/modules/chat/infrastructure/message-reposi
 import { createFiles } from '$lib/modules/files';
 import { diskStorage } from '$lib/modules/files/infrastructure/disk-storage';
 import { drizzleFiles, drizzleFolders } from '$lib/modules/files/infrastructure/file-repository';
+import { createFraming } from '$lib/modules/framing';
+import {
+	drizzleFramingStores,
+	drizzleStoryNumbers
+} from '$lib/modules/framing/infrastructure/repositories';
 import { createIdentity } from '$lib/modules/identity';
 import { randomTokens, scryptHasher } from '$lib/modules/identity/infrastructure/crypto';
 import { drizzleSessions, drizzleUsers } from '$lib/modules/identity/infrastructure/repositories';
@@ -52,6 +57,9 @@ const taskRepository = drizzleTasks(db);
 const componentRepository = drizzleComponents(db);
 const milestoneStore = drizzleMilestones(db);
 const messageRepository = drizzleMessages(db);
+const framingStores = drizzleFramingStores(db);
+const metricStore = drizzleMetrics(db);
+const hypothesisStore = drizzleHypotheses(db);
 
 // Each socket hears about its person's projects and the people they share them with.
 hub.configure(async (userId) => {
@@ -88,6 +96,10 @@ const tasks = createTasks({
 		get: (id) => milestoneStore.get(id),
 		current: async (projectId) =>
 			currentMilestone(await milestoneStore.ofProject(projectId))?.id ?? null
+	},
+	framing: {
+		story: (id) => framingStores.stories.get(id),
+		epic: (id) => framingStores.epics.get(id)
 	},
 	access,
 	clock,
@@ -189,8 +201,8 @@ const planning = createPlanning({
 const roadmap = createRoadmap({
 	milestones: milestoneStore,
 	decisions: drizzleDecisions(db),
-	hypotheses: drizzleHypotheses(db),
-	metrics: drizzleMetrics(db),
+	hypotheses: hypothesisStore,
+	metrics: metricStore,
 	readings: drizzleReadings(db),
 	releases: drizzleReleases(db),
 	tasks: {
@@ -222,6 +234,48 @@ const roadmap = createRoadmap({
 	newId: () => crypto.randomUUID()
 });
 
+const framing = createFraming({
+	stores: framingStores,
+	feeds: {
+		initiatives: feedFor(hub, 'initiatives', byProject),
+		epics: feedFor(hub, 'epics', byProject),
+		stories: feedFor(hub, 'stories', byProject),
+		stakeholders: feedFor(hub, 'stakeholders', byProject),
+		journeys: feedFor(hub, 'journeys', byProject),
+		terms: feedFor(hub, 'terms', byProject),
+		swot: feedFor(hub, 'swot', byProject),
+		strategies: feedFor(hub, 'strategies', byProject)
+	},
+	nextStoryNumber: drizzleStoryNumbers(db),
+	tasks: {
+		ofProject: (projectId) => taskRepository.ofProjects([projectId]),
+		get: tasks.get,
+		update: tasks.update
+	},
+	neighbours: {
+		async projectOf(kind, id) {
+			const item =
+				kind === 'metric'
+					? await metricStore.get(id)
+					: kind === 'hypothesis'
+						? await hypothesisStore.get(id)
+						: await componentRepository.get(id);
+			return item?.projectId ?? null;
+		},
+		createHypothesis: (projectId, text, actorId) =>
+			roadmap.createHypothesis({ id: crypto.randomUUID(), projectId, text }, actorId),
+		decide: async (projectId, text, why, actorId) =>
+			void (await roadmap.recordDecision(
+				{ id: crypto.randomUUID(), projectId, text, why },
+				actorId,
+				'scope'
+			))
+	},
+	access,
+	clock,
+	newId: () => crypto.randomUUID()
+});
+
 export const container = {
 	identity,
 	projects,
@@ -231,6 +285,7 @@ export const container = {
 	vault,
 	planning,
 	roadmap,
+	framing,
 	activity,
 	access,
 	hub

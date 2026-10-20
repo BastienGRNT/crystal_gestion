@@ -8,3 +8,4 @@ export * from '../../modules/vault/infrastructure/schema';
 export * from '../../modules/planning/infrastructure/schema';
 export * from '../../modules/activity/infrastructure/schema';
 export * from '../../modules/roadmap/infrastructure/schema';
+export * from '../../modules/framing/infrastructure/schema';

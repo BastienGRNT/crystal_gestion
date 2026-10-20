@@ -146,3 +146,55 @@
 	scrollbar-width: thin;
 	scrollbar-color: var(--line-strong) transparent;
 }
+
+/* The text editor looks like the text once saved (RichText): no Markdown sign ever shows. */
+.prose-editor {
+	outline: none;
+	min-height: 6.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	overflow-wrap: anywhere;
+}
+.prose-editor h1 {
+	@apply mt-2 text-lg font-semibold tracking-tight first:mt-0;
+}
+.prose-editor h2,
+.prose-editor h3 {
+	@apply mt-1 font-semibold tracking-tight first:mt-0;
+}
+.prose-editor h3 {
+	@apply text-ink-2;
+}
+.prose-editor ul,
+.prose-editor ol {
+	@apply flex flex-col gap-0.5 pl-5;
+}
+.prose-editor ul {
+	@apply list-disc;
+}
+.prose-editor ol {
+	@apply list-decimal;
+}
+.prose-editor li::marker {
+	color: var(--ink-3);
+}
+.prose-editor blockquote {
+	@apply border-l-[3px] border-line-strong pl-3 text-ink-2;
+}
+.prose-editor a {
+	@apply text-accent-text underline decoration-accent/30 underline-offset-2;
+}
+.prose-editor strong {
+	@apply font-semibold;
+}
+/* The hint of an empty field, from its placeholder. */
+.prose-editor:has(> p:only-child > br.ProseMirror-trailingBreak:only-child)::before {
+	content: attr(data-placeholder);
+	color: var(--ink-4);
+	position: absolute;
+	pointer-events: none;
+}
+.prose-editor {
+	position: relative;
+}

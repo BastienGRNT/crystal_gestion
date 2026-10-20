@@ -32,6 +32,8 @@ const project = (id: string, patch: Partial<Project> = {}): Project => ({
 	deadline: null,
 	weekGoal: '',
 	brief: '',
+	techSpec: '',
+	kind: 'product',
 	soldDays: null,
 	shipChecklist: [],
 	archivedAt: null,

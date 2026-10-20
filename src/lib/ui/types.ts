@@ -47,3 +47,6 @@ export interface TemplateOption<K extends string = string> {
 	/** Its steps' names, in order. */
 	steps: string[];
 }
+
+/** A button of the text editor's toolbar. */
+export type TextFormat = 'bold' | 'italic' | 'h1' | 'h2' | 'bullet' | 'number' | 'quote' | 'link';

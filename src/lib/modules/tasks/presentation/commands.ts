@@ -21,6 +21,9 @@ const editable = {
 	dueDate: dateKey.nullable(),
 	milestoneId: id.nullable(),
 	componentId: id.nullable(),
+	storyId: id.nullable(),
+	epicId: id.nullable(),
+	outsideProduct: z.boolean(),
 	position: z.number().finite()
 };
 
@@ -42,9 +45,13 @@ export const taskCommands = (tasks: Tasks) => ({
 				dueDate: dateKey.nullable(),
 				milestoneId: id.nullable(),
 				componentId: id.nullable(),
+				storyId: id.nullable(),
+				epicId: id.nullable(),
 				position: z.number().finite()
 			})
 			.partial({
+				storyId: true,
+				epicId: true,
 				notes: true,
 				status: true,
 				kind: true,
@@ -70,7 +77,13 @@ export const taskCommands = (tasks: Tasks) => ({
 	),
 	'tasks.delete': command(z.object({ id }), ({ userId }, input) => tasks.delete(input.id, userId)),
 	'components.create': command(
-		z.object({ id, projectId: id, name: z.string(), color: z.number().int().optional() }),
+		z.object({
+			id,
+			projectId: id,
+			name: z.string(),
+			color: z.number().int().optional(),
+			parentId: id.nullable().optional()
+		}),
 		({ userId }, input) => tasks.createComponent(input, userId)
 	),
 	'components.update': command(
@@ -78,6 +91,8 @@ export const taskCommands = (tasks: Tasks) => ({
 			.object({
 				id,
 				name: z.string(),
+				description: z.string(),
+				parentId: id.nullable(),
 				color: z.number().int(),
 				position: z.number().finite(),
 				archived: z.boolean()

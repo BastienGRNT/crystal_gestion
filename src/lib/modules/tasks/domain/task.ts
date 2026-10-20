@@ -52,6 +52,12 @@ export interface Task {
 	componentId: string | null;
 	/** The version it shipped in. Set by shipping, cleared when the task is reopened. */
 	releaseId: string | null;
+	/** The user story it builds, in the functional spec. Its epic is then the story's. */
+	storyId: string | null;
+	/** The epic it serves, for a task without a story. */
+	epicId: string | null;
+	/** A feature that is not part of the product (an internal setting…): never "à ranger". */
+	outsideProduct: boolean;
 	/** Fractional order shared by the board columns and the matrix boxes. */
 	position: number;
 	createdBy: string;
@@ -82,6 +88,9 @@ export type TaskPatch = Partial<
 		| 'milestoneId'
 		| 'componentId'
 		| 'releaseId'
+		| 'storyId'
+		| 'epicId'
+		| 'outsideProduct'
 		| 'position'
 	>
 >;
@@ -137,6 +146,9 @@ function clean(patch: TaskPatch): TaskPatch {
 
 const STARTED: TaskStatus[] = ['doing', 'review', 'done'];
 
+/** A task with a story belongs to the story's epic: the link is never stored twice. */
+const framed = (task: Task): Task => (task.storyId ? { ...task, epicId: null } : task);
+
 /** Only a bug can block; a bug that starts blocking goes straight to "Maintenant". */
 function urgency(task: Task, wasCritical = false): Task {
 	if (task.kind !== 'bug') return { ...task, critical: false };
@@ -149,7 +161,10 @@ function urgency(task: Task, wasCritical = false): Task {
  * knows who did what), and a finished task is no longer blocked.
  */
 export function applyPatch(task: Task, patch: TaskPatch, actorId: string, now: Date): Task {
-	const next = urgency({ ...task, ...clean(patch), updatedAt: now.toISOString() }, task.critical);
+	const next = urgency(
+		framed({ ...task, ...clean(patch), updatedAt: now.toISOString() }),
+		task.critical
+	);
 	if (patch.status === undefined || patch.status === task.status) return next;
 	next.statusChangedAt = now.toISOString();
 	if (STARTED.includes(patch.status)) next.startedAt ??= now.toISOString();
@@ -178,39 +193,46 @@ export interface NewTaskInput {
 	checklist?: ChecklistItem[];
 	milestoneId?: string | null;
 	componentId?: string | null;
+	storyId?: string | null;
+	epicId?: string | null;
 	position: number;
 }
 
 export function newTask(input: NewTaskInput, actorId: string, now: Date): Task {
 	const status = input.status ?? 'todo';
 	const at = now.toISOString();
-	return urgency({
-		id: input.id,
-		projectId: input.projectId,
-		number: input.number,
-		title: validTitle(input.title),
-		notes: validNotes(input.notes ?? ''),
-		status,
-		kind: input.kind ?? 'feature',
-		critical: input.critical ?? false,
-		reportedBy: validReportedBy(input.reportedBy ?? null),
-		quadrant: input.quadrant ?? null,
-		assigneeId: input.assigneeId ?? (status === 'doing' || status === 'done' ? actorId : null),
-		reviewerId: null,
-		blockedReason: null,
-		checklist: validChecklist(input.checklist ?? []),
-		dueDate: validDueDate(input.dueDate ?? null),
-		milestoneId: input.milestoneId ?? null,
-		componentId: input.componentId ?? null,
-		releaseId: null,
-		position: input.position,
-		createdBy: actorId,
-		createdAt: at,
-		updatedAt: at,
-		statusChangedAt: at,
-		startedAt: STARTED.includes(status) ? at : null,
-		completedAt: status === 'done' ? at : null
-	});
+	return urgency(
+		framed({
+			id: input.id,
+			projectId: input.projectId,
+			number: input.number,
+			title: validTitle(input.title),
+			notes: validNotes(input.notes ?? ''),
+			status,
+			kind: input.kind ?? 'feature',
+			critical: input.critical ?? false,
+			reportedBy: validReportedBy(input.reportedBy ?? null),
+			quadrant: input.quadrant ?? null,
+			assigneeId: input.assigneeId ?? (status === 'doing' || status === 'done' ? actorId : null),
+			reviewerId: null,
+			blockedReason: null,
+			checklist: validChecklist(input.checklist ?? []),
+			dueDate: validDueDate(input.dueDate ?? null),
+			milestoneId: input.milestoneId ?? null,
+			componentId: input.componentId ?? null,
+			releaseId: null,
+			storyId: input.storyId ?? null,
+			epicId: input.epicId ?? null,
+			outsideProduct: false,
+			position: input.position,
+			createdBy: actorId,
+			createdAt: at,
+			updatedAt: at,
+			statusChangedAt: at,
+			startedAt: STARTED.includes(status) ? at : null,
+			completedAt: status === 'done' ? at : null
+		})
+	);
 }
 
 /** In a two-person team, review goes to the other one without asking. */

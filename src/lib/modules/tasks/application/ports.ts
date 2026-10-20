@@ -28,6 +28,12 @@ export interface MilestoneLookup {
 	current(projectId: string): Promise<string | null>;
 }
 
+/** The stories and epics of the framing, as far as a task needs to know them. */
+export interface FramingLookup {
+	story(id: string): Promise<{ projectId: string } | null>;
+	epic(id: string): Promise<{ projectId: string } | null>;
+}
+
 export interface ComponentRepository {
 	ofProjects(projectIds: string[]): Promise<Component[]>;
 	ofProject(projectId: string): Promise<Component[]>;
@@ -41,6 +47,7 @@ export interface TaskDeps {
 	components: ComponentRepository;
 	componentFeed: ChangeFeed<Component>;
 	milestones: MilestoneLookup;
+	framing: FramingLookup;
 	access: Access;
 	clock: Clock;
 	feed: ChangeFeed<Task>;

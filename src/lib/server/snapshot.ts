@@ -5,8 +5,19 @@ import { container } from './container';
  * the realtime feed keeps it fresh. Small teams produce little data: navigation never waits.
  */
 export async function loadSnapshot(userId: string) {
-	const { identity, projects, tasks, chat, files, vault, planning, roadmap, activity, hub } =
-		container;
+	const {
+		identity,
+		projects,
+		tasks,
+		chat,
+		files,
+		vault,
+		planning,
+		roadmap,
+		framing,
+		activity,
+		hub
+	} = container;
 	const { projects: projectList, members } = await projects.of(userId);
 	const ids = projectList.map((p) => p.id);
 	const people = [...new Set([userId, ...members.map((m) => m.userId)])];
@@ -30,7 +41,8 @@ export async function loadSnapshot(userId: string) {
 		readings,
 		metrics,
 		releases,
-		components
+		components,
+		framed
 	] = await Promise.all([
 		identity.listByIds(people),
 		tasks.ofProjects(ids),
@@ -51,7 +63,8 @@ export async function loadSnapshot(userId: string) {
 		roadmap.readingsOf(ids),
 		roadmap.metricsOf(ids),
 		roadmap.releasesOf(ids),
-		tasks.componentsOf(ids)
+		tasks.componentsOf(ids),
+		framing.of(ids)
 	]);
 	return {
 		meId: userId,
@@ -78,7 +91,8 @@ export async function loadSnapshot(userId: string) {
 		readings,
 		metrics,
 		releases,
-		components
+		components,
+		...framed
 	};
 }
 

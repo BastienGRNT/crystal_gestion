@@ -60,7 +60,8 @@ export const roadmapCommands = (roadmap: Roadmap) => ({
 			taskId: id.nullable().optional(),
 			milestoneId: id.nullable().optional(),
 			hypothesisId: id.nullable().optional(),
-			supersedes: id.nullable().optional()
+			supersedes: id.nullable().optional(),
+			source: z.enum(['manual', 'ai']).optional()
 		}),
 		({ userId }, input) => roadmap.createDecision(input, userId)
 	),

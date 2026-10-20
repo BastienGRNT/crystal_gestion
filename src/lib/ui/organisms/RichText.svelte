@@ -29,7 +29,7 @@
 			/>{:else if piece.type === 'code'}<code
 				class="rounded-md bg-sunken px-1.5 py-0.5 font-mono text-[0.86em]">{piece.text}</code
 			>{:else if piece.type === 'bold'}<strong class="font-semibold">{piece.text}</strong
-			>{:else if piece.type === 'link'}<a
+			>{:else if piece.type === 'italic'}<em>{piece.text}</em>{:else if piece.type === 'link'}<a
 				href={piece.href}
 				target="_blank"
 				rel="noopener noreferrer"

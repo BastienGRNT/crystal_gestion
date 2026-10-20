@@ -26,6 +26,7 @@ function setup() {
 	]);
 	const tasks = createTasks({
 		milestones: { get: async (id) => steps.get(id) ?? null, current: async () => 'm2' },
+		framing: { story: async () => null, epic: async () => null },
 		clock: new FixedClock(),
 		feed,
 		activity,

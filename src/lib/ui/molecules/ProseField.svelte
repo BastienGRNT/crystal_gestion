@@ -1,16 +1,15 @@
 <script lang="ts">
+	import type { Editor } from '@tiptap/core';
 	import { onMount, tick } from 'svelte';
 	import {
-		continueList,
-		currentFormat,
-		insertLink,
-		toggleBold,
-		toggleLines,
-		type Edit,
-		type LineFormat
-	} from '$lib/client/markdown-edit';
-	import TextArea from '../atoms/TextArea.svelte';
+		activeFormats,
+		createTextEditor,
+		markdownOf,
+		setLink,
+		toggleFormat
+	} from '$lib/client/text-editor';
 	import RichText from '../organisms/RichText.svelte';
+	import type { TextFormat } from '../types';
 	import MarkdownToolbar from './MarkdownToolbar.svelte';
 
 	interface Props {
@@ -39,110 +38,124 @@
 		startEditing = false
 	}: Props = $props();
 	let editing = $state(false);
-	let draft = $state('');
-	let input = $state<HTMLTextAreaElement>();
+	let editor: Editor | null = null;
+	let active = $state(new Set<TextFormat>());
+	let tooLong = $state(false);
+	let linking = $state(false);
+	let address = $state('');
+	let addressInput = $state<HTMLInputElement>();
 
 	async function edit(event?: MouseEvent) {
 		// A link inside the text opens the link, not the editor.
 		if ((event?.target as HTMLElement | undefined)?.closest('a, button')) return;
-		draft = value;
 		editing = true;
-		await tick();
-		input?.focus();
-		input?.setSelectionRange(draft.length, draft.length);
 	}
 
 	onMount(() => {
-		if (startEditing) void edit();
+		if (startEditing) editing = true;
 	});
 
-	function save() {
+	/** Mounts the editor where the text was, cursor at the end. */
+	function mount(element: HTMLElement) {
+		const instance = createTextEditor({
+			element,
+			markdown: value,
+			placeholder,
+			label,
+			onchange: () => {
+				active = activeFormats(instance);
+				tooLong = instance.getText().length > maxlength;
+			}
+		});
+		editor = instance;
+		instance.commands.focus('end');
+		return () => {
+			instance.destroy();
+			if (editor === instance) editor = null;
+		};
+	}
+
+	function close(keep: boolean) {
+		const text = editor ? markdownOf(editor) : value;
 		editing = false;
-		if (draft.trim() !== value.trim()) onsave(draft.trim());
+		linking = false;
+		if (keep && !tooLong && text !== value.trim()) onsave(text);
 	}
 
-	let current = $state<LineFormat | null>(null);
-	const selection = (el: HTMLTextAreaElement): Edit => ({
-		text: el.value,
-		start: el.selectionStart,
-		end: el.selectionEnd
-	});
-	const follow = () => {
-		if (input) current = currentFormat(selection(input));
-	};
-
-	/**
-	 * Writes only the part that changed, as typing would: Ctrl+Z undoes a button like a keystroke.
-	 */
-	function apply(change: (edit: Edit) => Edit | null) {
-		if (!input) return false;
-		const before = input.value;
-		const next = change(selection(input));
-		if (!next) return false;
-		let head = 0;
-		while (head < before.length && before[head] === next.text[head]) head++;
-		let tail = 0;
-		while (
-			tail < before.length - head &&
-			tail < next.text.length - head &&
-			before.at(-1 - tail) === next.text.at(-1 - tail)
-		)
-			tail++;
-		input.focus();
-		input.setSelectionRange(head, before.length - tail);
-		const inserted = next.text.slice(head, next.text.length - tail);
-		const typed = document.execCommand(inserted ? 'insertText' : 'delete', false, inserted);
-		if (!typed || input.value !== next.text) input.value = next.text;
-		draft = next.text;
-		input.setSelectionRange(next.start, next.end);
-		follow();
-		return true;
+	async function format(which: TextFormat) {
+		if (!editor) return;
+		if (which !== 'link') return toggleFormat(editor, which);
+		address = editor.getAttributes('link').href ?? '';
+		linking = true;
+		await tick();
+		addressInput?.focus();
 	}
 
-	function keydown(e: KeyboardEvent & { currentTarget: HTMLTextAreaElement }) {
+	function applyLink() {
+		if (editor) setLink(editor, address);
+		linking = false;
+	}
+
+	function keydown(e: KeyboardEvent) {
 		const mod = e.metaKey || e.ctrlKey;
-		if (e.key === 'Escape') {
-			draft = value;
-			e.currentTarget.blur();
-		} else if (e.key === 'Enter' && mod) e.currentTarget.blur();
-		else if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
-			if (apply(continueList)) e.preventDefault();
-		} else if (mod && e.key.toLowerCase() === 'b') {
+		if (e.key === 'Escape' && !linking) {
 			e.preventDefault();
-			apply(toggleBold);
+			close(false);
+		} else if (e.key === 'Enter' && mod) {
+			e.preventDefault();
+			close(true);
+		} else if (mod && e.key.toLowerCase() === 'k') {
+			e.preventDefault();
+			void format('link');
 		}
 	}
 
 	/** Leaving the field saves; moving between the text and its toolbar does not. */
 	function focusout(e: FocusEvent & { currentTarget: HTMLElement }) {
-		if (!e.currentTarget.contains(e.relatedTarget as Node | null)) save();
+		if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close(true);
 	}
 </script>
 
 <div class="flex flex-col gap-1">
 	{#if showLabel}<span class="text-sm font-semibold text-ink-2">{label}</span>{/if}
 	{#if editing}
-		<div class="flex flex-col gap-1" onfocusout={focusout}>
-			<MarkdownToolbar
-				{current}
-				onbold={() => apply(toggleBold)}
-				onlink={() => apply(insertLink)}
-				onformat={(format) => apply((edit) => toggleLines(edit, format))}
-			/>
-			<TextArea
-				bind:element={input}
-				bind:value={draft}
-				aria-label={label}
-				{maxlength}
-				{placeholder}
-				rows={5}
-				maxHeight={520}
-				onkeydown={keydown}
-				onkeyup={follow}
-				onclick={follow}
-				onfocus={follow}
-			/>
-			<p class="text-xs text-ink-3">Ctrl+Entrée ou clic ailleurs pour enregistrer · Échap annule</p>
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="flex flex-col gap-1" onfocusout={focusout} onkeydown={keydown}>
+			<MarkdownToolbar {active} onformat={format} />
+			{#if linking}
+				<div class="flex items-center gap-2">
+					<input
+						bind:this={addressInput}
+						bind:value={address}
+						aria-label="Adresse du lien"
+						placeholder="https://… (vide pour retirer le lien)"
+						class="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-surface px-3 text-sm focus:border-accent focus:outline-none"
+						onkeydown={(e) => {
+							if (e.key === 'Enter') {
+								e.preventDefault();
+								applyLink();
+							} else if (e.key === 'Escape') {
+								e.preventDefault();
+								linking = false;
+								editor?.commands.focus();
+							}
+						}}
+					/>
+				</div>
+			{/if}
+			<div
+				{@attach mount}
+				class={[
+					'prose-field max-h-[520px] scrollbar-thin overflow-y-auto rounded-xl border bg-surface px-3 py-2 leading-relaxed text-ink',
+					tooLong ? 'border-danger' : 'border-line-strong focus-within:border-accent',
+					size === 'md' ? 'text-md' : 'text-base'
+				]}
+			></div>
+			<p class={['text-xs', tooLong ? 'text-danger-text' : 'text-ink-3']}>
+				{tooLong
+					? `Trop long : ${maxlength} caractères au plus.`
+					: 'Ctrl+Entrée ou clic ailleurs pour enregistrer · Échap annule'}
+			</p>
 		</div>
 	{:else}
 		<div

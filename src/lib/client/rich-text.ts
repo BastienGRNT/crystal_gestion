@@ -7,6 +7,7 @@ export type Inline =
 	| { type: 'break' }
 	| { type: 'code'; text: string }
 	| { type: 'bold'; text: string }
+	| { type: 'italic'; text: string }
 	| { type: 'link'; href: string; text: string }
 	| { type: 'mention'; userId: string }
 	| { type: 'task'; number: number };
@@ -18,24 +19,53 @@ export type Block =
 	| { type: 'quote'; inlines: Inline[] }
 	| { type: 'code'; lang: string; text: string };
 
-const INLINE =
-	/(`[^`\n]+`)|(<@[0-9a-f-]{36}>)|(https?:\/\/[^\s<>]*[^\s<>.,;:!?)\]'"»])|(\*\*[^*\n]+\*\*)|((?:^|(?<=[\s(]))#\d{1,6}\b)/g;
+const INLINE = new RegExp(
+	[
+		/(`[^`\n]+`)/,
+		/(<@[0-9a-f-]{36}>)/,
+		// `[texte](https://…)`, as the text editor writes links.
+		/(\[[^\]\n]+\]\(https?:\/\/[^\s)]+\))/,
+		/(https?:\/\/[^\s<>]*[^\s<>.,;:!?)\]'"»])/,
+		/(\*\*[^*\n]+\*\*)/,
+		/((?<![*\w])\*(?![\s*])[^*\n]+?(?<!\s)\*(?!\*))/,
+		/((?:^|(?<=[\s(]))#\d{1,6}\b)/,
+		// The editor escapes the characters Markdown would read: `3 \* 4`, `snake\_case`.
+		/(\\[\\`*_{}[\]()#+\-.!>~|])/
+	]
+		.map((r) => r.source)
+		.join('|'),
+	'g'
+);
+
+const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
+
+function linkOf(markdown: string): Inline {
+	const [, text, href] = markdown.match(/^\[([^\]]+)\]\((.+)\)$/)!;
+	return { type: 'link', href, text: text === href ? shortUrl(href) : text };
+}
 
 export function parseInline(text: string): Inline[] {
 	const out: Inline[] = [];
 	let last = 0;
+	const push = (piece: Inline) => {
+		const prev = out.at(-1);
+		if (piece.type === 'text' && prev?.type === 'text') prev.text += piece.text;
+		else out.push(piece);
+	};
 	for (const match of text.matchAll(INLINE)) {
-		const [token, code, mention, url, bold, task] = match;
-		if (match.index > last) out.push({ type: 'text', text: text.slice(last, match.index) });
-		if (code) out.push({ type: 'code', text: code.slice(1, -1) });
-		else if (mention) out.push({ type: 'mention', userId: mention.slice(2, -1) });
-		else if (url)
-			out.push({ type: 'link', href: url, text: url.replace(/^https?:\/\/(www\.)?/, '') });
-		else if (bold) out.push({ type: 'bold', text: bold.slice(2, -2) });
-		else if (task) out.push({ type: 'task', number: Number(task.slice(1)) });
+		const [token, code, mention, mdLink, url, bold, italic, task, escaped] = match;
+		if (match.index > last) push({ type: 'text', text: text.slice(last, match.index) });
+		if (code) push({ type: 'code', text: code.slice(1, -1) });
+		else if (mention) push({ type: 'mention', userId: mention.slice(2, -1) });
+		else if (mdLink) push(linkOf(mdLink));
+		else if (url) push({ type: 'link', href: url, text: shortUrl(url) });
+		else if (bold) push({ type: 'bold', text: bold.slice(2, -2) });
+		else if (italic) push({ type: 'italic', text: italic.slice(1, -1) });
+		else if (task) push({ type: 'task', number: Number(task.slice(1)) });
+		else if (escaped) push({ type: 'text', text: escaped.slice(1) });
 		last = match.index + token.length;
 	}
-	if (last < text.length) out.push({ type: 'text', text: text.slice(last) });
+	if (last < text.length) push({ type: 'text', text: text.slice(last) });
 	return out;
 }
 
