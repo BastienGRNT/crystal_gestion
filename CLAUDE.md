@@ -25,8 +25,11 @@ Reset de la base : `docker compose down -v && npm run db:start && npm run db:mig
 `src/lib/modules/<module>/` : `domain/` (pur, isomorphe, testé) → `application/` (cas d'usage + `ports.ts`)
 → `infrastructure/` (Drizzle, disque, chiffrement) → `presentation/commands.ts` (schémas zod → cas d'usage) → `index.ts` (fabrique).
 
-Modules : `identity` (comptes, sessions, statut), `projects` (projets, membres, invitations, **accès**, cap), `tasks`
-(tâches, types, modules du produit = `components`),
+Modules : `identity` (comptes, sessions, statut), `projects` (projets, membres, invitations, **accès**, type, note de
+cadrage `brief` en QQOQCCP, cahier des charges technique `techSpec`), `tasks`
+(tâches, types, modules du produit = `components` sur deux niveaux, story / epic d'une tâche),
+`framing` (initiatives, epics, user stories et critères, parties prenantes et personas, parcours, glossaire, SWOT,
+stratégies TOWS), `assistant` (chef de projet IA : liste blanche d'ops, contexte, quota, cache, adaptateur Anthropic),
 `chat` (canaux, messages, fils de commentaires des tâches), `files` (documents, dossiers), `vault`, `planning`
 (dispos, blocs de travail, calculs de l'agenda), `roadmap` (étapes, décisions, hypothèses, chiffres `metrics`, versions `releases`, modèles),
 `activity` (activité, notifications), `kernel` (erreurs, dates, ports).
@@ -61,7 +64,8 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
 - Toute action passe par `actions.*` : optimiste (`settle()` puis la réponse serveur fait foi). Suppressions :
   `deleteWithUndo` (retrait immédiat, « Annuler » 6 s, envoi à l'expiration).
 - Comptes : `/login`, `/inscription` (libre : on ne voit que les projets créés ou rejoints), `/invite/[token]`.
-- Routes : `/` (Ma journée, tous projets), `/p/[slug]` (accueil), `/feuille-de-route`, `/tableau`, `/priorites`,
+- Routes : `/` (Ma journée, tous projets), `/p/[slug]` (accueil), `/demarrer` (après la création), `/cadrage`
+  (« Comprendre le projet » : note de cadrage, `/fonctionnel`, `/technique`), `/feuille-de-route`, `/tableau`, `/priorites`,
   `/indicateurs`, `/versions` (mises en prod), `/discussion/[channel]`, `/planning`, `/documents`, `/acces`, `/equipe` ;
   `/projets`, `/compte`. Fiche tâche : `?tache=<id>` sur n'importe quelle page du projet.
 - Mise en page : `PageHeader` (titre, phrase qui dit à quoi sert la page, boutons) puis le contenu.
@@ -77,16 +81,23 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
   Règle : **rien n'apparaît, ne disparaît ni ne change de taille pendant un glisser** (pas de `{#if dnd.active}`).
 - Agenda : `ui/organisms/agenda/*` (grille, gestes) + `connected/planning/*` (données, commandes).
 - Texte : un champ d'une ligne valide à Entrée ; un texte long (cap, notes, « fini quand », pourquoi) va à la ligne à
-  Entrée et s'enregistre à Ctrl+Entrée ou en sortant. Édition sur place : `EditableText` (une ligne) et `ProseField`
-  (texte mis en forme, affiché par `RichText` : `#`/`##`, listes, `**gras**`, liens ; barre d’outils au focus,
-  logique pure dans `client/markdown-edit.ts`). Pas de menu « … → Modifier ».
+  Entrée et s'enregistre à Ctrl+Entrée ou en sortant. Édition sur place : `EditableText` (une ligne, `allowEmpty` pour
+  un texte facultatif) et `ProseField` (éditeur visuel Tiptap, `client/text-editor.ts` : on ne voit jamais `**` ;
+  stocké en Markdown, affiché par `RichText` qui lit aussi l'italique, `[texte](lien)` et les échappements `\*`).
+  Pas de menu « … → Modifier ».
 - Types de tâches : `KINDS` (`client/labels.ts`) ; saisie rapide `quick-entry.ts` (préfixes `bug!:`, `+module`, `@`,
-  date) ; filtre type / module `connected/tasks/kind-filter.svelte.ts`. Rythme et prévisions : `isPlanned` (feature + tech).
+  `^epic` ou `^us-7`, date) ; filtre type / module `connected/tasks/kind-filter.svelte.ts`. Rythme et prévisions : `isPlanned` (feature + tech).
 - Lectures qui croisent plusieurs modules (rattrapage, questions, prévisions, prochain point, compte rendu, prévision
   par étape, bilan d'étape, chiffres et rythme `metrics.ts`, semaine du planning `week-plan.ts`, Ma journée `today.ts`) : fonctions pures dans `client/views/*`, testées là.
 - Feuille de route : rien ne s'y saisit qui pourrait se calculer (avancement, date prévue, retard, étape en cours).
   Tout nouvel élément doit remonter ailleurs (accueil, fiche, compte rendu, prochain point), sinon il est mort.
   Filtre d'étape du tableau et de la matrice : `connected/tasks/step-filter.svelte.ts` (ne cache jamais en cours / revue).
+- Cadrage : une **référence**, jamais un passage obligé. Une tâche vit sans epic ni story ; les fonctionnalités non
+  rattachées vont dans « À ranger » (`toSort`). Les documents (note de cadrage, cahiers des charges) sont des vues
+  calculées depuis les objets (`client/views/framing.ts`, export Markdown). Au plus 5 trous signalés (`framingGaps`).
+- Chef de projet IA : bouton `connected/assistant/AskPm.svelte` (action de `assistant/domain/actions.ts`), panneau
+  pur `ProposalPanel`. Il propose des ops de la liste blanche (`assistant/domain/ops.ts`) ; elles s'appliquent côté
+  client par les `actions.*` (`client/actions/assistant.ts`). Aucun appel sans clic, jamais dans un `$effect`.
 
 ## Conventions
 
@@ -113,6 +124,11 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
   mes projets. Côté client, passer par `app.putMessage` / `app.dropMessage`, jamais `app.messages.upsert` seul.
 - Derrière Nginx Proxy Manager : `hooks.server.ts` retire l'en-tête `Link` des pages (≈ 4 Ko → 502 sinon), et
   l'hôte proxy doit avoir « Websockets Support » activé (sinon bandeau « Connexion perdue » permanent).
+- Ajouter une op à l'assistant : schéma dans `ops.ts`, champs dans `prompt.ts` (`OP_FIELDS`), application dans
+  `client/actions/assistant.ts`, libellé dans `client/views/proposal.ts`, puis l'autoriser dans l'action voulue.
+  Sans `ANTHROPIC_API_KEY`, les boutons n'apparaissent pas.
+- Liens du cadrage (tâche → story / epic, epic → initiative…) sans clé étrangère : le module `framing` détache avant
+  de supprimer, comme `roadmap`.
 - Postgres écoute sur 55432. Prod : `ORIGIN` = URL publique, `APP_SECRET` obligatoire (ne plus la changer ensuite).
 - Prod Docker (`docker-compose.prod.yml`) : les migrations passent par `migrate.js` (pas de `drizzle-kit` dans l'image),
   d'où `drizzle-orm` et `postgres` en `dependencies`. Tout paquet requis à l'exécution hors `build/` va aussi là.

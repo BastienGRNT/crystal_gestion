@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '$lib/connected/assistant/AskPm.svelte';
 	import { useApp } from '$lib/client/context';
 	import { scopeOf, toSort } from '$lib/client/views/framing';
 	import EpicBoard from '$lib/connected/framing/EpicBoard.svelte';
@@ -47,6 +48,7 @@
 				title="À ranger"
 				intro="Les fonctionnalités ajoutées au tableau sans epic ni story. Range-les quand tu veux : rien ne bloque en attendant."
 			>
+				{#snippet aside()}<AskPm projectId={project.id} action="sortLoose" />{/snippet}
 				<ToSortList {project} />
 			</DocSection>
 		{/if}
@@ -118,6 +120,7 @@
 			title="5. Epics et user stories"
 			intro="Initiative → epic → story, chacune avec ses critères d’acceptation. L’avancement se calcule depuis les tâches."
 		>
+			{#snippet aside()}<AskPm projectId={project.id} action="draftSpec" />{/snippet}
 			<EpicBoard {project} />
 		</DocSection>
 

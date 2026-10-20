@@ -11,6 +11,9 @@ import { drizzleMessages } from '$lib/modules/chat/infrastructure/message-reposi
 import { createFiles } from '$lib/modules/files';
 import { diskStorage } from '$lib/modules/files/infrastructure/disk-storage';
 import { drizzleFiles, drizzleFolders } from '$lib/modules/files/infrastructure/file-repository';
+import { createAssistant } from '$lib/modules/assistant';
+import { anthropicClient } from '$lib/modules/assistant/infrastructure/anthropic';
+import { drizzleUsage } from '$lib/modules/assistant/infrastructure/usage-repository';
 import { createFraming } from '$lib/modules/framing';
 import {
 	drizzleFramingStores,
@@ -20,6 +23,7 @@ import { createIdentity } from '$lib/modules/identity';
 import { randomTokens, scryptHasher } from '$lib/modules/identity/infrastructure/crypto';
 import { drizzleSessions, drizzleUsers } from '$lib/modules/identity/infrastructure/repositories';
 import { systemClock as clock } from '$lib/modules/kernel/application/ports';
+import { notFound } from '$lib/modules/kernel/domain/errors';
 import { createPlanning } from '$lib/modules/planning';
 import { drizzleBlocks, drizzleSlots } from '$lib/modules/planning/infrastructure/repositories';
 import { createProjects } from '$lib/modules/projects';
@@ -276,6 +280,60 @@ const framing = createFraming({
 	newId: () => crypto.randomUUID()
 });
 
+const assistant = createAssistant({
+	llm: anthropicClient(config.anthropicKey),
+	usage: drizzleUsage(db),
+	// Reads through the modules (access checked by each): never the vault.
+	reader: {
+		async read(projectId, target, actorId) {
+			const { projects: list, members: team } = await projects.of(actorId);
+			const project = list.find((p) => p.id === projectId);
+			if (!project) throw notFound('Projet');
+			const ids = [projectId];
+			const [people, tasks2, milestones, decisions, hypotheses, metrics, components, framed] =
+				await Promise.all([
+					identity.listByIds(team.filter((m) => m.projectId === projectId).map((m) => m.userId)),
+					tasks.ofProjects(ids),
+					roadmap.milestonesOf(ids),
+					roadmap.decisionsOf(ids),
+					roadmap.hypothesesOf(ids),
+					roadmap.metricsOf(ids),
+					tasks.componentsOf(ids),
+					framing.of(ids)
+				]);
+			let messages: { id: string; author: string; body: string; at: string }[] | undefined;
+			if (target.kind === 'channel' && target.id) {
+				const page = await chat.messages(target.id, null, 40, actorId);
+				if (page.some((m) => m.projectId !== projectId)) throw notFound('Discussion');
+				const names = new Map(people.map((u) => [u.id, u.name.split(' ')[0]]));
+				messages = page.map((m) => ({
+					id: m.id,
+					author: names.get(m.authorId) ?? 'quelqu’un',
+					body: m.body,
+					at: m.createdAt
+				}));
+			}
+			return {
+				project,
+				today: new Date().toISOString().slice(0, 10),
+				members: people.map((u) => ({ id: u.id, name: u.name })),
+				milestones,
+				tasks: tasks2,
+				decisions,
+				hypotheses,
+				metrics,
+				components,
+				...framed,
+				messages
+			};
+		}
+	},
+	access,
+	clock,
+	quota: config.aiQuota(),
+	newId: () => crypto.randomUUID()
+});
+
 export const container = {
 	identity,
 	projects,
@@ -286,6 +344,7 @@ export const container = {
 	planning,
 	roadmap,
 	framing,
+	assistant,
 	activity,
 	access,
 	hub

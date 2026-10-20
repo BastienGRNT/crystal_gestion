@@ -18,7 +18,7 @@
 	/** "Créneau : une plage libre de l'agenda" gives the term and its definition at once. */
 	function add(text: string) {
 		const [term, ...rest] = text.split(/\s*:\s*/);
-		return actions.framing.addTerm(project.id, term, rest.join(' : '));
+		return actions.framing.addTerm(project.id, term, rest.join(' : ')) !== null;
 	}
 </script>
 

@@ -41,12 +41,12 @@ dans l'ordre de la matrice puis de l'échéance) avec un bouton « Je m'y mets �
 Une page, `/feuille-de-route`, réunit tout ce qui n'est pas l'exécution du jour ; chaque élément remonte là où on
 travaille déjà (accueil, tableau, fiche tâche, discussion, compte rendu, rattrapage, recherche).
 
-| Outil     | Remplace                                                      | Ce qui se fait tout seul                                                       |
-| --------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Modèles   | Phases types, checklists de mise en ligne et de lancement     | Étapes datées au prorata jusqu'à la livraison (vendredis), tâches types, canal |
-| Étapes    | WBS, PBS, jalons, phases, Now/Next/Later, Gantt, burn-up      | Avancement, date prévue au rythme réel, retard, étape en cours, bilan          |
-| Le Cap    | Note de cadrage, brief client, Lean Canvas réduit, SWOT (→ hypothèses) | Rien : il se relit quand on doute                                     |
-| Décisions | Registre de décisions, D du RAID, demandes de changement, ADR | Décision écrite à chaque report de date et à chaque tâche sortie d'une étape   |
+| Outil     | Remplace                                                                                    | Ce qui se fait tout seul                                                       |
+| --------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Modèles   | Phases types, checklists de mise en ligne et de lancement                                   | Étapes datées au prorata jusqu'à la livraison (vendredis), tâches types, canal |
+| Étapes    | WBS, PBS, jalons, phases, Now/Next/Later, Gantt, burn-up                                    | Avancement, date prévue au rythme réel, retard, étape en cours, bilan          |
+| Le Cap    | Note de cadrage (QQOQCCP), brief client ; détail dans « Comprendre le projet » (§ 2 quater) | Quand et Comment : depuis les étapes et le cahier technique                    |
+| Décisions | Registre de décisions, D du RAID, demandes de changement, ADR                               | Décision écrite à chaque report de date et à chaque tâche sortie d'une étape   |
 
 - **Modèles** (à la création du projet, ou depuis la feuille de route vide) : Express (2 étapes), Produit (Preuve →
   Conception → Le cœur → Bêta privée → Mise en ligne → Lancement → Vie du produit), Projet client, Vide. Suggéré selon
@@ -61,9 +61,9 @@ travaille déjà (accueil, tableau, fiche tâche, discussion, compte rendu, ratt
     route, décisions, une ligne « à changer ») part dans `#général`.
   - Tableau et priorités montrent par défaut l'étape en cours (+ les tâches sans étape) ; en cours, en revue et terminé
     restent toujours visibles. Une carte d'une autre étape porte sa pastille. Une tâche créée va dans l'étape affichée.
-- **Le Cap** : une seule note (titres `##`, listes, gras), proposée avec ses intertitres : pour qui, leur problème,
-  notre réponse, qui paie, ce qu'on ne fait pas (ou le brief d'un projet client). « Notre réponse en une phrase »
-  est la description du projet, sous son nom. Proposé sur l'accueil tant qu'un projet de 3 étapes ou plus n'est pas cadré.
+- **Le Cap** : la note de cadrage en QQOQCCP (pourquoi, qui, quoi, ce qu'on ne fait pas, où, combien ; quand et
+  comment se calculent). « Notre réponse en une phrase » est la description du projet, sous son nom. Les trous du
+  cadrage (au plus 5) s'affichent sur l'accueil.
   - **À vérifier** (au plus 3) : ce sur quoi le projet parie. « Vérifier » crée la tâche dans l'étape en cours ; sa
     fin demande « vrai ou faux ? », et la réponse devient une décision.
 - **Modules** : les parties d'un produit qui grandit (site, rendez-vous, ordonnances…). Un nouveau module est une
@@ -75,9 +75,47 @@ travaille déjà (accueil, tableau, fiche tâche, discussion, compte rendu, ratt
 - **Décisions** : écrites en tête du journal, ou « C'est décidé » (le marteau) sur n'importe quel message, depuis la
   fiche tâche ou une étape. Jamais modifiées : on les **remplace** (l'ancienne reste barrée) ; seul l'auteur peut en retirer une.
 
-Écartés : RACI / OBS (à deux, `assignee` + `reviewer` disent tout), estimations et burn-down (le rythme réel suffit),
-dépendances et Gantt complet (personne ne les tient à jour ; « bloqué » couvre le reste), registre des risques manuel
-(le risque est calculé), PESTEL, BMC complet, rétrospectives (le bilan est calculé), time tracking.
+Écartés : RACI (à deux, `assignee` + `reviewer` disent tout ; l'OBS se lit dans les parties prenantes), estimations,
+tailles et burn-down (le rythme réel suffit), dépendances et Gantt complet (personne ne les tient à jour ; « bloqué »
+couvre le reste), plan de référence figé et contrôle des changements (les décisions suffisent), registre des risques
+manuel (les hypothèses et le TOWS en tiennent lieu), PESTEL, BMC complet, rétrospectives (le bilan est calculé),
+time tracking.
+
+## 2 quater. Comprendre le projet (le cadrage)
+
+Le cadrage est une **référence** : on l'écrit au démarrage, on le relit pour ne pas perdre le cap, un nouvel arrivant
+le lit pour tout comprendre. Le travail de chaque jour reste dans le tableau : une fonctionnalité s'y ajoute en
+quelques secondes, rattachée (`^epic`, `^us-7`) ou non. Rien du cadrage ne bloque une tâche.
+
+- **Création** (`/demarrer`) : type (Express, Produit, Projet client), pourquoi / qui / quoi, les modules, les étapes
+  avec leur « fini quand ». Dix minutes, puis le tableau. Le reste se propose sur l'accueil, une chose à la fois.
+- **Note de cadrage** : QQOQCCP, parties prenantes (matrice influence × intérêt, rythme d'information), indicateurs
+  de succès (les chiffres), paris à vérifier (les hypothèses), SWOT et TOWS (une stratégie devient une epic ou un pari).
+- **Cahier des charges fonctionnel** (plan d'expression de besoins) : contexte et objectifs (pourquoi + initiatives +
+  chiffres), périmètre (calculé : epics prévues ; exclu = « ce qu'on ne fait pas » + epics « plus tard »), personas,
+  cartographie (les modules, deux niveaux = le PBS), initiative → epic → user story avec ses critères d'acceptation,
+  parcours et règles de gestion, jeu de données de test (rassemblé depuis les critères), glossaire.
+- **Cahier des charges technique**, séparé : performance, sécurité et RGPD, plateformes et accessibilité, services
+  externes, hébergement, stack, environnements, définition de « fini » (affichée sur la fiche tâche), conventions,
+  après la mise en ligne.
+- **Ce qui se calcule** : état d'une story (à faire, en cours, livrée, en prod) depuis ses tâches et ses critères,
+  avancement d'une epic, epics que fait avancer chaque étape (le WBS = étapes × modules), « À ranger » (fonctionnalités
+  non rattachées), note client d'une mise en prod (« Ce que vous pouvez faire maintenant »), compte rendu (stories
+  livrées, qui informer). Chaque document s'exporte en Markdown.
+- Sur la fiche tâche : d'où elle vient (initiative › epic › story), les critères que le relecteur coche, « Rattacher »
+  ou « En faire une story ». Passer une epic « à plus tard » renvoie son travail ouvert aux idées, avec une décision.
+
+## 2 quinquies. Le chef de projet IA
+
+Il ne s'active que sur un clic (« Découper cette étape », « Écrire les stories de cette epic »…) et ne fait que
+**proposer** : on coche, on réécrit, on applique (au plus une demande de modification). Ses ops sont une liste blanche
+de commandes existantes : jamais de suppression, de coffre, d'assignation, de tâche démarrée ou finie, ni de date
+d'étape sans son pourquoi. Contexte compact (titres, jamais les notes ni le coffre), petit modèle pour les demandes
+courantes, plus grand pour ce qui demande du jugement, cache (même question, même réponse, gratuite), quota par projet
+et par mois, consommation sur la page Compte. Boutons : découper une étape, reformuler une tâche ou les idées, trier,
+proposer les étapes, compléter la note de cadrage ou le cahier technique, proposer le SWOT / TOWS, proposer les epics
+et stories, écrire les stories d'une epic, ranger les tâches, quoi couper, tirer décisions et tâches d'une discussion,
+bilan de santé.
 
 ## 2 ter. La couche dev : types, bugs, mises en prod, indicateurs
 
@@ -109,7 +147,7 @@ dépendances et Gantt complet (personne ne les tient à jour ; « bloqué » cou
 | Tableau          | Le Kanban : filtres (texte, étape, personne), colonnes fixes qui défilent seules, bouton « étape suivante » ; en glissant, un emplacement de la taille de la carte et rien d'autre ne bouge                                       |
 | Priorités        | La matrice 2×2 + « À trier », classement en un clic ou en glissant                                                                                                                                                                |
 | Discussion       | Canal `général` + canaux libres (créer, renommer, supprimer), réponses citées, `@` mentions, `#12` pour une tâche, pièces jointes                                                                                                 |
-| Planning         | La semaine : dispo / prévu / libre par personne (tous projets), moments ensemble, « Poser » une tâche en 1 clic ou « Proposer la semaine », semaine type en 1 clic, échéances, fins d'étape et mises en prod sur les jours |
+| Planning         | La semaine : dispo / prévu / libre par personne (tous projets), moments ensemble, « Poser » une tâche en 1 clic ou « Proposer la semaine », semaine type en 1 clic, échéances, fins d'étape et mises en prod sur les jours        |
 | Indicateurs      | Les chiffres du projet (saisis chaque semaine) et le rythme de l'équipe (calculé)                                                                                                                                                 |
 | Mises en prod    | Ce qui part, la note client, qui prévenir, l'historique des versions                                                                                                                                                              |
 | Documents        | Dossiers et sous-dossiers, glisser un fichier sur un dossier, « Déplacer vers… », recherche dans tout le projet ; les pièces jointes du chat vont dans « Partagés dans la discussion »                                            |

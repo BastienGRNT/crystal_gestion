@@ -123,7 +123,7 @@ export function taskActions(app: AppState) {
 		},
 
 		/** A new part of the product: one line, not a new project. */
-		addComponent(projectId: string, name: string, parentId: string | null = null): boolean {
+		addComponent(projectId: string, name: string, parentId: string | null = null) {
 			const others = app.components.all.filter((c) => c.projectId === projectId);
 			const component = attempt<Component>(() => {
 				ensureRoomForComponent(others);
@@ -140,7 +140,7 @@ export function taskActions(app: AppState) {
 					createdAt: new Date().toISOString()
 				};
 			});
-			if (!component) return false;
+			if (!component) return null;
 			app.components.upsert(component);
 			settle(
 				app,
@@ -155,7 +155,7 @@ export function taskActions(app: AppState) {
 				(saved) => app.components.upsert(saved),
 				() => app.components.remove(component.id)
 			);
-			return true;
+			return component;
 		},
 
 		updateComponent(

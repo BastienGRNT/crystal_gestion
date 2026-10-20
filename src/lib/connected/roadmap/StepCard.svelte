@@ -17,6 +17,7 @@
 	import { componentOptions } from '../tasks/components-of';
 	import { QUICK_HINT, quickAdd } from '../tasks/quick-add';
 	import { epicIdOf, epicProgress } from '$lib/client/views/framing';
+	import AskPm from '../assistant/AskPm.svelte';
 	import { paceText } from './step-text';
 
 	interface Props {
@@ -200,9 +201,13 @@
 				<Button size="sm" variant="primary" icon={CircleCheckBig} onclick={onclose}>Clore</Button>
 			</div>
 		{:else if late && current}
-			<p class="rounded-xl bg-danger-soft px-4 py-3 text-base text-danger-text">
-				Au rythme actuel, elle déborde : passe des tâches en pistes, ou décale la date (c’est noté).
-			</p>
+			<div class="flex flex-wrap items-center gap-3 rounded-xl bg-danger-soft px-4 py-3">
+				<p class="min-w-0 flex-1 text-base text-danger-text">
+					Au rythme actuel, elle déborde : passe des tâches en pistes, ou décale la date (c’est
+					noté).
+				</p>
+				<AskPm projectId={step.projectId} action="whatToCut" targetId={step.id} />
+			</div>
 		{/if}
 
 		{#if expanded}
@@ -257,6 +262,7 @@
 			<div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">
 				{#if !closed}
 					<Button size="sm" icon={CircleCheckBig} onclick={onclose}>Clore l’étape</Button>
+					<AskPm projectId={step.projectId} action="splitStep" targetId={step.id} />
 				{/if}
 				<Button
 					size="sm"

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '../assistant/AskPm.svelte';
 	import {
 		Check,
 		Ellipsis,
@@ -168,10 +169,18 @@
 				e.currentTarget.blur();
 			}}
 		/>
-		<p class="mt-1 text-sm text-ink-3">
-			Ajoutée par {author?.name ?? 'quelqu’un'}
-			{relativeTime(task.createdAt, now.value)}
-		</p>
+		<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+			<p class="text-sm text-ink-3">
+				Ajoutée par {author?.name ?? 'quelqu’un'}
+				{relativeTime(task.createdAt, now.value)}
+			</p>
+			{#if task.status !== 'done'}<AskPm
+					projectId={task.projectId}
+					action="refineTask"
+					targetId={task.id}
+					variant="ghost"
+				/>{/if}
+		</div>
 
 		{#if hypothesis}
 			<div

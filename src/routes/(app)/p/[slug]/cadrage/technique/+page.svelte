@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '$lib/connected/assistant/AskPm.svelte';
 	import { useApp } from '$lib/client/context';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
 	import {
@@ -44,6 +45,9 @@
 </script>
 
 {#if project}
+	<div class="mb-6 flex justify-end lg:-mt-2">
+		<AskPm projectId={project.id} action="completeTechSpec" />
+	</div>
 	<DocPage
 		label="Sommaire du cahier des charges technique"
 		entries={ids.map(({ heading, id }) => ({ id, label: heading }))}

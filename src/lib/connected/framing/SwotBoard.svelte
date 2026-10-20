@@ -73,7 +73,7 @@
 			<InlineAdd
 				label="Ajouter"
 				placeholder={SWOT_LABELS[q].question}
-				onadd={(text) => actions.framing.addSwotItem(project.id, q, text)}
+				onadd={(text) => actions.framing.addSwotItem(project.id, q, text) !== null}
 			/>
 		{/if}
 	</div>
@@ -155,7 +155,7 @@
 		<InlineAdd
 			label="Ajouter une stratégie"
 			placeholder="Ex. : offre « cabinet solo » à 19 €"
-			onadd={(text) => actions.framing.addStrategy(project.id, kind, text)}
+			onadd={(text) => actions.framing.addStrategy(project.id, kind, text) !== null}
 		/>
 	</div>
 {/snippet}

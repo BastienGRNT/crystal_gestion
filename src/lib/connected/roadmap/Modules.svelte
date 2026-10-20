@@ -96,6 +96,6 @@
 	<InlineAdd
 		label="Ajouter un module"
 		placeholder="Nom du module, puis Entrée (ex. : Prise de RDV)"
-		onadd={(name) => actions.tasks.addComponent(project.id, name)}
+		onadd={(name) => actions.tasks.addComponent(project.id, name) !== null}
 	/>
 </section>

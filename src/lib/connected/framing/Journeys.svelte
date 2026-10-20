@@ -49,6 +49,6 @@
 	<InlineAdd
 		label="Ajouter un parcours"
 		placeholder="Ex. : Un patient réserve son premier rendez-vous"
-		onadd={(title) => actions.framing.addJourney(project.id, title)}
+		onadd={(title) => actions.framing.addJourney(project.id, title) !== null}
 	/>
 </div>

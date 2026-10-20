@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '../assistant/AskPm.svelte';
 	import { BookOpen, X } from '@lucide/svelte';
 	import { untrack } from 'svelte';
 	import { useApp } from '$lib/client/context';
@@ -51,6 +52,9 @@
 					</li>
 				{/each}
 			</ul>
+			{#if gaps.some((g) => g.kind === 'brief')}<div class="mt-1 self-start">
+					<AskPm projectId={project.id} action="completeFraming" />
+				</div>{/if}
 		</div>
 		<IconButton icon={X} label="Plus tard" size="sm" onclick={dismiss} />
 	</section>

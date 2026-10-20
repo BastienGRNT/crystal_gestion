@@ -67,3 +67,21 @@ export interface CriterionItem {
 	data: string;
 	expected: string;
 }
+
+/** A question of the AI project manager: pick an option or write something else. */
+export interface AssistantQuestion {
+	text: string;
+	options: string[];
+	suggested: string;
+}
+
+/** One change the AI project manager proposes, as the review panel shows it. */
+export interface ProposedChange {
+	id: string;
+	label: string;
+	/** Its main text, which the person may rewrite; null when there is none. */
+	text: string | null;
+	details: string[];
+	reason: string;
+	sources: string[];
+}

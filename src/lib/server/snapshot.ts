@@ -42,7 +42,8 @@ export async function loadSnapshot(userId: string) {
 		metrics,
 		releases,
 		components,
-		framed
+		framed,
+		aiMonth
 	] = await Promise.all([
 		identity.listByIds(people),
 		tasks.ofProjects(ids),
@@ -64,7 +65,8 @@ export async function loadSnapshot(userId: string) {
 		roadmap.metricsOf(ids),
 		roadmap.releasesOf(ids),
 		tasks.componentsOf(ids),
-		framing.of(ids)
+		framing.of(ids),
+		container.assistant.monthUsage(ids)
 	]);
 	return {
 		meId: userId,
@@ -92,7 +94,13 @@ export async function loadSnapshot(userId: string) {
 		metrics,
 		releases,
 		components,
-		...framed
+		...framed,
+		/** The AI project manager: on or off on this server, and what it cost this month. */
+		assistant: {
+			enabled: container.assistant.enabled(),
+			quota: container.assistant.quota,
+			month: aiMonth
+		}
 	};
 }
 

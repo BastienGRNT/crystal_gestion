@@ -42,6 +42,8 @@ export interface DecisionSeed {
 	taskId?: string | null;
 	milestoneId?: string | null;
 	supersedes?: string | null;
+	/** Proposed by the assistant, accepted by me. */
+	source?: 'manual' | 'ai';
 }
 
 /** The roadmap: steps, decisions, hypotheses, the project's numbers and its versions. */
@@ -199,17 +201,17 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 			milestoneId: seed.milestoneId ?? null,
 			hypothesisId: null,
 			supersedes: seed.supersedes ?? null,
-			source: 'manual',
+			source: seed.source ?? 'manual',
 			decidedBy: app.meId,
 			decidedAt: new Date().toISOString()
 		}));
 		if (!decision) return null;
 		app.decisions.upsert(decision);
-		const { decidedBy: _, decidedAt: __, hypothesisId: ___, source: ____, ...input } = decision;
+		const { decidedBy: _, decidedAt: __, hypothesisId: ___, source, ...input } = decision;
 		settle(
 			app,
 			decision.id,
-			send('roadmap.createDecision', input),
+			send('roadmap.createDecision', { ...input, source: source === 'ai' ? 'ai' : 'manual' }),
 			(saved) => app.decisions.upsert(saved),
 			() => app.decisions.remove(decision.id)
 		);
@@ -275,9 +277,13 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 	const metricsOf = (projectId: string) =>
 		activeMetrics(app.metrics.all.filter((m) => m.projectId === projectId));
 
-	/** "Clients payants 50" adds a number with its target. */
-	function addMetric(projectId: string, line: string) {
-		const parsed = parseMetricLine(line);
+	/** "Clients payants 40" reads the target from the line; `fields` say it outright. */
+	function addMetric(
+		projectId: string,
+		line: string,
+		fields: { unit?: string; target?: number | null; direction?: Metric['direction'] } = {}
+	) {
+		const parsed = { ...parseMetricLine(line), ...fields };
 		const others = metricsOf(projectId);
 		const metric = attempt<Metric>(() => ({
 			id: crypto.randomUUID(),
@@ -285,18 +291,18 @@ export function roadmapActions(app: AppState, chat: ReturnType<typeof chatAction
 			name: validMetricName(parsed.name),
 			unit: validUnit(parsed.unit),
 			target: validTarget(parsed.target),
-			direction: 'up',
+			direction: fields.direction ?? 'up',
 			position: Math.max(0, ...others.map((m) => m.position)) + 1,
 			archivedAt: null,
 			createdAt: new Date().toISOString()
 		}));
 		if (!metric) return null;
-		const { id, name, unit, target } = metric;
+		const { id, name, unit, target, direction } = metric;
 		app.metrics.upsert(metric);
 		settle(
 			app,
 			id,
-			send('roadmap.createMetric', { id, projectId, name, unit, target }),
+			send('roadmap.createMetric', { id, projectId, name, unit, target, direction }),
 			(saved) => app.metrics.upsert(saved),
 			() => app.metrics.remove(id)
 		);

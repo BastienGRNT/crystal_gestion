@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '$lib/connected/assistant/AskPm.svelte';
 	import { Compass, LayoutTemplate, Plus } from '@lucide/svelte';
 	import { tick } from 'svelte';
 	import { useApp } from '$lib/client/context';
@@ -136,6 +137,7 @@
 						<Button variant="primary" icon={LayoutTemplate} onclick={() => (templates = true)}
 							>Partir d’un modèle</Button
 						>
+						<AskPm projectId={project.id} action="proposeSteps" size="md" />
 					</EmptyState>
 					<div bind:this={adder}>
 						<InlineAdd

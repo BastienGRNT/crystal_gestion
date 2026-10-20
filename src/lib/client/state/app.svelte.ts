@@ -73,6 +73,12 @@ export class AppState {
 	terms = new Collection<Term>();
 	swot = new Collection<SwotItem>();
 	strategies = new Collection<Strategy>();
+	/** The AI project manager: on this server or not, its quota, and this month's use. */
+	assistant = $state<Snapshot['assistant']>({
+		enabled: false,
+		quota: { requests: 0, micros: 0 },
+		month: []
+	});
 	messages = new MessageStore();
 	/** Open questions of all my projects, loaded or not: they wait on someone. */
 	questions = new Collection<Message>();
@@ -127,6 +133,7 @@ export class AppState {
 		this.terms.reset(snapshot.terms);
 		this.swot.reset(snapshot.swot);
 		this.strategies.reset(snapshot.strategies);
+		this.assistant = snapshot.assistant;
 		this.messages.invalidate();
 	}
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '../assistant/AskPm.svelte';
 	import { CalendarClock, MoreHorizontal, RotateCcw, Trash2 } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { epicProgress } from '$lib/client/views/framing';
@@ -152,6 +153,9 @@
 		</ul>
 	{/if}
 	{#if !epic.later}
+		<div class="self-start">
+			<AskPm projectId={epic.projectId} action="writeStories" targetId={epic.id} variant="ghost" />
+		</div>
 		<InlineAdd
 			label="Ajouter une story"
 			placeholder="Ce que la personne veut faire, ex. : réserver sans créer de compte"

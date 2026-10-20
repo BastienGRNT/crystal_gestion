@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '../assistant/AskPm.svelte';
 	import { ArrowLeft, Ellipsis, Hash, Pencil, Trash2 } from '@lucide/svelte';
 	import { onDestroy, untrack } from 'svelte';
 	import { goto, replaceState } from '$app/navigation';
@@ -83,6 +84,14 @@
 				{channel.kind === 'general' ? 'Tout le projet' : 'Un sujet du projet'} · {project.name}
 			</p>
 		</div>
+		<span class="max-sm:hidden"
+			><AskPm
+				projectId={project.id}
+				action="extractThread"
+				targetId={channel.id}
+				variant="ghost"
+			/></span
+		>
 		{#if channel.kind === 'custom'}
 			<Menu
 				label="Options du canal"

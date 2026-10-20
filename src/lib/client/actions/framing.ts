@@ -95,11 +95,10 @@ export function framingActions(app: AppState) {
 				position: endOf(app.initiatives.all, projectId),
 				createdAt: now()
 			}));
-			if (!item) return false;
-			put(app.initiatives, item, () =>
+			if (!item) return null;
+			return put(app.initiatives, item, () =>
 				send('framing.createInitiative', { id: item.id, projectId, title: item.title })
 			);
-			return true;
 		},
 		updateInitiative: (id: string, changes: Patch<Initiative>) =>
 			patch(app.initiatives, id, changes, () =>
@@ -224,9 +223,9 @@ export function framingActions(app: AppState) {
 				position: endOf(app.stakeholders.all, projectId),
 				createdAt: now()
 			}));
-			if (!item) return false;
+			if (!item) return null;
 			const { influence, interest } = item;
-			put(app.stakeholders, item, () =>
+			return put(app.stakeholders, item, () =>
 				send('framing.createStakeholder', {
 					id: item.id,
 					projectId,
@@ -236,7 +235,6 @@ export function framingActions(app: AppState) {
 					interest
 				})
 			);
-			return true;
 		},
 		updateStakeholder: (id: string, changes: Patch<Stakeholder>) =>
 			patch(app.stakeholders, id, changes, () =>
@@ -256,11 +254,10 @@ export function framingActions(app: AppState) {
 				position: endOf(app.journeys.all, projectId),
 				createdAt: now()
 			}));
-			if (!item) return false;
-			put(app.journeys, item, () =>
+			if (!item) return null;
+			return put(app.journeys, item, () =>
 				send('framing.createJourney', { id: item.id, projectId, title: item.title })
 			);
-			return true;
 		},
 		updateJourney: (id: string, changes: Patch<Journey>) =>
 			patch(app.journeys, id, changes, () => send('framing.updateJourney', { id, ...changes })),
@@ -277,11 +274,10 @@ export function framingActions(app: AppState) {
 				definition,
 				createdAt: now()
 			}));
-			if (!item) return false;
-			put(app.terms, item, () =>
+			if (!item) return null;
+			return put(app.terms, item, () =>
 				send('framing.createTerm', { id: item.id, projectId, term: item.term, definition })
 			);
-			return true;
 		},
 		updateTerm: (id: string, changes: Patch<Term>) =>
 			patch(app.terms, id, changes, () => send('framing.updateTerm', { id, ...changes })),
@@ -299,11 +295,10 @@ export function framingActions(app: AppState) {
 				position: endOf(app.swot.all, projectId),
 				createdAt: now()
 			}));
-			if (!item) return false;
-			put(app.swot, item, () =>
+			if (!item) return null;
+			return put(app.swot, item, () =>
 				send('framing.createSwotItem', { id: item.id, projectId, quadrant, text: item.text })
 			);
-			return true;
 		},
 		updateSwotItem: (id: string, text: string) =>
 			patch(app.swot, id, { text }, () => send('framing.updateSwotItem', { id, text })),
@@ -323,11 +318,10 @@ export function framingActions(app: AppState) {
 				hypothesisId: null,
 				createdAt: now()
 			}));
-			if (!item) return false;
-			put(app.strategies, item, () =>
+			if (!item) return null;
+			return put(app.strategies, item, () =>
 				send('framing.createStrategy', { id: item.id, projectId, kind, text: item.text, itemIds })
 			);
-			return true;
 		},
 		updateStrategy: (id: string, changes: { text?: string; itemIds?: string[] }) =>
 			patch(app.strategies, id, changes, () => send('framing.updateStrategy', { id, ...changes })),

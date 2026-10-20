@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '$lib/connected/assistant/AskPm.svelte';
 	import { Plus } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { currentProject } from '$lib/connected/projects/current.svelte';
@@ -24,6 +25,7 @@
 			<KindFilter projectId={project.id} />
 			<StepFilter projectId={project.id} />
 			<PersonFilter projectId={project.id} />
+			<AskPm projectId={project.id} action="sortTasks" size="md" />
 			<Button
 				variant="primary"
 				icon={Plus}

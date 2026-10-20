@@ -1,4 +1,5 @@
 import type { AppState } from '../state/app.svelte';
+import { assistantActions } from './assistant';
 import { chatActions } from './chat';
 import { fileActions } from './files.svelte';
 import { framingActions } from './framing';
@@ -9,8 +10,7 @@ import { roadmapActions } from './roadmap';
 import { taskActions } from './tasks';
 import { vaultActions } from './vault';
 
-/** Every user action goes through here: shown at once, sent, undone if the server refuses. */
-export function createActions(app: AppState) {
+function baseActions(app: AppState) {
 	const chat = chatActions(app);
 	return {
 		tasks: taskActions(app),
@@ -23,6 +23,14 @@ export function createActions(app: AppState) {
 		framing: framingActions(app),
 		people: peopleActions(app)
 	};
+}
+
+export type BaseActions = ReturnType<typeof baseActions>;
+
+/** Every user action goes through here: shown at once, sent, undone if the server refuses. */
+export function createActions(app: AppState) {
+	const base = baseActions(app);
+	return { ...base, assistant: assistantActions(app, base) };
 }
 
 export type Actions = ReturnType<typeof createActions>;

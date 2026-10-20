@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '../assistant/AskPm.svelte';
 	import { Search } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { plural } from '$lib/client/format';
@@ -121,7 +122,11 @@
 				label="Noter une idée"
 				placeholder="L’idée, puis Entrée"
 				onadd={add('idea')}
-			/>{/snippet}
+			/>{#if board.columns.idea.length}<AskPm
+					projectId={project.id}
+					action="refineIdeas"
+					variant="ghost"
+				/>{/if}{/snippet}
 	</BoardColumn>
 
 	<BoardColumn

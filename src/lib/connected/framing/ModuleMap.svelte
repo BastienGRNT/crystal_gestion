@@ -78,6 +78,6 @@
 	<InlineAdd
 		label="Ajouter un module"
 		placeholder="Une grande partie du produit, ex. : Prise de rendez-vous"
-		onadd={(name) => actions.tasks.addComponent(project.id, name)}
+		onadd={(name) => actions.tasks.addComponent(project.id, name) !== null}
 	/>
 </div>

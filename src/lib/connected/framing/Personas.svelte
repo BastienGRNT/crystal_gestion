@@ -89,7 +89,7 @@
 	<InlineAdd
 		label="Ajouter un persona"
 		placeholder="Un type d’utilisateur, ex. : Patient, Kiné, Secrétaire"
-		onadd={(name) => actions.framing.addStakeholder(project.id, name, 'uses')}
+		onadd={(name) => actions.framing.addStakeholder(project.id, name, 'uses') !== null}
 	/>
 	{#if others.length}
 		<p class="text-sm text-ink-3">

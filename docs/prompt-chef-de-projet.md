@@ -1,5 +1,10 @@
 # Prompt — Chef de projet IA dans Crystal
 
+> **État (20/10/2026)** : les lots 1 à 3 sont faits, adaptés au cadrage (voir `PLAN.md` § 2 quater et § 2 quinquies).
+> Différences : les parties prenantes et la fiche technique vivent dans le module `framing` et le cahier des charges
+> technique ; « reformuler la tâche » montre les champs proposés dans le panneau de revue ; « tirer décisions et tâches »
+> lit les 40 derniers messages de la discussion ; les compétences des membres ne sont pas encore saisies.
+
 À coller tel quel dans une nouvelle session Claude Code, sur `main`.
 
 ---
@@ -155,6 +160,7 @@ visé.
    - il passe par le cache : relancer sans changement ne coûte rien.
 
 Garde-fous valables pour tout le chantier :
+
 - Aucun appel sans clic.
 - Aucun appel en boucle.
 - Aucun appel dans un `$effect`.

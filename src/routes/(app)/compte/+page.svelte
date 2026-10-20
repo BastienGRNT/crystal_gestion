@@ -13,6 +13,8 @@
 	import Segmented from '$lib/ui/molecules/Segmented.svelte';
 	import PageHeader from '$lib/ui/organisms/PageHeader.svelte';
 	import SettingsSection from '$lib/ui/organisms/SettingsSection.svelte';
+	import { activeProjects } from '$lib/client/views/workspace';
+	import { costLabel } from '$lib/modules/assistant/domain/pricing';
 
 	const { app, actions } = useApp();
 	let theme = $state<ThemeChoice>(storedTheme());
@@ -76,6 +78,34 @@
 				/></Field
 			>
 		</div>
+	</SettingsSection>
+
+	<SettingsSection
+		title="Chef de projet IA"
+		text="Ce qu’il a coûté ce mois-ci, par projet. Il ne s’active que sur un clic, et le budget de chaque projet repart le 1er du mois."
+	>
+		{#if !app.assistant.enabled}
+			<p class="text-base text-ink-2">
+				Pas activé sur ce serveur : il faut une clé <code class="font-mono text-sm"
+					>ANTHROPIC_API_KEY</code
+				> dans sa configuration.
+			</p>
+		{:else}
+			<ul class="flex flex-col divide-y divide-line">
+				{#each activeProjects(app.projects.all) as project (project.id)}
+					{@const used = app.assistant.month.find((m) => m.projectId === project.id)}
+					<li class="flex flex-wrap items-baseline justify-between gap-2 py-2.5">
+						<span class="font-medium">{project.name}</span>
+						<span class="text-sm text-ink-3 tabular-nums">
+							{used?.requests ?? 0} demande{(used?.requests ?? 0) > 1 ? 's' : ''} sur {app.assistant
+								.quota.requests} · {costLabel(used?.micros ?? 0)} sur {(
+								app.assistant.quota.micros / 1e6
+							).toLocaleString('fr')} $
+						</span>
+					</li>
+				{/each}
+			</ul>
+		{/if}
 	</SettingsSection>
 
 	<SettingsSection

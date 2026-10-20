@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '$lib/connected/assistant/AskPm.svelte';
 	import { Bug, ClipboardCopy, Plus, Users, Building2 } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { firstName } from '$lib/client/format';
@@ -66,6 +67,7 @@
 {#if project}
 	<PageHeader title={project.name} subtitle={project.description || undefined}>
 		{#snippet actions()}
+			<AskPm projectId={project.id} action="healthCheck" size="md" />
 			<Menu
 				label="Compte rendu de la semaine"
 				items={[

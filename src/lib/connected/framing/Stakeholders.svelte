@@ -164,6 +164,6 @@
 	<InlineAdd
 		label="Ajouter une partie prenante"
 		placeholder="Ex. : Le cabinet client, puis Entrée"
-		onadd={(name) => actions.framing.addStakeholder(project.id, name, 'decides')}
+		onadd={(name) => actions.framing.addStakeholder(project.id, name, 'decides') !== null}
 	/>
 </div>

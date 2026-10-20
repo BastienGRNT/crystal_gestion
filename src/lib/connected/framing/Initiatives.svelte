@@ -67,6 +67,6 @@
 	<InlineAdd
 		label="Ajouter une initiative"
 		placeholder="Un grand objectif, ex. : Remplacer le téléphone"
-		onadd={(title) => actions.framing.addInitiative(project.id, title)}
+		onadd={(title) => actions.framing.addInitiative(project.id, title) !== null}
 	/>
 </div>

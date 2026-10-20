@@ -1,4 +1,5 @@
 <script lang="ts">
+	import AskPm from '$lib/connected/assistant/AskPm.svelte';
 	import { useApp } from '$lib/client/context';
 	import BriefSections from '$lib/connected/framing/BriefSections.svelte';
 	import Stakeholders from '$lib/connected/framing/Stakeholders.svelte';
@@ -31,6 +32,7 @@
 			title="Qui, quoi, où, quand, comment, combien, pourquoi"
 			intro="Une ou deux phrases par ligne suffisent. Quand et Comment s’écrivent tout seuls, depuis les étapes et le cahier des charges technique."
 		>
+			{#snippet aside()}<AskPm projectId={project.id} action="completeFraming" />{/snippet}
 			<BriefSections {project} />
 		</DocSection>
 
@@ -75,6 +77,7 @@
 			title="SWOT et TOWS"
 			intro="Cinq éléments au plus par famille. Chaque croisement donne une stratégie, qui devient une epic à construire ou un pari à vérifier."
 		>
+			{#snippet aside()}<AskPm projectId={project.id} action="proposeSwot" />{/snippet}
 			<SwotBoard {project} />
 		</DocSection>
 	</DocPage>
