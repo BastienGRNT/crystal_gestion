@@ -19,7 +19,12 @@ const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(ProposalSchema) as 
  */
 export function geminiClient(apiKey: () => string | undefined, free: boolean): LlmClient {
 	let client: GoogleGenAI | null = null;
-	const get = () => (client ??= new GoogleGenAI({ apiKey: apiKey() }));
+	// A busy model (503) often answers a second later: a few quick retries before giving up.
+	const get = () =>
+		(client ??= new GoogleGenAI({
+			apiKey: apiKey(),
+			httpOptions: { retryOptions: { attempts: 3, initialDelay: 1 } }
+		}));
 
 	async function call({ size, system, context, request, maxTokens }: LlmRequest) {
 		const response = await get().models.generateContent({
@@ -65,11 +70,30 @@ export function geminiClient(apiKey: () => string | undefined, free: boolean): L
 			try {
 				return await call(input);
 			} catch (error) {
+				console.error('[assistant] Gemini', PROVIDERS.gemini[input.size].id, describe(error));
+				if (!overloaded(error)) throw readable(error);
+			}
+			// Still overloaded: the other model of the free tier is often available.
+			const other = input.size === 'small' ? 'large' : 'small';
+			try {
+				return await call({ ...input, size: other });
+			} catch (error) {
+				console.error('[assistant] Gemini', PROVIDERS.gemini[other].id, describe(error));
 				throw readable(error);
 			}
 		}
 	};
 }
+
+const overloaded = (error: unknown) =>
+	error instanceof ApiError && [500, 502, 503, 504].includes(error.status);
+
+const describe = (error: unknown) =>
+	error instanceof ApiError
+		? `${error.status} ${error.message.slice(0, 300)}`
+		: error instanceof Error
+			? error.message
+			: String(error);
 
 function parseJson(text: string | undefined): unknown {
 	try {
@@ -90,6 +114,10 @@ function readable(error: unknown) {
 		return invalid('La clé Gemini est refusée : vérifie GEMINI_API_KEY sur le serveur.');
 	if (error.status === 401 || error.status === 403)
 		return invalid('La clé Gemini est refusée : vérifie GEMINI_API_KEY sur le serveur.');
+	if (overloaded(error))
+		return invalid(
+			'Gemini est surchargé en ce moment (offre gratuite) : réessaie dans une minute.'
+		);
 	if (error.status === 400)
 		return invalid(
 			'Le chef de projet IA n’a pas compris la demande. Réessaie, ou fais-le à la main.'
