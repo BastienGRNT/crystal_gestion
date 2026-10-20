@@ -28,7 +28,7 @@
 	const last = $derived(lastProposals.get(key));
 	const unchanged = $derived(last?.stamp === stamp);
 	const estimate = $derived(
-		costLabel(estimateMicros(spec.size, spec.contextBudget, spec.maxTokens))
+		costLabel(estimateMicros(app.assistant.billing, spec.size, spec.contextBudget, spec.maxTokens))
 	);
 
 	let open = $state(false);

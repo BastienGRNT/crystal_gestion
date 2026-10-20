@@ -15,6 +15,7 @@ function setup(
 	const assistant = createAssistant({
 		llm: {
 			configured: () => options.configured ?? true,
+			billing: { provider: 'anthropic', free: false },
 			async propose(request) {
 				calls.push(request);
 				return {

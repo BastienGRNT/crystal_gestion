@@ -98,6 +98,7 @@ export async function loadSnapshot(userId: string) {
 		/** The AI project manager: on or off on this server, and what it cost this month. */
 		assistant: {
 			enabled: container.assistant.enabled(),
+			billing: container.assistant.billing,
 			quota: container.assistant.quota,
 			month: aiMonth
 		}

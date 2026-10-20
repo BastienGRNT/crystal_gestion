@@ -187,12 +187,21 @@ describe('the assistant’s context', () => {
 
 describe('the assistant’s cost', () => {
 	it('prices in micro-dollars and speaks in cents', () => {
-		expect(costMicros('small', { input: 10_000, output: 2_000, cacheWrite: 0, cacheRead: 0 })).toBe(
-			2_000
-		);
-		expect(costMicros('large', { input: 0, output: 0, cacheWrite: 0, cacheRead: 10_000 })).toBe(
-			2_000
-		);
+		const claude = { provider: 'anthropic' as const, free: false };
+		expect(
+			costMicros({ provider: 'gemini', free: true }, 'large', {
+				input: 9e6,
+				output: 9e6,
+				cacheWrite: 0,
+				cacheRead: 0
+			})
+		).toBe(0);
+		expect(
+			costMicros(claude, 'small', { input: 10_000, output: 2_000, cacheWrite: 0, cacheRead: 0 })
+		).toBe(2_000);
+		expect(
+			costMicros(claude, 'large', { input: 0, output: 0, cacheWrite: 0, cacheRead: 10_000 })
+		).toBe(2_000);
 		expect(costLabel(2_000)).toBe('moins d’un centime');
 		expect(costLabel(52_000)).toBe('≈ 5 centimes');
 	});

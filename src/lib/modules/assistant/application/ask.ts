@@ -2,7 +2,7 @@ import { forbidden, invalid } from '../../kernel/domain/errors';
 import { toDateKey } from '../../kernel/domain/dates';
 import { ACTIONS, type ActionKey } from '../domain/actions';
 import { buildContext, fingerprint, targetText } from '../domain/context';
-import { costMicros, MODELS } from '../domain/pricing';
+import { costMicros, modelId } from '../domain/pricing';
 import { cleanProposal, type Proposal } from '../domain/proposal';
 import { requestText, SYSTEM_PROMPT } from '../domain/prompt';
 import type { AssistantDeps } from './ports';
@@ -78,7 +78,12 @@ export const ask = (deps: AssistantDeps) => async (input: AskInput, actorId: str
 		remark: input.remark?.trim() || null
 	});
 
-	const key = fingerprint(MODELS[spec.size].id, SYSTEM_PROMPT, context.text, request);
+	const key = fingerprint(
+		modelId(deps.llm.billing, spec.size),
+		SYSTEM_PROMPT,
+		context.text,
+		request
+	);
 	const since = new Date(now.getTime() - CACHE_DAYS * 86_400_000);
 	const cached = await deps.usage.cached(key, since);
 	if (cached)
@@ -98,7 +103,7 @@ export const ask = (deps: AssistantDeps) => async (input: AskInput, actorId: str
 	});
 	// Once the team answered, the next round must be a proposal, not more questions.
 	if (input.answers.length || input.previous) proposal.questions = [];
-	const cost = costMicros(spec.size, answer.usage);
+	const cost = costMicros(deps.llm.billing, spec.size, answer.usage);
 	await deps.usage.insert({
 		id: deps.newId(),
 		projectId: input.projectId,

@@ -6,6 +6,7 @@ export function createAssistant(deps: AssistantDeps) {
 		ask: ask(deps),
 		monthUsage: monthUsage(deps),
 		enabled: () => deps.llm.configured(),
+		billing: deps.llm.billing,
 		quota: deps.quota
 	};
 }

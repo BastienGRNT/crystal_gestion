@@ -76,6 +76,7 @@ export class AppState {
 	/** The AI project manager: on this server or not, its quota, and this month's use. */
 	assistant = $state<Snapshot['assistant']>({
 		enabled: false,
+		billing: { provider: 'gemini', free: true },
 		quota: { requests: 0, micros: 0 },
 		month: []
 	});

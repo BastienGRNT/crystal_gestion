@@ -52,6 +52,7 @@
 		"@anthropic-ai/sdk": "^0.135.0",
 		"@fontsource-variable/geist": "^5.3.0",
 		"@fontsource-variable/geist-mono": "^5.3.0",
+		"@google/genai": "^2.30.0",
 		"@lucide/svelte": "^1.49.0",
 		"@tiptap/core": "^3.32.0",
 		"@tiptap/markdown": "^3.32.0",

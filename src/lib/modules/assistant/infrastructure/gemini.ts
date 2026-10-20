@@ -1,0 +1,98 @@
+import { ApiError, FinishReason, GoogleGenAI } from '@google/genai';
+import { z } from 'zod';
+import { DomainError, invalid } from '../../kernel/domain/errors';
+import type { LlmClient, LlmRequest } from '../application/ports';
+import { PROVIDERS } from '../domain/pricing';
+import { ProposalSchema } from './proposal-schema';
+
+// The schema Gemini follows; the answer is still checked with zod, then op by op.
+const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(ProposalSchema) as Record<
+	string,
+	unknown
+>;
+
+/**
+ * One call per ask, on Gemini. Its free tier costs nothing but is limited (requests per
+ * minute and per day) and lets Google read and reuse what is sent; `free: false` once the
+ * key's project has billing turned on. Gemini caches repeated prefixes on its own: the rules
+ * and the project context come first, the ask last.
+ */
+export function geminiClient(apiKey: () => string | undefined, free: boolean): LlmClient {
+	let client: GoogleGenAI | null = null;
+	const get = () => (client ??= new GoogleGenAI({ apiKey: apiKey() }));
+
+	async function call({ size, system, context, request, maxTokens }: LlmRequest) {
+		const response = await get().models.generateContent({
+			model: PROVIDERS.gemini[size].id,
+			contents: [
+				{ role: 'user', parts: [{ text: context }] },
+				{ role: 'user', parts: [{ text: request }] }
+			],
+			config: {
+				systemInstruction: system,
+				maxOutputTokens: maxTokens,
+				responseMimeType: 'application/json',
+				responseJsonSchema
+			}
+		});
+		const finish = response.candidates?.[0]?.finishReason;
+		if (response.promptFeedback?.blockReason || finish === FinishReason.SAFETY)
+			throw invalid(
+				'Le chef de projet IA a refusé cette demande. Reformule-la ou fais-le à la main.'
+			);
+		const parsed = ProposalSchema.safeParse(parseJson(response.text));
+		if (finish === FinishReason.MAX_TOKENS || !parsed.success)
+			throw invalid(
+				'La réponse du chef de projet IA était incomplète. Réessaie avec une demande plus courte.'
+			);
+		const u = response.usageMetadata;
+		return {
+			raw: parsed.data,
+			model: response.modelVersion ?? PROVIDERS.gemini[size].id,
+			usage: {
+				input: (u?.promptTokenCount ?? 0) - (u?.cachedContentTokenCount ?? 0),
+				output: (u?.candidatesTokenCount ?? 0) + (u?.thoughtsTokenCount ?? 0),
+				cacheWrite: 0,
+				cacheRead: u?.cachedContentTokenCount ?? 0
+			}
+		};
+	}
+
+	return {
+		configured: () => !!apiKey(),
+		billing: { provider: 'gemini', free },
+		async propose(input) {
+			try {
+				return await call(input);
+			} catch (error) {
+				throw readable(error);
+			}
+		}
+	};
+}
+
+function parseJson(text: string | undefined): unknown {
+	try {
+		return JSON.parse(text ?? '');
+	} catch {
+		return null;
+	}
+}
+
+/** The API's errors, said in words the team can act on. */
+function readable(error: unknown) {
+	if (error instanceof DomainError || !(error instanceof ApiError)) return error;
+	if (error.status === 429)
+		return invalid(
+			'La limite gratuite de Gemini est atteinte pour l’instant : réessaie dans une minute (ou demain si c’est la limite du jour).'
+		);
+	if (error.status === 400 && /api key/i.test(error.message))
+		return invalid('La clé Gemini est refusée : vérifie GEMINI_API_KEY sur le serveur.');
+	if (error.status === 401 || error.status === 403)
+		return invalid('La clé Gemini est refusée : vérifie GEMINI_API_KEY sur le serveur.');
+	if (error.status === 400)
+		return invalid(
+			'Le chef de projet IA n’a pas compris la demande. Réessaie, ou fais-le à la main.'
+		);
+	return invalid('Le chef de projet IA ne répond pas pour l’instant. Réessaie plus tard.');
+}

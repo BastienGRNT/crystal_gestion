@@ -1,7 +1,7 @@
 import type { Access, Clock } from '../../kernel/application/ports';
 import type { TargetKind } from '../domain/actions';
 import type { ProjectData } from '../domain/context';
-import type { ModelSize, Usage } from '../domain/pricing';
+import type { Billing, ModelSize, Usage } from '../domain/pricing';
 import type { Proposal, RawProposal } from '../domain/proposal';
 
 export interface LlmRequest {
@@ -25,6 +25,7 @@ export interface LlmAnswer {
 /** One call, a structured answer. Implemented by the Anthropic adapter. */
 export interface LlmClient {
 	configured(): boolean;
+	billing: Billing;
 	propose(request: LlmRequest): Promise<LlmAnswer>;
 }
 

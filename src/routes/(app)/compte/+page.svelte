@@ -87,10 +87,18 @@
 		{#if !app.assistant.enabled}
 			<p class="text-base text-ink-2">
 				Pas activé sur ce serveur : il faut une clé <code class="font-mono text-sm"
-					>ANTHROPIC_API_KEY</code
-				> dans sa configuration.
+					>GEMINI_API_KEY</code
+				>
+				(gratuite) ou <code class="font-mono text-sm">ANTHROPIC_API_KEY</code> dans sa configuration.
 			</p>
 		{:else}
+			{#if app.assistant.billing.free}
+				<p class="mb-3 rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn-text">
+					Offre gratuite de Gemini : Google peut lire et réutiliser ce qui lui est envoyé (titres,
+					note de cadrage…). N’y mets rien de confidentiel. Les limites de Google s’ajoutent à
+					celles-ci.
+				</p>
+			{/if}
 			<ul class="flex flex-col divide-y divide-line">
 				{#each activeProjects(app.projects.all) as project (project.id)}
 					{@const used = app.assistant.month.find((m) => m.projectId === project.id)}

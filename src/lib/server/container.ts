@@ -13,6 +13,7 @@ import { diskStorage } from '$lib/modules/files/infrastructure/disk-storage';
 import { drizzleFiles, drizzleFolders } from '$lib/modules/files/infrastructure/file-repository';
 import { createAssistant } from '$lib/modules/assistant';
 import { anthropicClient } from '$lib/modules/assistant/infrastructure/anthropic';
+import { geminiClient } from '$lib/modules/assistant/infrastructure/gemini';
 import { drizzleUsage } from '$lib/modules/assistant/infrastructure/usage-repository';
 import { createFraming } from '$lib/modules/framing';
 import {
@@ -281,7 +282,10 @@ const framing = createFraming({
 });
 
 const assistant = createAssistant({
-	llm: anthropicClient(config.anthropicKey),
+	llm:
+		config.aiProvider() === 'anthropic'
+			? anthropicClient(config.anthropicKey)
+			: geminiClient(config.geminiKey, config.geminiFree()),
 	usage: drizzleUsage(db),
 	// Reads through the modules (access checked by each): never the vault.
 	reader: {

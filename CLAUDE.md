@@ -29,7 +29,7 @@ Modules : `identity` (comptes, sessions, statut), `projects` (projets, membres, 
 cadrage `brief` en QQOQCCP, cahier des charges technique `techSpec`), `tasks`
 (tâches, types, modules du produit = `components` sur deux niveaux, story / epic d'une tâche),
 `framing` (initiatives, epics, user stories et critères, parties prenantes et personas, parcours, glossaire, SWOT,
-stratégies TOWS), `assistant` (chef de projet IA : liste blanche d'ops, contexte, quota, cache, adaptateur Anthropic),
+stratégies TOWS), `assistant` (chef de projet IA : liste blanche d'ops, contexte, quota, cache, adaptateurs Gemini et Anthropic),
 `chat` (canaux, messages, fils de commentaires des tâches), `files` (documents, dossiers), `vault`, `planning`
 (dispos, blocs de travail, calculs de l'agenda), `roadmap` (étapes, décisions, hypothèses, chiffres `metrics`, versions `releases`, modèles),
 `activity` (activité, notifications), `kernel` (erreurs, dates, ports).
@@ -126,7 +126,8 @@ Fichiers : `PUT /api/files` (corps brut, en flux vers le disque), `GET /api/file
   l'hôte proxy doit avoir « Websockets Support » activé (sinon bandeau « Connexion perdue » permanent).
 - Ajouter une op à l'assistant : schéma dans `ops.ts`, champs dans `prompt.ts` (`OP_FIELDS`), application dans
   `client/actions/assistant.ts`, libellé dans `client/views/proposal.ts`, puis l'autoriser dans l'action voulue.
-  Sans `ANTHROPIC_API_KEY`, les boutons n'apparaissent pas.
+  Fournisseur : Gemini (`GEMINI_API_KEY`, offre gratuite, coûts comptés à 0) ou Claude (`ANTHROPIC_API_KEY`), choisi
+  par `AI_PROVIDER` ; adaptateurs dans `assistant/infrastructure/`. Sans clé, les boutons n'apparaissent pas.
 - Liens du cadrage (tâche → story / epic, epic → initiative…) sans clé étrangère : le module `framing` détache avant
   de supprimer, comme `roadmap`.
 - Postgres écoute sur 55432. Prod : `ORIGIN` = URL publique, `APP_SECRET` obligatoire (ne plus la changer ensuite).

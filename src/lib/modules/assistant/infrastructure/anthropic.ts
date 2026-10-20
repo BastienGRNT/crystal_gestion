@@ -1,28 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
-import { z } from 'zod';
 import { DomainError, invalid } from '../../kernel/domain/errors';
 import type { LlmClient, LlmRequest } from '../application/ports';
-import { MODELS } from '../domain/pricing';
-import { VERDICTS } from '../domain/proposal';
-
-/** The answer's shape, enforced by the API (structured outputs). Op inputs are JSON text. */
-const ProposalSchema = z.object({
-	summary: z.string(),
-	verdict: z.enum(VERDICTS),
-	questions: z.array(
-		z.object({ text: z.string(), options: z.array(z.string()), suggested: z.string() })
-	),
-	ops: z.array(
-		z.object({
-			command: z.string(),
-			ref: z.string(),
-			input: z.string(),
-			reason: z.string(),
-			sources: z.array(z.string())
-		})
-	)
-});
+import { PROVIDERS } from '../domain/pricing';
+import { ProposalSchema } from './proposal-schema';
 
 /**
  * One call per ask. The rules and the project context are cached (they repeat across the
@@ -34,6 +15,7 @@ export function anthropicClient(apiKey: () => string | undefined): LlmClient {
 	const get = () => (client ??= new Anthropic({ apiKey: apiKey(), maxRetries: 2 }));
 	return {
 		configured: () => !!apiKey(),
+		billing: { provider: 'anthropic', free: false },
 		async propose(input) {
 			try {
 				return await call(input);
@@ -45,7 +27,7 @@ export function anthropicClient(apiKey: () => string | undefined): LlmClient {
 
 	async function call({ size, system, context, request, maxTokens }: LlmRequest) {
 		const response = await get().beta.messages.parse({
-			model: MODELS[size].id,
+			model: PROVIDERS.anthropic[size].id,
 			max_tokens: maxTokens,
 			betas: ['server-side-fallback-2026-07-01'],
 			fallbacks: 'default',
