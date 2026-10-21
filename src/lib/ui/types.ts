@@ -14,6 +14,8 @@ export interface MenuItem {
 	shortcut?: string;
 	danger?: boolean;
 	disabled?: boolean;
+	/** The option currently chosen, in a menu that picks one. */
+	checked?: boolean;
 	run: () => void;
 }
 

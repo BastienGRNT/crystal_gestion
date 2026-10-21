@@ -17,7 +17,7 @@
 	<div class="flex h-full flex-col">
 		<PageHeader
 			title="Tableau"
-			subtitle="Le flux du projet, de gauche à droite. On finit avant de commencer : deux tâches en cours par personne au plus."
+			subtitle="On finit avant de commencer : deux tâches en cours par personne au plus."
 		>
 			{#snippet actions()}
 				<Button

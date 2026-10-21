@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AskPm from '../assistant/AskPm.svelte';
-	import { Search } from '@lucide/svelte';
+	import { Search, X } from '@lucide/svelte';
 	import { useApp } from '$lib/client/context';
 	import { plural } from '$lib/client/format';
 	import { BOXES } from '$lib/client/labels';
@@ -29,6 +29,15 @@
 	let showAllDone = $state(false);
 	let showIdeas = $state(false);
 	let query = $state('');
+	const filtered = $derived(
+		!!query.trim() || !!workFilter.kind || !!workFilter.componentId || !!personFilter.value
+	);
+	function clearFilters() {
+		query = '';
+		workFilter.setKind(null);
+		workFilter.componentId = null;
+		personFilter.set(null);
+	}
 
 	const matches = (t: Task) => score(`${t.title} #${t.number}`, query) !== null;
 	const steps = $derived(stepFilter.view(app, project.id));
@@ -75,23 +84,32 @@
 		);
 </script>
 
-<div class="flex flex-wrap items-center gap-3 px-4 pb-4 sm:px-8">
-	<label class="relative w-full sm:w-72">
+<!-- One compact line of filters: the columns keep the height. -->
+<div class="flex flex-wrap items-center gap-2 px-4 pb-3 sm:px-8">
+	<label class="relative w-full sm:w-56">
 		<Search
-			size={17}
-			class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-3"
+			size={15}
+			class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3"
 			aria-hidden="true"
 		/>
 		<input
 			bind:value={query}
 			type="search"
-			placeholder="Filtrer les cartes (titre ou #12)"
-			class="h-11 w-full rounded-xl border border-line-strong/70 bg-surface pr-3 pl-10 text-base shadow-card outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
+			aria-label="Filtrer les cartes"
+			placeholder="Filtrer (titre ou #12)"
+			class="h-9 w-full rounded-lg border border-line-strong/70 bg-surface pr-3 pl-9 text-sm outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
 		/>
 	</label>
 	<KindFilter projectId={project.id} />
 	<StepFilter projectId={project.id} />
 	<PersonFilter projectId={project.id} />
+	{#if filtered}
+		<button
+			type="button"
+			class="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-sm text-ink-3 hover:bg-hover hover:text-ink"
+			onclick={clearFilters}><X size={14} aria-hidden="true" />Effacer</button
+		>
+	{/if}
 </div>
 
 <!-- Columns scroll on their own; the board scrolls sideways on small screens. -->

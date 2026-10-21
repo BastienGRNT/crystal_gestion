@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Check } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import Kbd from '../atoms/Kbd.svelte';
 	import type { MenuItem, Placement } from '../types';
@@ -73,6 +74,11 @@
 				>
 					{#if item.icon}<item.icon size={16} class="shrink-0 opacity-75" aria-hidden="true" />{/if}
 					<span class="flex-1">{item.label}</span>
+					{#if item.checked}<Check
+							size={16}
+							class="shrink-0 text-accent-text"
+							aria-label="choisi"
+						/>{/if}
 					{#if item.shortcut}<Kbd keys={item.shortcut} />{/if}
 				</button>
 			{/if}
