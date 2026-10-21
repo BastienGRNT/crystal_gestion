@@ -17,18 +17,28 @@ const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(ProposalSchema) as 
  * key's project has billing turned on. Gemini caches repeated prefixes on its own: the rules
  * and the project context come first, the ask last.
  */
-export function geminiClient(apiKey: () => string | undefined, free: boolean): LlmClient {
+export function geminiClient(
+	apiKey: () => string | undefined,
+	free: boolean,
+	largeModel: string | undefined = undefined
+): LlmClient {
+	const modelOf = (size: 'small' | 'large') =>
+		size === 'large' && largeModel ? largeModel : PROVIDERS.gemini[size].id;
 	let client: GoogleGenAI | null = null;
-	// A busy model (503) often answers a second later: a few quick retries before giving up.
+	// A busy model (503) often answers a second later: a few quick retries. Each call has its
+	// own deadline, well under the reverse proxy's (60 s), so the screen never waits for nothing.
 	const get = () =>
 		(client ??= new GoogleGenAI({
 			apiKey: apiKey(),
-			httpOptions: { retryOptions: { attempts: 3, initialDelay: 1 } }
+			httpOptions: { timeout: CALL_TIMEOUT_MS, retryOptions: { attempts: 3, initialDelay: 1 } }
 		}));
 
-	async function call({ size, system, context, request, maxTokens }: LlmRequest) {
+	async function call(
+		{ size, system, context, request, maxTokens }: LlmRequest,
+		abortSignal: AbortSignal
+	) {
 		const response = await get().models.generateContent({
-			model: PROVIDERS.gemini[size].id,
+			model: modelOf(size),
 			contents: [
 				{ role: 'user', parts: [{ text: context }] },
 				{ role: 'user', parts: [{ text: request }] }
@@ -37,7 +47,8 @@ export function geminiClient(apiKey: () => string | undefined, free: boolean): L
 				systemInstruction: system,
 				maxOutputTokens: maxTokens,
 				responseMimeType: 'application/json',
-				responseJsonSchema
+				responseJsonSchema,
+				abortSignal
 			}
 		});
 		const finish = response.candidates?.[0]?.finishReason;
@@ -53,7 +64,7 @@ export function geminiClient(apiKey: () => string | undefined, free: boolean): L
 		const u = response.usageMetadata;
 		return {
 			raw: parsed.data,
-			model: response.modelVersion ?? PROVIDERS.gemini[size].id,
+			model: response.modelVersion ?? modelOf(size),
 			usage: {
 				input: (u?.promptTokenCount ?? 0) - (u?.cachedContentTokenCount ?? 0),
 				output: (u?.candidatesTokenCount ?? 0) + (u?.thoughtsTokenCount ?? 0),
@@ -67,23 +78,32 @@ export function geminiClient(apiKey: () => string | undefined, free: boolean): L
 		configured: () => !!apiKey(),
 		billing: { provider: 'gemini', free },
 		async propose(input) {
+			// One deadline for the whole ask, retries and fallback included.
+			const deadline = AbortSignal.timeout(TOTAL_TIMEOUT_MS);
 			try {
-				return await call(input);
+				return await call(input, deadline);
 			} catch (error) {
-				console.error('[assistant] Gemini', PROVIDERS.gemini[input.size].id, describe(error));
-				if (!overloaded(error)) throw readable(error);
-			}
-			// Still overloaded: the other model of the free tier is often available.
-			const other = input.size === 'small' ? 'large' : 'small';
-			try {
-				return await call({ ...input, size: other });
-			} catch (error) {
-				console.error('[assistant] Gemini', PROVIDERS.gemini[other].id, describe(error));
-				throw readable(error);
+				console.error('[assistant] Gemini', modelOf(input.size), describe(error));
+				const other = input.size === 'small' ? 'large' : 'small';
+				if (!overloaded(error) || modelOf(other) === modelOf(input.size)) throw readable(error);
+				// Still overloaded: the other model is often available.
+				try {
+					return await call({ ...input, size: other }, deadline);
+				} catch (retry) {
+					console.error('[assistant] Gemini', modelOf(other), describe(retry));
+					throw readable(retry);
+				}
 			}
 		}
 	};
 }
+
+const CALL_TIMEOUT_MS = 40_000;
+const TOTAL_TIMEOUT_MS = 50_000;
+
+const timedOut = (error: unknown) =>
+	(error instanceof Error && (error.name === 'AbortError' || error.name === 'TimeoutError')) ||
+	(error instanceof ApiError && error.status === 504);
 
 const overloaded = (error: unknown) =>
 	error instanceof ApiError && [500, 502, 503, 504].includes(error.status);
@@ -105,7 +125,12 @@ function parseJson(text: string | undefined): unknown {
 
 /** The API's errors, said in words the team can act on. */
 function readable(error: unknown) {
-	if (error instanceof DomainError || !(error instanceof ApiError)) return error;
+	if (error instanceof DomainError) return error;
+	if (timedOut(error))
+		return invalid(
+			'Gemini met trop de temps à répondre en ce moment (offre gratuite). Réessaie dans une minute.'
+		);
+	if (!(error instanceof ApiError)) return error;
 	if (error.status === 429)
 		return invalid(
 			'La limite gratuite de Gemini est atteinte pour l’instant : réessaie dans une minute (ou demain si c’est la limite du jour).'

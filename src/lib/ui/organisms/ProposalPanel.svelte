@@ -46,6 +46,14 @@
 	const ticked = new SvelteSet<string>();
 	let texts = $state<Record<string, string>>({});
 	let remark = $state('');
+	// Seconds spent waiting, so a slow answer never looks frozen.
+	let waited = $state(0);
+	$effect(() => {
+		if (phase !== 'loading') return;
+		waited = 0;
+		const timer = setInterval(() => waited++, 1000);
+		return () => clearInterval(timer);
+	});
 	let seen = '';
 	$effect.pre(() => {
 		const key = changes.map((c) => c.id).join(',');
@@ -78,6 +86,9 @@
 	<div class="flex flex-col items-center gap-3 py-12 text-ink-3">
 		<Spinner />
 		<p class="text-base">Le chef de projet lit le projet…</p>
+		{#if waited >= 5}<p class="text-sm tabular-nums">
+				{waited} s{waited >= 20 ? ' · il répond en moins d’une minute, sinon il le dit' : ''}
+			</p>{/if}
 	</div>
 {:else if phase === 'questions'}
 	<div class="flex flex-col gap-5">

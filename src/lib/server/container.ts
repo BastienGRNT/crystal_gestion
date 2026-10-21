@@ -285,7 +285,7 @@ const assistant = createAssistant({
 	llm:
 		config.aiProvider() === 'anthropic'
 			? anthropicClient(config.anthropicKey)
-			: geminiClient(config.geminiKey, config.geminiFree()),
+			: geminiClient(config.geminiKey, config.geminiFree(), config.geminiLargeModel()),
 	usage: drizzleUsage(db),
 	// Reads through the modules (access checked by each): never the vault.
 	reader: {

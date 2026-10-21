@@ -20,6 +20,8 @@ export const config = {
 	},
 	/** Gemini's free tier until the key's project has billing on (`GEMINI_PAID=1`). */
 	geminiFree: () => env.GEMINI_PAID !== '1',
+	/** A larger Gemini model for the asks that need judgment (e.g. gemini-3.8-flash), once paid. */
+	geminiLargeModel: () => env.GEMINI_LARGE_MODEL || undefined,
 	/** Per project and per month; the defaults keep a small team well under 5 $. */
 	aiQuota: () => ({
 		requests: Number(env.AI_MONTHLY_REQUESTS) || DEFAULT_QUOTA.requests,

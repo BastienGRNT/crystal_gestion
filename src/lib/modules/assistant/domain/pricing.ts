@@ -5,10 +5,12 @@
  * tier, nothing is paid: Google's own limits (requests per minute and per day) apply instead.
  */
 export const PROVIDERS = {
+	// Flash-Lite for both: on the free tier, 3.8 Flash can take minutes (or time out) where
+	// Flash-Lite answers in seconds. GEMINI_LARGE_MODEL picks a larger one once billing is on.
 	gemini: {
 		label: 'Gemini',
 		small: { id: 'gemini-3.5-flash-lite', input: 0.3, output: 2.5, cacheWrite: 0, cacheRead: 0.03 },
-		large: { id: 'gemini-3.8-flash', input: 0.75, output: 3.75, cacheWrite: 0, cacheRead: 0.075 }
+		large: { id: 'gemini-3.5-flash-lite', input: 0.3, output: 2.5, cacheWrite: 0, cacheRead: 0.03 }
 	},
 	anthropic: {
 		label: 'Claude',
